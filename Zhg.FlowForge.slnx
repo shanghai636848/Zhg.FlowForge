@@ -3,7 +3,10 @@
   <Project Path="Zhg.FlowForge.App/Zhg.FlowForge.App.Shared/Zhg.FlowForge.App.Shared.csproj" />
   <Project Path="Zhg.FlowForge.App/Zhg.FlowForge.App.Web.Client/Zhg.FlowForge.App.Web.Client.csproj" />
   <Project Path="Zhg.FlowForge.App/Zhg.FlowForge.App.Web/Zhg.FlowForge.App.Web.csproj" />
-  <Project Path="Zhg.FlowForge.App/Zhg.FlowForge.App/Zhg.FlowForge.App.csproj" />
+  <Project Path="Zhg.FlowForge.App/Zhg.FlowForge.App/Zhg.FlowForge.App.csproj">
+    <Deploy Solution="Debug|*" />
+  </Project>
+  <Project Path="Zhg.FlowForge.ConsoleApp/Zhg.FlowForge.ConsoleApp.csproj" />
   <Project Path="Zhg.FlowForge.Core/Zhg.FlowForge.Core.csproj" />
   <Project Path="Zhg.FlowForge/Zhg.FlowForge.csproj" />
 </Solution>
