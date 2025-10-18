@@ -1,7 +1,607 @@
 ﻿@page "/"
+@inject IJSRuntime JSRuntime
+@implements IAsyncDisposable
 
-<PageTitle>Home</PageTitle>
+<div class="bpmn-editor" id="app">
+    <header class="editor-header">
+        <h1 class="text-lg font-semibold">BPMN 编辑器</h1>
+    </header>
 
-<h1>Hello, world!</h1>
+    <div class="editor-content" id="editorContent">
+        <!-- 左侧工具箱 -->
+        <aside class="sidebar toolbox @(IsLeftPanelVisible ? "" : "hidden")"
+               id="toolbox" style="@GetLeftPanelStyle()">
+            <div class="p-4">🛠️ 工具箱</div>
+        </aside>
 
-Welcome to your new app.
+        <!-- 左侧拖拽条 -->
+        <div class="resizer" id="leftResizer"
+             @onmousedown="StartLeftResize"
+             @onmouseenter="() => HighlightSidebar(toolboxRef, true)"
+             @onmouseleave="() => HighlightSidebar(toolboxRef, false)"></div>
+
+        <!-- 主画布区域 -->
+        <main class="canvas-container">
+            <div class="flex-1 p-4">🎨 BPMN 画布区域</div>
+        </main>
+
+        <!-- 右侧拖拽条 -->
+        <div class="resizer" id="rightResizer"
+             @onmousedown="StartRightResize"
+             @onmouseenter="() => HighlightSidebar(propertyPanelRef, true)"
+             @onmouseleave="() => HighlightSidebar(propertyPanelRef, false)"></div>
+
+        <!-- 右侧属性面板 -->
+        <aside class="sidebar property-panel @(IsRightPanelVisible ? "" : "hidden")"
+               id="propertyPanel" style="@GetRightPanelStyle()">
+            <div class="p-4">⚙️ 属性面板</div>
+        </aside>
+    </div>
+
+    <footer class="editor-footer">
+        <span class="text-sm text-gray-500">© 2025 BPMN 编辑器</span>
+    </footer>
+
+    <!-- 左侧切换按钮 -->
+    <button id="toggleLeft" class="sidebar-toggle left @(IsLeftToggleVisible ? "" : "hidden")"
+            title="工具箱" @onclick="ToggleLeftPanel">
+        <i class="fas @LeftToggleIcon"></i>
+    </button>
+
+    <!-- 右侧切换按钮 -->
+    <button id="toggleRight" class="sidebar-toggle right @(IsRightToggleVisible ? "" : "hidden")"
+            title="属性" @onclick="ToggleRightPanel">
+        <i class="fas @RightToggleIcon"></i>
+    </button>
+</div>
+
+<style>
+    /* CSS样式 */
+    :root {
+        --primary: #4361ee;
+        --primary-light: #eef2ff;
+        --border: #e2e8f0;
+        --bg: #f8fafc;
+        --panel: #ffffff;
+        --text: #1e293b;
+        --header-h: 64px;
+        --footer-h: 48px;
+        --radius: 12px;
+        --shadow: 0 4px 12px rgba(0,0,0,0.08);
+        --gap: 4px;
+    }
+
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        font-family: 'Inter', system-ui, sans-serif;
+        color: var(--text);
+        background-color: var(--bg);
+        height: 100vh;
+        overflow: hidden;
+        font-size: 14px;
+    }
+
+    .bpmn-editor {
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .editor-header {
+        height: var(--header-h);
+        background: var(--panel);
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        padding: 0 1.5rem;
+        flex-shrink: 0;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+
+    .editor-content {
+        flex: 1;
+        display: flex;
+        overflow: hidden;
+        padding: 1rem;
+        gap: var(--gap);
+    }
+
+    .sidebar {
+        background: var(--panel);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        transition: width 0.2s ease, box-shadow 0.2s, border 0.2s;
+    }
+
+        .sidebar.highlight {
+            box-shadow: 0 0 0 2px var(--primary-light), var(--shadow);
+            border: 1px solid var(--primary);
+            z-index: 5;
+        }
+
+        .sidebar.hidden {
+            width: 0 !important;
+            min-width: 0 !important;
+            max-width: 0 !important;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+    .canvas-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        background: var(--panel);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        min-width: 300px;
+    }
+
+    .editor-footer {
+        height: var(--footer-h);
+        background: var(--panel);
+        border-top: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        padding: 0 1.5rem;
+        flex-shrink: 0;
+    }
+
+    .resizer {
+        width: 0;
+        position: relative;
+        cursor: col-resize;
+    }
+
+        .resizer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: -6px;
+            right: -6px;
+        }
+
+    .sidebar-toggle {
+        position: fixed;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 1000;
+        width: 44px;
+        height: 44px;
+        border-radius: 0 8px 8px 0;
+        background: linear-gradient(135deg, var(--primary), #5a73f0);
+        color: white;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
+        opacity: 0.92;
+    }
+
+        .sidebar-toggle.right {
+            right: 16px;
+        }
+
+        .sidebar-toggle:hover {
+            opacity: 1;
+        }
+
+        .sidebar-toggle.hidden {
+            display: none;
+        }
+
+    @@media (max-width: 767px) {
+        .canvas-container {
+            margin-left: 8px;
+            margin-right: 8px;
+        }
+    }
+</style>
+
+@code {
+    // 宽度配置常量
+    private const int LEFT_MIN = 200;
+    private const int LEFT_MAX = 400;
+    private const int RIGHT_MIN = 400;
+    private const int RIGHT_MAX = 800;
+
+    // 组件引用
+    private ElementReference toolboxRef;
+    private ElementReference propertyPanelRef;
+    private ElementReference leftResizerRef;
+    private ElementReference rightResizerRef;
+    private ElementReference toggleLeftRef;
+    private ElementReference toggleRightRef;
+
+    // 状态变量
+    private double LeftPanelWidth { get; set; } = LEFT_MIN;
+    private double RightPanelWidth { get; set; } = RIGHT_MIN;
+    private bool IsLeftPanelVisible { get; set; } = true;
+    private bool IsRightPanelVisible { get; set; } = true;
+    private bool IsLeftToggleVisible { get; set; } = false;
+    private bool IsRightToggleVisible { get; set; } = false;
+    private string LeftToggleIcon { get; set; } = "fa-bars";
+    private string RightToggleIcon { get; set; } = "fa-sliders-h";
+
+    private bool IsRightPanelVisibleInTablet { get; set; } = false;
+    private LayoutType CurrentLayout { get; set; } = LayoutType.Desktop;
+
+    // 拖拽状态
+    private bool IsLeftResizing { get; set; } = false;
+    private bool IsRightResizing { get; set; } = false;
+
+    private DotNetObjectReference<Home>? dotNetHelper;
+    private bool _isInitialized = false;
+    private bool _isClientSide = false;
+
+    // 获取左侧面板样式
+    private string GetLeftPanelStyle()
+    {
+        return IsLeftPanelVisible ? $"width: {LeftPanelWidth}px;" : "";
+    }
+
+    // 获取右侧面板样式
+    private string GetRightPanelStyle()
+    {
+        return IsRightPanelVisible ? $"width: {RightPanelWidth}px;" : "";
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _isClientSide = true; // 标记为客户端渲染
+            dotNetHelper = DotNetObjectReference.Create(this);
+
+            // 初始化 JavaScript 功能
+            await InitializeJavaScript();
+
+            // 初始化窗口大小检测
+            await UpdateLayoutFromWindowSize();
+
+            _isInitialized = true;
+        }
+    }
+
+    // 初始化 JavaScript 功能
+    private async Task InitializeJavaScript()
+    {
+        try
+        {
+            var js = @"
+                // 创建全局 BPMN 编辑器对象
+                window.bpmnEditor = {
+                    dotNetHelper: null,
+                    isLeftResizing: false,
+                    isRightResizing: false,
+
+                    initializeResize: function (netHelper) {
+                        window.bpmnEditor.dotNetHelper = netHelper;
+                        window.addEventListener('resize', window.bpmnEditor.handleResize);
+                        document.addEventListener('mousemove', window.bpmnEditor.handleMouseMove);
+                        document.addEventListener('mouseup', window.bpmnEditor.handleMouseUp);
+                        window.bpmnEditor.handleResize();
+                    },
+
+                    getWindowWidth: function () {
+                        return window.innerWidth;
+                    },
+
+                    highlightSidebar: function (sidebar, isHighlight) {
+                        if (sidebar) {
+                            if (isHighlight) {
+                                sidebar.classList.add('highlight');
+                            } else {
+                                sidebar.classList.remove('highlight');
+                            }
+                        }
+                    },
+
+                    startLeftResize: function (netHelper, currentWidth) {
+                        window.bpmnEditor.dotNetHelper = netHelper;
+                        window.bpmnEditor.isLeftResizing = true;
+                        document.body.style.userSelect = 'none';
+                    },
+
+                    startRightResize: function (netHelper, currentWidth) {
+                        window.bpmnEditor.dotNetHelper = netHelper;
+                        window.bpmnEditor.isRightResizing = true;
+                        document.body.style.userSelect = 'none';
+                    },
+
+                    handleResize: function () {
+                        if (window.bpmnEditor.dotNetHelper) {
+                            window.bpmnEditor.dotNetHelper.invokeMethodAsync('HandleResize', window.innerWidth);
+                        }
+                    },
+
+                    handleMouseMove: function (e) {
+                        if (window.bpmnEditor.isLeftResizing) {
+                            window.bpmnEditor.handleLeftResize(e);
+                        } else if (window.bpmnEditor.isRightResizing) {
+                            window.bpmnEditor.handleRightResize(e);
+                        }
+                    },
+
+                    handleMouseUp: function () {
+                        if (window.bpmnEditor.isLeftResizing || window.bpmnEditor.isRightResizing) {
+                            window.bpmnEditor.isLeftResizing = false;
+                            window.bpmnEditor.isRightResizing = false;
+                            document.body.style.userSelect = '';
+                        }
+                    },
+
+                    handleLeftResize: function (e) {
+                        const container = document.querySelector('.editor-content');
+                        if (!container) return;
+
+                        const rect = container.getBoundingClientRect();
+                        const paddingLeft = parseFloat(getComputedStyle(container).paddingLeft);
+                        const newWidth = e.clientX - rect.left - paddingLeft;
+
+                        if (window.bpmnEditor.dotNetHelper) {
+                            window.bpmnEditor.dotNetHelper.invokeMethodAsync('HandleLeftResize', newWidth);
+                        }
+                    },
+
+                    handleRightResize: function (e) {
+                        const container = document.querySelector('.editor-content');
+                        if (!container) return;
+
+                        const rect = container.getBoundingClientRect();
+                        const paddingRight = parseFloat(getComputedStyle(container).paddingRight);
+                        const newWidth = rect.right - e.clientX - paddingRight;
+
+                        if (window.bpmnEditor.dotNetHelper) {
+                            window.bpmnEditor.dotNetHelper.invokeMethodAsync('HandleRightResize', newWidth);
+                        }
+                    },
+
+                    dispose: function () {
+                        window.removeEventListener('resize', window.bpmnEditor.handleResize);
+                        document.removeEventListener('mousemove', window.bpmnEditor.handleMouseMove);
+                        document.removeEventListener('mouseup', window.bpmnEditor.handleMouseUp);
+
+                        if (window.bpmnEditor.dotNetHelper) {
+                            window.bpmnEditor.dotNetHelper.dispose();
+                        }
+                    }
+                };
+            ";
+
+            // 执行 JavaScript 代码
+            await JSRuntime.InvokeVoidAsync("eval", js);
+
+            // 初始化调整大小功能
+            await JSRuntime.InvokeVoidAsync("bpmnEditor.initializeResize", dotNetHelper);
+        }
+        catch (Exception ex)
+        {
+            // 忽略预渲染阶段的 JavaScript 调用异常
+            Console.WriteLine($"JavaScript初始化异常（可忽略）: {ex.Message}");
+        }
+    }
+
+    // 布局类型枚举
+    private enum LayoutType
+    {
+        Desktop,
+        Tablet,
+        Mobile
+    }
+
+    // 从窗口大小更新布局
+    private async Task UpdateLayoutFromWindowSize()
+    {
+        if (!_isClientSide) return;
+
+        try
+        {
+            // 通过JS互操作获取实际窗口宽度
+            var windowWidth = await JSRuntime.InvokeAsync<double>("bpmnEditor.getWindowWidth");
+            await HandleResize(windowWidth);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"窗口大小检测异常: {ex.Message}");
+        }
+    }
+
+    [JSInvokable]
+    public async Task HandleResize(double windowWidth)
+    {
+        // 根据窗口宽度更新布局类型
+        if (windowWidth >= 1280)
+            CurrentLayout = LayoutType.Desktop;
+        else if (windowWidth >= 768)
+            CurrentLayout = LayoutType.Tablet;
+        else
+            CurrentLayout = LayoutType.Mobile;
+
+        await ApplyLayout();
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public async Task HandleLeftResize(double newWidth)
+    {
+        LeftPanelWidth = Math.Min(Math.Max(newWidth, LEFT_MIN), LEFT_MAX);
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public async Task HandleRightResize(double newWidth)
+    {
+        RightPanelWidth = Math.Min(Math.Max(newWidth, RIGHT_MIN), RIGHT_MAX);
+        StateHasChanged();
+    }
+
+    // 应用当前布局
+    private async Task ApplyLayout()
+    {
+        switch (CurrentLayout)
+        {
+            case LayoutType.Desktop:
+                // 桌面布局：显示两侧面板
+                IsLeftPanelVisible = true;
+                IsRightPanelVisible = true;
+                IsLeftToggleVisible = false;
+                IsRightToggleVisible = false;
+                IsRightPanelVisibleInTablet = false;
+
+                // 确保有合理的默认宽度
+                if (LeftPanelWidth < LEFT_MIN) LeftPanelWidth = LEFT_MIN;
+                if (RightPanelWidth < RIGHT_MIN) RightPanelWidth = RIGHT_MIN;
+                break;
+
+            case LayoutType.Tablet:
+                // 平板布局：隐藏右侧面板（除非用户展开过）
+                IsLeftPanelVisible = true;
+                IsLeftToggleVisible = false;
+                IsRightPanelVisible = IsRightPanelVisibleInTablet;
+                IsRightToggleVisible = true;
+
+                if (IsRightPanelVisible && RightPanelWidth < RIGHT_MIN)
+                    RightPanelWidth = RIGHT_MIN;
+                break;
+
+            case LayoutType.Mobile:
+                // 移动布局：隐藏两侧面板
+                IsLeftPanelVisible = false;
+                IsRightPanelVisible = false;
+                IsLeftToggleVisible = true;
+                IsRightToggleVisible = true;
+                await UpdateMobileIcons();
+                break;
+        }
+    }
+
+    // 更新移动端图标
+    private async Task UpdateMobileIcons()
+    {
+        LeftToggleIcon = IsLeftPanelVisible ? "fa-times" : "fa-bars";
+        RightToggleIcon = IsRightPanelVisible ? "fa-times" : "fa-sliders-h";
+        StateHasChanged();
+    }
+
+    // 高亮侧边栏
+    private async Task HighlightSidebar(ElementReference sidebar, bool isHighlight)
+    {
+        if (CurrentLayout != LayoutType.Desktop || !_isClientSide) return;
+
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("bpmnEditor.highlightSidebar", sidebar, isHighlight);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"高亮侧边栏异常: {ex.Message}");
+        }
+    }
+
+    // 开始左侧拖拽
+    private async Task StartLeftResize()
+    {
+        if (CurrentLayout != LayoutType.Desktop || !_isClientSide) return;
+
+        try
+        {
+            IsLeftResizing = true;
+            await JSRuntime.InvokeVoidAsync("bpmnEditor.startLeftResize", dotNetHelper, LeftPanelWidth);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"开始左侧拖拽异常: {ex.Message}");
+        }
+    }
+
+    // 开始右侧拖拽
+    private async Task StartRightResize()
+    {
+        if (CurrentLayout != LayoutType.Desktop || !_isClientSide) return;
+
+        try
+        {
+            IsRightResizing = true;
+            await JSRuntime.InvokeVoidAsync("bpmnEditor.startRightResize", dotNetHelper, RightPanelWidth);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"开始右侧拖拽异常: {ex.Message}");
+        }
+    }
+
+    // 切换左侧面板
+    private async Task ToggleLeftPanel()
+    {
+        if (CurrentLayout != LayoutType.Mobile) return;
+
+        IsLeftPanelVisible = !IsLeftPanelVisible;
+        if (IsLeftPanelVisible)
+        {
+            IsRightPanelVisible = false;
+            LeftPanelWidth = LEFT_MIN;
+        }
+        await UpdateMobileIcons();
+    }
+
+    // 切换右侧面板
+    private async Task ToggleRightPanel()
+    {
+        switch (CurrentLayout)
+        {
+            case LayoutType.Desktop:
+                return;
+
+            case LayoutType.Tablet:
+                IsRightPanelVisibleInTablet = !IsRightPanelVisibleInTablet;
+                IsRightPanelVisible = IsRightPanelVisibleInTablet;
+                if (IsRightPanelVisible)
+                {
+                    RightPanelWidth = RIGHT_MIN;
+                }
+                break;
+
+            case LayoutType.Mobile:
+                IsRightPanelVisible = !IsRightPanelVisible;
+                if (IsRightPanelVisible)
+                {
+                    IsLeftPanelVisible = false;
+                    RightPanelWidth = RIGHT_MIN;
+                }
+                await UpdateMobileIcons();
+                break;
+        }
+        StateHasChanged();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        // 只在客户端执行清理
+        if (_isClientSide && _isInitialized)
+        {
+            try
+            {
+                await JSRuntime.InvokeVoidAsync("bpmnEditor.dispose");
+            }
+            catch (Exception ex)
+            {
+                // 忽略清理时的异常
+                Console.WriteLine($"清理异常（可忽略）: {ex.Message}");
+            }
+        }
+        dotNetHelper?.Dispose();
+    }
+}

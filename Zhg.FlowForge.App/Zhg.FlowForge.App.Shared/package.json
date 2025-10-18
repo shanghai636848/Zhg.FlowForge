@@ -1,0 +1,22 @@
+{
+  "name": "emptyblazorapp1",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "buildcss": "postcss wwwroot/app.css -o wwwroot/app.min.css"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "postcss-cli": "^11.0.1"
+  },
+  "devDependencies": {
+    "@unocss/postcss": "^66.5.4",
+    "@unocss/preset-rem-to-px": "^66.5.4",
+    "@unocss/preset-wind4": "^66.5.4",
+    "unocss": "^66.5.4"
+  }
+}
