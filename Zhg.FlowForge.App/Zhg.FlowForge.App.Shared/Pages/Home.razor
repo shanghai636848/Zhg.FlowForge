@@ -2,75 +2,281 @@
 @inject IJSRuntime JSRuntime
 @implements IAsyncDisposable
 
-<div class="bpmn-editor" id="app">
-    <header class="editor-header">
-        <h1 class="text-lg font-semibold">BPMN 编辑器</h1>
+<div class="bpmn-editor w-full h-screen flex flex-col">
+    <!-- 头部 -->
+    <header class="editor-header h-16 bg-white border-b border-gray-200 flex items-center px-6 flex-shrink-0 shadow-sm">
+        <h1 class="text-lg font-semibold text-gray-800">BPMN 编辑器</h1>
     </header>
 
-    <div class="editor-content" id="editorContent">
+    <!-- 主要内容区域 -->
+    <div class="editor-content flex-1 flex overflow-hidden p-4 gap-1">
         <!-- 左侧工具箱 -->
-        <aside class="sidebar toolbox @(IsLeftPanelVisible ? "" : "hidden")"
-               id="toolbox" style="@GetLeftPanelStyle()">
+        <aside class="sidebar toolbox bg-white rounded-xl shadow-lg flex flex-col overflow-hidden transition-all duration-200 @(IsLeftPanelVisible ? "" : "hidden")"
+               style="@GetLeftPanelStyle()" @ref="toolboxRef">
             <div class="p-4">🛠️ 工具箱</div>
         </aside>
 
         <!-- 左侧拖拽条 -->
-        <div class="resizer" id="leftResizer"
+        <div class="resizer w-0 relative cursor-col-resize"
              @onmousedown="StartLeftResize"
              @onmouseenter="() => HighlightSidebar(toolboxRef, true)"
-             @onmouseleave="() => HighlightSidebar(toolboxRef, false)"></div>
+             @onmouseleave="() => HighlightSidebar(toolboxRef, false)">
+            <div class="absolute inset-y-0 -left-1.5 -right-1.5"></div>
+        </div>
 
         <!-- 主画布区域 -->
-        <main class="canvas-container">
+        <main class="canvas-container flex-1 flex flex-col overflow-hidden bg-white rounded-xl shadow-lg min-w-300">
             <div class="flex-1 p-4">🎨 BPMN 画布区域</div>
         </main>
 
         <!-- 右侧拖拽条 -->
-        <div class="resizer" id="rightResizer"
+        <div class="resizer w-0 relative cursor-col-resize"
              @onmousedown="StartRightResize"
              @onmouseenter="() => HighlightSidebar(propertyPanelRef, true)"
-             @onmouseleave="() => HighlightSidebar(propertyPanelRef, false)"></div>
+             @onmouseleave="() => HighlightSidebar(propertyPanelRef, false)">
+            <div class="absolute inset-y-0 -left-1.5 -right-1.5"></div>
+        </div>
 
         <!-- 右侧属性面板 -->
-        <aside class="sidebar property-panel @(IsRightPanelVisible ? "" : "hidden")"
-               id="propertyPanel" style="@GetRightPanelStyle()">
+        <aside class="sidebar property-panel bg-white rounded-xl shadow-lg flex flex-col overflow-hidden transition-all duration-200 @(IsRightPanelVisible ? "" : "hidden")"
+               style="@GetRightPanelStyle()" @ref="propertyPanelRef">
             <div class="p-4">⚙️ 属性面板</div>
         </aside>
     </div>
 
-    <footer class="editor-footer">
+    <!-- 底部 -->
+    <footer class="editor-footer h-12 bg-white border-t border-gray-200 flex items-center px-6 flex-shrink-0">
         <span class="text-sm text-gray-500">© 2025 BPMN 编辑器</span>
     </footer>
 
     <!-- 左侧切换按钮 -->
-    <button id="toggleLeft" class="sidebar-toggle left @(IsLeftToggleVisible ? "" : "hidden")"
+    <button id="toggleLeft"
+            class="sidebar-toggle left fixed top-1/2 -translate-y-1/2 z-1000 w-11 h-11 rounded-r-lg bg-gradient-135deg from-blue-500 to-blue-600 text-white border-none flex items-center justify-center cursor-pointer shadow-lg opacity-92 hover:opacity-100 @(IsLeftToggleVisible ? "" : "hidden")"
             title="工具箱" @onclick="ToggleLeftPanel">
         <i class="fas @LeftToggleIcon"></i>
     </button>
 
     <!-- 右侧切换按钮 -->
-    <button id="toggleRight" class="sidebar-toggle right @(IsRightToggleVisible ? "" : "hidden")"
+    <button id="toggleRight"
+            class="sidebar-toggle right fixed top-1/2 -translate-y-1/2 right-4 z-1000 w-11 h-11 rounded-r-lg bg-gradient-135deg from-blue-500 to-blue-600 text-white border-none flex items-center justify-center cursor-pointer shadow-lg opacity-92 hover:opacity-100 @(IsRightToggleVisible ? "" : "hidden")"
             title="属性" @onclick="ToggleRightPanel">
         <i class="fas @RightToggleIcon"></i>
     </button>
 </div>
 
 <style>
-    /* CSS样式 */
-    :root {
-        --primary: #4361ee;
-        --primary-light: #eef2ff;
-        --border: #e2e8f0;
-        --bg: #f8fafc;
-        --panel: #ffffff;
-        --text: #1e293b;
-        --header-h: 64px;
-        --footer-h: 48px;
-        --radius: 12px;
-        --shadow: 0 4px 12px rgba(0,0,0,0.08);
-        --gap: 4px;
+    /* ========== UnoCSS 原子化类扩展 ========== */
+
+    /* 动态根字体 - 响应式缩放基础 */
+    html {
+        font-size: 16px;
     }
 
+    @@media (max-width: 1440px) {
+        html {
+            font-size: 15.5px;
+        }
+    }
+
+    @@media (max-width: 1280px) {
+        html {
+            font-size: 15px;
+        }
+    }
+
+    @@media (max-width: 1024px) {
+        html {
+            font-size: 14.5px;
+        }
+    }
+
+    @@media (max-width: 900px) {
+        html {
+            font-size: 14px;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        html {
+            font-size: 13.5px;
+        }
+    }
+
+    @@media (max-width: 640px) {
+        html {
+            font-size: 13px;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        html {
+            font-size: 12.5px;
+        }
+    }
+
+    @@media (max-width: 375px) {
+        html {
+            font-size: 12px;
+        }
+    }
+
+    @@media (max-width: 320px) {
+        html {
+            font-size: 11.5px;
+        }
+    }
+
+    @@media (min-width: 1920px) {
+        html {
+            font-size: 17px;
+        }
+    }
+
+    @@media (min-width: 2560px) {
+        html {
+            font-size: 18px;
+        }
+    }
+
+    @@media (min-width: 3840px) {
+        html {
+            font-size: 20px;
+        }
+    }
+
+    /* 容器系统 */
+    .container {
+        width: 100%;
+        max-width: 100%;
+        margin: 0 auto;
+        padding-left: 2rem;
+        padding-right: 2rem;
+        box-sizing: border-box;
+    }
+
+    @@media (max-width: 320px) {
+        .container {
+            max-width: 320px;
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+    }
+
+    @@media (min-width: 321px) and (max-width: 374px) {
+        .container {
+            max-width: 375px;
+        }
+    }
+
+    @@media (min-width: 375px) and (max-width: 479px) {
+        .container {
+            max-width: 480px;
+        }
+    }
+
+    @@media (min-width: 480px) and (max-width: 639px) {
+        .container {
+            max-width: 640px;
+        }
+    }
+
+    @@media (min-width: 640px) and (max-width: 767px) {
+        .container {
+            max-width: 768px;
+        }
+    }
+
+    @@media (min-width: 768px) and (max-width: 899px) {
+        .container {
+            max-width: 900px;
+        }
+    }
+
+    @@media (min-width: 900px) and (max-width: 1023px) {
+        .container {
+            max-width: 1024px;
+        }
+    }
+
+    @@media (min-width: 1024px) and (max-width: 1279px) {
+        .container {
+            max-width: 1280px;
+        }
+    }
+
+    @@media (min-width: 1280px) and (max-width: 1439px) {
+        .container {
+            max-width: 1440px;
+        }
+    }
+
+    @@media (min-width: 1440px) and (max-width: 1919px) {
+        .container {
+            max-width: 1920px;
+        }
+    }
+
+    @@media (min-width: 1920px) and (max-width: 2559px) {
+        .container {
+            max-width: 2560px;
+        }
+    }
+
+    @@media (min-width: 2560px) and (max-width: 3839px) {
+        .container {
+            max-width: 3840px;
+        }
+    }
+
+    @@media (min-width: 3840px) {
+        .container {
+            max-width: 100%;
+        }
+    }
+
+    /* 自定义工具类 */
+    .min-w-300 {
+        min-width: 18.75rem;
+    }
+    /* 300px */
+    .cursor-col-resize {
+        cursor: col-resize;
+    }
+
+    .bg-gradient-135deg {
+        background: linear-gradient(135deg, var(--tw-gradient-from), var(--tw-gradient-to));
+    }
+
+    /* 侧边栏高亮效果 */
+    .sidebar.highlight {
+        box-shadow: 0 0 0 0.125rem #eef2ff, 0 0.25rem 0.75rem rgba(0, 0, 0, 0.08);
+        border: 0.0625rem solid #4361ee;
+        z-index: 5;
+    }
+
+    /* 侧边栏隐藏状态 */
+    .sidebar.hidden {
+        width: 0 !important;
+        min-width: 0 !important;
+        max-width: 0 !important;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    /* 切换按钮隐藏状态 */
+    .sidebar-toggle.hidden {
+        display: none;
+    }
+
+    /* 移动端适配 */
+    @@media (max-width: 767px) {
+        .canvas-container {
+            margin-left: 0.5rem;
+            margin-right: 0.5rem;
+        }
+    }
+
+    /* 全局样式重置 */
     * {
         box-sizing: border-box;
         margin: 0;
@@ -78,152 +284,25 @@
     }
 
     body {
-        font-family: 'Inter', system-ui, sans-serif;
-        color: var(--text);
-        background-color: var(--bg);
-        height: 100vh;
-        overflow: hidden;
-        font-size: 14px;
-    }
-
-    .bpmn-editor {
-        height: 100vh;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .editor-header {
-        height: var(--header-h);
-        background: var(--panel);
-        border-bottom: 1px solid var(--border);
-        display: flex;
-        align-items: center;
-        padding: 0 1.5rem;
-        flex-shrink: 0;
-        box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-    }
-
-    .editor-content {
-        flex: 1;
-        display: flex;
-        overflow: hidden;
-        padding: 1rem;
-        gap: var(--gap);
-    }
-
-    .sidebar {
-        background: var(--panel);
-        border-radius: var(--radius);
-        box-shadow: var(--shadow);
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        transition: width 0.2s ease, box-shadow 0.2s, border 0.2s;
-    }
-
-        .sidebar.highlight {
-            box-shadow: 0 0 0 2px var(--primary-light), var(--shadow);
-            border: 1px solid var(--primary);
-            z-index: 5;
-        }
-
-        .sidebar.hidden {
-            width: 0 !important;
-            min-width: 0 !important;
-            max-width: 0 !important;
-            opacity: 0;
-            pointer-events: none;
-        }
-
-    .canvas-container {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        background: var(--panel);
-        border-radius: var(--radius);
-        box-shadow: var(--shadow);
-        min-width: 300px;
-    }
-
-    .editor-footer {
-        height: var(--footer-h);
-        background: var(--panel);
-        border-top: 1px solid var(--border);
-        display: flex;
-        align-items: center;
-        padding: 0 1.5rem;
-        flex-shrink: 0;
-    }
-
-    .resizer {
-        width: 0;
-        position: relative;
-        cursor: col-resize;
-    }
-
-        .resizer::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            left: -6px;
-            right: -6px;
-        }
-
-    .sidebar-toggle {
-        position: fixed;
-        top: 50%;
-        transform: translateY(-50%);
-        z-index: 1000;
-        width: 44px;
-        height: 44px;
-        border-radius: 0 8px 8px 0;
-        background: linear-gradient(135deg, var(--primary), #5a73f0);
-        color: white;
-        border: none;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        box-shadow: 0 4px 12px rgba(67, 97, 238, 0.3);
-        opacity: 0.92;
-    }
-
-        .sidebar-toggle.right {
-            right: 16px;
-        }
-
-        .sidebar-toggle:hover {
-            opacity: 1;
-        }
-
-        .sidebar-toggle.hidden {
-            display: none;
-        }
-
-    @@media (max-width: 767px) {
-        .canvas-container {
-            margin-left: 8px;
-            margin-right: 8px;
-        }
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        background-color: #f9fafb;
+        overflow-x: hidden;
+        width: 100%;
     }
 </style>
 
 @code {
-    // 宽度配置常量
-    private const int LEFT_MIN = 200;
-    private const int LEFT_MAX = 400;
-    private const int RIGHT_MIN = 400;
-    private const int RIGHT_MAX = 800;
+    // 宽度配置常量（使用 rem 单位）
+    private const double LEFT_MIN = 12.5; // 200px
+    private const double LEFT_MAX = 25;   // 400px
+    private const double RIGHT_MIN = 25;  // 400px
+    private const double RIGHT_MAX = 50;  // 800px
 
     // 组件引用
     private ElementReference toolboxRef;
     private ElementReference propertyPanelRef;
-    private ElementReference leftResizerRef;
-    private ElementReference rightResizerRef;
-    private ElementReference toggleLeftRef;
-    private ElementReference toggleRightRef;
 
     // 状态变量
     private double LeftPanelWidth { get; set; } = LEFT_MIN;
@@ -249,26 +328,23 @@
     // 获取左侧面板样式
     private string GetLeftPanelStyle()
     {
-        return IsLeftPanelVisible ? $"width: {LeftPanelWidth}px;" : "";
+        return IsLeftPanelVisible ? $"width: {LeftPanelWidth}rem;" : "";
     }
 
     // 获取右侧面板样式
     private string GetRightPanelStyle()
     {
-        return IsRightPanelVisible ? $"width: {RightPanelWidth}px;" : "";
+        return IsRightPanelVisible ? $"width: {RightPanelWidth}rem;" : "";
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            _isClientSide = true; // 标记为客户端渲染
+            _isClientSide = true;
             dotNetHelper = DotNetObjectReference.Create(this);
 
-            // 初始化 JavaScript 功能
             await InitializeJavaScript();
-
-            // 初始化窗口大小检测
             await UpdateLayoutFromWindowSize();
 
             _isInitialized = true;
@@ -281,7 +357,6 @@
         try
         {
             var js = @"
-                // 创建全局 BPMN 编辑器对象
                 window.bpmnEditor = {
                     dotNetHelper: null,
                     isLeftResizing: false,
@@ -349,7 +424,7 @@
 
                         const rect = container.getBoundingClientRect();
                         const paddingLeft = parseFloat(getComputedStyle(container).paddingLeft);
-                        const newWidth = e.clientX - rect.left - paddingLeft;
+                        const newWidth = (e.clientX - rect.left - paddingLeft) / parseFloat(getComputedStyle(document.documentElement).fontSize);
 
                         if (window.bpmnEditor.dotNetHelper) {
                             window.bpmnEditor.dotNetHelper.invokeMethodAsync('HandleLeftResize', newWidth);
@@ -362,7 +437,7 @@
 
                         const rect = container.getBoundingClientRect();
                         const paddingRight = parseFloat(getComputedStyle(container).paddingRight);
-                        const newWidth = rect.right - e.clientX - paddingRight;
+                        const newWidth = (rect.right - e.clientX - paddingRight) / parseFloat(getComputedStyle(document.documentElement).fontSize);
 
                         if (window.bpmnEditor.dotNetHelper) {
                             window.bpmnEditor.dotNetHelper.invokeMethodAsync('HandleRightResize', newWidth);
@@ -381,16 +456,12 @@
                 };
             ";
 
-            // 执行 JavaScript 代码
             await JSRuntime.InvokeVoidAsync("eval", js);
-
-            // 初始化调整大小功能
             await JSRuntime.InvokeVoidAsync("bpmnEditor.initializeResize", dotNetHelper);
         }
         catch (Exception ex)
         {
-            // 忽略预渲染阶段的 JavaScript 调用异常
-            Console.WriteLine($"JavaScript初始化异常（可忽略）: {ex.Message}");
+            Console.WriteLine($"JavaScript初始化异常: {ex.Message}");
         }
     }
 
@@ -409,7 +480,6 @@
 
         try
         {
-            // 通过JS互操作获取实际窗口宽度
             var windowWidth = await JSRuntime.InvokeAsync<double>("bpmnEditor.getWindowWidth");
             await HandleResize(windowWidth);
         }
@@ -422,7 +492,6 @@
     [JSInvokable]
     public async Task HandleResize(double windowWidth)
     {
-        // 根据窗口宽度更新布局类型
         if (windowWidth >= 1280)
             CurrentLayout = LayoutType.Desktop;
         else if (windowWidth >= 768)
@@ -454,20 +523,17 @@
         switch (CurrentLayout)
         {
             case LayoutType.Desktop:
-                // 桌面布局：显示两侧面板
                 IsLeftPanelVisible = true;
                 IsRightPanelVisible = true;
                 IsLeftToggleVisible = false;
                 IsRightToggleVisible = false;
                 IsRightPanelVisibleInTablet = false;
 
-                // 确保有合理的默认宽度
                 if (LeftPanelWidth < LEFT_MIN) LeftPanelWidth = LEFT_MIN;
                 if (RightPanelWidth < RIGHT_MIN) RightPanelWidth = RIGHT_MIN;
                 break;
 
             case LayoutType.Tablet:
-                // 平板布局：隐藏右侧面板（除非用户展开过）
                 IsLeftPanelVisible = true;
                 IsLeftToggleVisible = false;
                 IsRightPanelVisible = IsRightPanelVisibleInTablet;
@@ -478,7 +544,6 @@
                 break;
 
             case LayoutType.Mobile:
-                // 移动布局：隐藏两侧面板
                 IsLeftPanelVisible = false;
                 IsRightPanelVisible = false;
                 IsLeftToggleVisible = true;
@@ -589,7 +654,6 @@
 
     public async ValueTask DisposeAsync()
     {
-        // 只在客户端执行清理
         if (_isClientSide && _isInitialized)
         {
             try
@@ -598,8 +662,7 @@
             }
             catch (Exception ex)
             {
-                // 忽略清理时的异常
-                Console.WriteLine($"清理异常（可忽略）: {ex.Message}");
+                Console.WriteLine($"清理异常: {ex.Message}");
             }
         }
         dotNetHelper?.Dispose();
