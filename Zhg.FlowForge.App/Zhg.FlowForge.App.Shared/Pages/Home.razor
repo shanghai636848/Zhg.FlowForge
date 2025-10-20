@@ -1,15 +1,166 @@
 ﻿@page "/"
 
+<style>  
+
+    .demo-box {
+        background: #e0f2fe;
+        border: 1px dashed #0ea5e9;
+        padding: 0.5rem;
+        text-align: center;
+        border-radius: 4px;
+    }
+
+    .section {
+        background: white;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .section-title {
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        color: #1e40af;
+    }
+
+    .sr-only-demo {
+        margin-top: 0.5rem;
+        font-size: 0.875rem;
+        color: #6b7280;
+    }
+</style>
+
 <div class="container">
-    <h1 class="text-2xl text-primary">UnoCSS in Blazor</h1>
+	
 
-    <!-- 静态 shortcut -->
-    <button class="btn-primary">Primary Button</button>
+    <h1 class="text-2xl font-bold mb-6">UnoCSS Layout Shortcuts Demo (1–23)</h1>
+    <div class="section">
+        <div class="section-title">10. flex-col-start</div>
+        <div class="h-32 flex-col-start p-2 border border-dashed border-gray-300 rounded gap-2">
+            <div class="demo-box">左对齐</div>
+            <div class="demo-box">较长内容示例</div>
+        </div>
+    </div>
 
-    <!-- 动态 shortcut -->
-    <button class="btn-green">Green Button</button>
-    <button class="btn-red">Red Button</button>
-    <button class="btn-amber">Amber Button</button>
+    <!-- 11. flex-col-end -->
+    <div class="section">
+        <div class="section-title">11. flex-col-end</div>
+        <div class="h-32 flex-col-end p-2 border border-dashed border-gray-300 rounded gap-2 items-end">
+            <div class="demo-box">右对齐</div>
+            <div class="demo-box">短</div>
+        </div>
+    </div>
 
-    <a href="#" class="text-link">Learn more</a>
+    <!-- 12. inline-flex-center -->
+    <div class="section">
+        <div class="section-title">12. inline-flex-center</div>
+        <div class="p-2">
+            <button class="inline-flex-center gap-2 bg-blue-500 text-white px-4 py-2 rounded">
+                <span>🔍</span>
+                <span>Search</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- 13-17. Grid -->
+    <div class="section">
+        <div class="section-title">13–17. Grid Layouts</div>
+        <div class="mb-4">
+            <div class="text-sm font-medium mb-2">grid-cols-3:</div>
+            <div class="grid-cols-3 gap-2 border border-dashed border-gray-300 rounded p-2">
+                <div class="demo-box">1</div>
+                <div class="demo-box">2</div>
+                <div class="demo-box">3</div>
+            </div>
+        </div>
+        <div class="mb-4">
+            <div class="text-sm font-medium mb-2">grid-cols-responsive:</div>
+            <div class="grid-cols-responsive">
+                <div class="demo-box">Card</div>
+                <div class="demo-box">Card</div>
+                <div class="demo-box">Card</div>
+                <div class="demo-box">Card</div>
+            </div>
+        </div>
+        <div>
+            <div class="text-sm font-medium mb-2">grid-auto-cols (Masonry):</div>
+            <div class="grid-auto-cols gap-4" style="height: 120px;">
+                <div class="demo-box h-10">Auto</div>
+                <div class="demo-box h-16">Fill</div>
+                <div class="demo-box h-12">Masonry</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 18. layout-center -->
+    <div class="section">
+        <div class="section-title">18. layout-center (full screen center)</div>
+        <div class="relative h-32 border border-dashed border-gray-300 rounded overflow-hidden">
+            <div class="absolute inset-0 flex-center">
+                <div class="demo-box">模拟全屏居中</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 19. layout-row -->
+    <div class="section">
+        <div class="section-title">19. layout-row</div>
+        <div class="layout-row border border-dashed border-gray-300 rounded p-2">
+            <div class="demo-box">Item</div>
+            <div class="demo-box">Item</div>
+            <div class="demo-box">Item</div>
+        </div>
+    </div>
+
+    <!-- 20. layout-col -->
+    <div class="section">
+        <div class="section-title">20. layout-col</div>
+        <div class="layout-col border border-dashed border-gray-300 rounded p-2">
+            <div class="demo-box">Header</div>
+            <div class="demo-box">Content</div>
+            <div class="demo-box">Footer</div>
+        </div>
+    </div>
+
+    <!-- 21. Cards -->
+    <div class="section">
+        <div class="section-title">21. Cards (card / card-sm / card-lg)</div>
+        <div class="flex gap-4 flex-wrap">
+            <div class="card">Default Card</div>
+            <div class="card-sm">Small</div>
+            <div class="card-lg">Large Card</div>
+        </div>
+    </div>
+
+    <!-- 22. divider -->
+    <div class="section">
+        <div class="section-title">22. divider</div>
+        <div>
+            <p>Section Above</p>
+            <div class="divider"></div>
+            <p>Section Below</p>
+        </div>
+    </div>
+
+    <!-- 23. sr-only -->
+    <div class="section">
+        <div class="section-title">23. sr-only (accessible hidden)</div>
+        <button class="bg-gray-200 px-3 py-1 rounded">
+            <span class="sr-only">Close dialog</span>
+            ✕
+        </button>
+        <div class="sr-only-demo">
+            屏幕阅读器会读出“Close dialog”，但视觉上不可见。
+        </div>
+    </div>
+
+
+
+
+
+
+
+
+
 </div>
