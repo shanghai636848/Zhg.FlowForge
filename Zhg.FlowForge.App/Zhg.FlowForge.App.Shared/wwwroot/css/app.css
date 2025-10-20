@@ -1,0 +1,41 @@
+@unocss;
+
+/* global.css */
+/* ========== 全局重置与基础样式 ========== */
+
+:root {
+    /* CSS 变量保留，供 JS 或非原子化场景使用（可选） */
+    --primary-color: #3b82f6;
+    --secondary-color: #6b7280;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --error-color: #ef4444;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f9fafb;
+    /* 固定根字体大小，确保 rem 一致性 */
+    font-size: 16px;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+/* 禁用 iOS Safari 点击高亮 */
+* {
+    -webkit-tap-highlight-color: transparent;
+}
