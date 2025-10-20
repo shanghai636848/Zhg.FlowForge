@@ -48,5 +48,32 @@ export default defineConfig({
             '4xl': ['2.25rem', { lineHeight: '2.5rem' }],
             '5xl': ['3rem', { lineHeight: '1' }],
         },
-    })   
+    }),
+    theme: {
+        container: {
+            screens: {
+                xs: '320px',
+                sm: '640px',
+                md: '768px',
+                lg: '1024px',
+                xl: '1280px',
+                '2xl': '1536px',
+                '3xl': '1920px',
+                '4xl': '2560px',
+                '5xl': '3840px',
+            },
+            padding: '2rem',
+        },
+    },
+    shortcuts: [
+        {
+            'btn': 'py-2 px-4 font-semibold rounded-lg shadow-md',
+            'btn-primary': 'btn bg-primary text-white hover:bg-blue-600',
+            'text-link': 'text-primary hover:underline',
+        },
+        [/^btn-(\w+)$/, ([, color]) => {
+            if (!/^[a-z][a-z0-9-]*$/.test(color)) return ''
+            return `btn bg-${color}-500 text-white hover:bg-${color}-700`
+        }],
+    ],
 })
