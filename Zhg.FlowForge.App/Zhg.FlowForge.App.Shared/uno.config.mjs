@@ -6,8 +6,6 @@ export default defineConfig({
         filesystem: [
             './**/*.razor',
             './wwwroot/**/*.html',
-            // 如果有 JS/TS 也加上
-            './wwwroot/**/*.js',
         ],
     },
     presets: [
@@ -20,17 +18,17 @@ export default defineConfig({
         ...theme,
         colors: {
             ...theme.colors,
-            // 自定义语义化颜色（与 global.css 变量对齐）
+            // 自定义语义化颜色（可选，UnoCSS 默认已有，这里显式定义便于维护）
             primary: '#3b82f6',
             secondary: '#6b7280',
             success: '#10b981',
             warning: '#f59e0b',
             error: '#ef4444',
-            danger: '#ef4444', // UnoCSS 常用 danger
+            danger: '#ef4444',
         },
-        // 响应式断点（单位：px）
+        // 响应式断点（可选，UnoCSS 默认已有，这里显式定义便于维护）
         breakpoints: {
-            ...theme.breakpoints, // 保留默认 sm(640), md(768), lg(1024), xl(1280), 2xl(1536)
+            ...theme.breakpoints,
             xs: '320px',          // 超小屏
             '3xl': '1920px',      // 2K
             '4xl': '2560px',      // 2.5K
