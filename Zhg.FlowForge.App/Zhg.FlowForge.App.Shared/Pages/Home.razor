@@ -1,166 +1,1200 @@
 ﻿@page "/"
 
-<style>  
+<div class="container bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">
 
-    .demo-box {
-        background: #e0f2fe;
-        border: 1px dashed #0ea5e9;
-        padding: 0.5rem;
-        text-align: center;
-        border-radius: 4px;
-    }
-
-    .section {
-        background: white;
-        border-radius: 8px;
-        padding: 1rem;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    }
-
-    .section-title {
-        font-weight: 600;
-        margin-bottom: 0.75rem;
-        color: #1e40af;
-    }
-
-    .sr-only-demo {
-        margin-top: 0.5rem;
-        font-size: 0.875rem;
-        color: #6b7280;
-    }
-</style>
-
-<div class="container">
-	
-
-    <h1 class="text-2xl font-bold mb-6">UnoCSS Layout Shortcuts Demo (1–23)</h1>
-    <div class="section">
-        <div class="section-title">10. flex-col-start</div>
-        <div class="h-32 flex-col-start p-2 border border-dashed border-gray-300 rounded gap-2">
-            <div class="demo-box">左对齐</div>
-            <div class="demo-box">较长内容示例</div>
+<!-- 1. 基础布局与增强卡片 -->
+<section class="py-8">
+    <h2 class="text-2xl font-bold mb-6">1. 基础布局与增强卡片组件</h2>
+    <div class="layout-grid-3">
+        <div class="card card-interactive animate-fade-in">
+            <h3 class="text-lg font-semibold mb-3">标准卡片</h3>
+            <p class="text-gray-600 mb-4">这是一个标准的卡片组件，带有悬停效果和阴影。</p>
+            <button class="btn-primary">了解更多</button>
+        </div>
+        
+        <div class="card-primary card-interactive animate-slide-up">
+            <h3 class="font-semibold mb-2">主色卡片</h3>
+            <p class="text-primary-700">带有主色调的卡片，用于重要信息展示。</p>
+        </div>
+        
+        <div class="card-success card-interactive">
+            <h3 class="font-semibold mb-2">成功卡片</h3>
+            <p class="text-success-700">用于成功状态或正向反馈的卡片。</p>
         </div>
     </div>
+</section>
 
-    <!-- 11. flex-col-end -->
-    <div class="section">
-        <div class="section-title">11. flex-col-end</div>
-        <div class="h-32 flex-col-end p-2 border border-dashed border-gray-300 rounded gap-2 items-end">
-            <div class="demo-box">右对齐</div>
-            <div class="demo-box">短</div>
-        </div>
-    </div>
-
-    <!-- 12. inline-flex-center -->
-    <div class="section">
-        <div class="section-title">12. inline-flex-center</div>
-        <div class="p-2">
-            <button class="inline-flex-center gap-2 bg-blue-500 text-white px-4 py-2 rounded">
-                <span>🔍</span>
-                <span>Search</span>
-            </button>
-        </div>
-    </div>
-
-    <!-- 13-17. Grid -->
-    <div class="section">
-        <div class="section-title">13–17. Grid Layouts</div>
-        <div class="mb-4">
-            <div class="text-sm font-medium mb-2">grid-cols-3:</div>
-            <div class="grid-cols-3 gap-2 border border-dashed border-gray-300 rounded p-2">
-                <div class="demo-box">1</div>
-                <div class="demo-box">2</div>
-                <div class="demo-box">3</div>
-            </div>
-        </div>
-        <div class="mb-4">
-            <div class="text-sm font-medium mb-2">grid-cols-responsive:</div>
-            <div class="grid-cols-responsive">
-                <div class="demo-box">Card</div>
-                <div class="demo-box">Card</div>
-                <div class="demo-box">Card</div>
-                <div class="demo-box">Card</div>
-            </div>
-        </div>
+<!-- 2. 增强按钮系统 -->
+<section class="py-8">
+    <h2 class="text-2xl font-bold mb-6">2. 增强按钮系统</h2>
+    <div class="layout-space-y-6">
         <div>
-            <div class="text-sm font-medium mb-2">grid-auto-cols (Masonry):</div>
-            <div class="grid-auto-cols gap-4" style="height: 120px;">
-                <div class="demo-box h-10">Auto</div>
-                <div class="demo-box h-16">Fill</div>
-                <div class="demo-box h-12">Masonry</div>
+            <h3 class="text-lg font-semibold mb-3">基础按钮</h3>
+            <div class="flex flex-wrap gap-3">
+                <button class="btn-primary">主要按钮</button>
+                <button class="btn-secondary">次要按钮</button>
+                <button class="btn-success">成功按钮</button>
+                <button class="btn-warning">警告按钮</button>
+                <button class="btn-error">错误按钮</button>
+                <button class="btn-info">信息按钮</button>
             </div>
         </div>
-    </div>
-
-    <!-- 18. layout-center -->
-    <div class="section">
-        <div class="section-title">18. layout-center (full screen center)</div>
-        <div class="relative h-32 border border-dashed border-gray-300 rounded overflow-hidden">
-            <div class="absolute inset-0 flex-center">
-                <div class="demo-box">模拟全屏居中</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 19. layout-row -->
-    <div class="section">
-        <div class="section-title">19. layout-row</div>
-        <div class="layout-row border border-dashed border-gray-300 rounded p-2">
-            <div class="demo-box">Item</div>
-            <div class="demo-box">Item</div>
-            <div class="demo-box">Item</div>
-        </div>
-    </div>
-
-    <!-- 20. layout-col -->
-    <div class="section">
-        <div class="section-title">20. layout-col</div>
-        <div class="layout-col border border-dashed border-gray-300 rounded p-2">
-            <div class="demo-box">Header</div>
-            <div class="demo-box">Content</div>
-            <div class="demo-box">Footer</div>
-        </div>
-    </div>
-
-    <!-- 21. Cards -->
-    <div class="section">
-        <div class="section-title">21. Cards (card / card-sm / card-lg)</div>
-        <div class="flex gap-4 flex-wrap">
-            <div class="card">Default Card</div>
-            <div class="card-sm">Small</div>
-            <div class="card-lg">Large Card</div>
-        </div>
-    </div>
-
-    <!-- 22. divider -->
-    <div class="section">
-        <div class="section-title">22. divider</div>
+        
         <div>
-            <p>Section Above</p>
-            <div class="divider"></div>
-            <p>Section Below</p>
+            <h3 class="text-lg font-semibold mb-3">轮廓按钮</h3>
+            <div class="flex flex-wrap gap-3">
+                <button class="btn-outline">轮廓按钮</button>
+                <button class="btn-outline-primary">主轮廓</button>
+                <button class="btn-outline-success">成功轮廓</button>
+            </div>
+        </div>
+        
+        <div>
+            <h3 class="text-lg font-semibold mb-3">按钮尺寸</h3>
+            <div class="flex flex-wrap gap-3 items-center">
+                <button class="btn-primary btn-sm">小按钮</button>
+                <button class="btn-primary">标准按钮</button>
+                <button class="btn-primary btn-lg">大按钮</button>
+                <button class="btn-primary btn-xl">特大按钮</button>
+            </div>
+        </div>
+        
+        <div>
+            <h3 class="text-lg font-semibold mb-3">图标按钮</h3>
+            <div class="flex flex-wrap gap-3">
+                <button class="btn-primary btn-icon">
+                    <span>📧</span>
+                </button>
+                <button class="btn-secondary btn-icon-sm">
+                    <span>🔍</span>
+                </button>
+                <button class="btn-success btn-icon-lg">
+                    <span>✅</span>
+                </button>
+            </div>
+        </div>
+        
+        <div>
+            <h3 class="text-lg font-semibold mb-3">按钮组</h3>
+            <div class="btn-group">
+                <button class="btn-group-item">左</button>
+                <button class="btn-group-item">中</button>
+                <button class="btn-group-item">右</button>
+            </div>
+        </div>
+        
+        <div>
+            <h3 class="text-lg font-semibold mb-3">状态按钮</h3>
+            <div class="flex flex-wrap gap-3">
+                <button class="btn-primary" disabled>禁用按钮</button>
+                <button class="btn-primary animate-pulse-subtle">加载中</button>
+                <button class="btn-primary animate-shake">错误状态</button>
+            </div>
         </div>
     </div>
+</section>
 
-    <!-- 23. sr-only -->
-    <div class="section">
-        <div class="section-title">23. sr-only (accessible hidden)</div>
-        <button class="bg-gray-200 px-3 py-1 rounded">
-            <span class="sr-only">Close dialog</span>
-            ✕
-        </button>
-        <div class="sr-only-demo">
-            屏幕阅读器会读出“Close dialog”，但视觉上不可见。
+<!-- 3. 增强表单系统 -->
+<section class="py-8">
+    <h2 class="text-2xl font-bold mb-6">3. 增强表单系统</h2>
+    <div class="layout-form-wide">
+        <div class="card">
+            <h3 class="text-lg font-semibold mb-4">完整表单示例</h3>
+            <form class="layout-space-y-6">
+                <!-- 基础输入框 -->
+                <div class="layout-form-grid">
+                    <div class="form-group">
+                        <label class="form-label">姓氏</label>
+                        <input type="text" class="input" placeholder="请输入姓氏">
+                        <p class="form-help">请输入您的真实姓氏</p>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">名字</label>
+                        <input type="text" class="input" placeholder="请输入名字">
+                    </div>
+                </div>
+                
+                <!-- 输入组 -->
+                <div class="form-group">
+                    <label class="form-label">网站地址</label>
+                    <div class="input-group">
+                        <span class="input-group-addon">https://</span>
+                        <input type="text" class="input-group-input" placeholder="example.com">
+                    </div>
+                </div>
+                
+                <!-- 搜索框 -->
+                <div class="form-group">
+                    <label class="form-label">搜索</label>
+                    <div class="relative">
+                        <input type="search" class="search-input" placeholder="搜索内容...">
+                        <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">🔍</span>
+                    </div>
+                </div>
+                
+                <!-- 状态输入框 -->
+                <div class="form-group">
+                    <label class="form-label">邮箱地址</label>
+                    <input type="email" class="input input-success" placeholder="email@example.com" value="user@example.com">
+                    <p class="form-success">邮箱格式正确</p>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">密码</label>
+                    <input type="password" class="input input-error" placeholder="请输入密码">
+                    <p class="form-error">密码强度不足</p>
+                </div>
+                
+                <!-- 文本域 -->
+                <div class="form-group">
+                    <label class="form-label">个人简介</label>
+                    <textarea class="textarea" placeholder="请介绍一下自己..."></textarea>
+                </div>
+                
+                <!-- 选择框 -->
+                <div class="layout-form-grid">
+                    <div class="form-group">
+                        <label class="form-label">选择角色</label>
+                        <select class="select">
+                            <option>普通用户</option>
+                            <option>管理员</option>
+                            <option>编辑者</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">多选角色</label>
+                        <select class="select-multiple" multiple>
+                            <option>普通用户</option>
+                            <option>管理员</option>
+                            <option>编辑者</option>
+                            <option>观察者</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- 复选框和单选框 -->
+                <div class="layout-form-grid">
+                    <div class="form-group">
+                        <label class="form-label">通知偏好</label>
+                        <div class="space-y-2">
+                            <div class="flex items-center">
+                                <input type="checkbox" class="checkbox" id="email-notifications">
+                                <label for="email-notifications" class="ml-2 text-sm text-gray-600">邮件通知</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" class="checkbox" id="sms-notifications">
+                                <label for="sms-notifications" class="ml-2 text-sm text-gray-600">短信通知</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="checkbox" class="checkbox" id="push-notifications">
+                                <label for="push-notifications" class="ml-2 text-sm text-gray-600">推送通知</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">订阅计划</label>
+                        <div class="space-y-2">
+                            <div class="flex items-center">
+                                <input type="radio" class="radio" name="subscription" id="basic">
+                                <label for="basic" class="ml-2 text-sm text-gray-600">基础版</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="radio" class="radio" name="subscription" id="pro">
+                                <label for="pro" class="ml-2 text-sm text-gray-600">专业版</label>
+                            </div>
+                            <div class="flex items-center">
+                                <input type="radio" class="radio" name="subscription" id="enterprise">
+                                <label for="enterprise" class="ml-2 text-sm text-gray-600">企业版</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 开关 -->
+                <div class="form-group">
+                    <label class="form-label">账户设置</label>
+                    <div class="space-y-3">
+                        <div class="flex-between">
+                            <span class="text-sm text-gray-600">双因素认证</span>
+                            <label class="toggle">
+                                <input type="checkbox" class="sr-only">
+                                <span class="toggle-handle"></span>
+                            </label>
+                        </div>
+                        <div class="flex-between">
+                            <span class="text-sm text-gray-600">公开资料</span>
+                            <label class="toggle toggle-checked">
+                                <input type="checkbox" class="sr-only" checked>
+                                <span class="toggle-handle toggle-handle-checked"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 文件上传 -->
+                <div class="form-group">
+                    <label class="form-label">上传头像</label>
+                    <input type="file" class="file-input">
+                </div>
+                
+                <!-- 范围选择 -->
+                <div class="form-group">
+                    <label class="form-label">价格范围</label>
+                    <input type="range" class="range-input" min="0" max="100" value="50">
+                </div>
+                
+                <!-- 颜色选择 -->
+                <div class="form-group">
+                    <label class="form-label">主题颜色</label>
+                    <input type="color" class="color-input" value="#3b82f6">
+                </div>
+                
+                <!-- 日期时间 -->
+                <div class="layout-form-grid">
+                    <div class="form-group">
+                        <label class="form-label">出生日期</label>
+                        <input type="date" class="date-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">预约时间</label>
+                        <input type="time" class="time-input">
+                    </div>
+                </div>
+                
+                <div class="flex space-x-3 pt-4">
+                    <button type="submit" class="btn-primary flex-1">提交表单</button>
+                    <button type="reset" class="btn-outline">重置表单</button>
+                </div>
+            </form>
         </div>
     </div>
+</section>
 
+<!-- 4. 下拉选择系统 -->
+<section class="py-8">
+    <h2 class="text-2xl font-bold mb-6">4. 下拉选择系统</h2>
+    <div class="layout-grid-3 gap-8">
+        <div class="card">
+            <h3 class="text-lg font-semibold mb-4">基础下拉</h3>
+            <div class="dropdown">
+                <button class="dropdown-toggle">选择选项</button>
+                <div class="dropdown-menu">
+                    <a href="#" class="dropdown-item">选项 1</a>
+                    <a href="#" class="dropdown-item">选项 2</a>
+                    <a href="#" class="dropdown-item">选项 3</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3 class="text-lg font-semibold mb-4">带分组下拉</h3>
+            <div class="dropdown">
+                <button class="dropdown-toggle">用户菜单</button>
+                <div class="dropdown-menu">
+                    <div class="dropdown-header">用户设置</div>
+                    <a href="#" class="dropdown-item">个人资料</a>
+                    <a href="#" class="dropdown-item">账户设置</a>
+                    <div class="dropdown-divider"></div>
+                    <div class="dropdown-header">系统</div>
+                    <a href="#" class="dropdown-item">退出登录</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3 class="text-lg font-semibold mb-4">自动完成</h3>
+            <div class="autocomplete">
+                <input type="text" class="autocomplete-input" placeholder="搜索国家...">
+                <div class="autocomplete-menu">
+                    <div class="autocomplete-option">中国</div>
+                    <div class="autocomplete-option autocomplete-option-active">美国</div>
+                    <div class="autocomplete-option">日本</div>
+                    <div class="autocomplete-option">韩国</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 
+<!-- 5. 标签输入系统 -->
+<section class="py-8">
+    <h2 class="text-2xl font-bold mb-6">5. 标签输入系统</h2>
+    <div class="card">
+        <h3 class="text-lg font-semibold mb-4">标签输入框</h3>
+        <div class="tags-input">
+            <span class="tag">
+                前端开发
+                <span class="tag-close">×</span>
+            </span>
+            <span class="tag">
+                UI设计
+                <span class="tag-close">×</span>
+            </span>
+            <input type="text" class="flex-1 border-0 focus:ring-0 bg-transparent" placeholder="添加标签...">
+        </div>
+    </div>
+</section>
 
+<!-- 6. 增强列表系统 -->
+<section class="py-8">
+    <h2 class="text-2xl font-bold mb-6">6. 增强列表系统</h2>
+    <div class="layout-grid-2 gap-8">
+        <div class="card">
+            <h3 class="text-lg font-semibold mb-4">用户列表</h3>
+            <div class="list list-bordered">
+                <div class="list-item-interactive flex-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="avatar avatar-md bg-blue-100 text-blue-600 flex-center">张</div>
+                        <div>
+                            <div class="font-medium">张三</div>
+                            <div class="text-sm text-gray-500">zhangsan@example.com</div>
+                        </div>
+                    </div>
+                    <span class="badge-success">在线</span>
+                </div>
+                
+                <div class="list-item-interactive flex-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="avatar avatar-md bg-green-100 text-green-600 flex-center">李</div>
+                        <div>
+                            <div class="font-medium">李四</div>
+                            <div class="text-sm text-gray-500">lisi@example.com</div>
+                        </div>
+                    </div>
+                    <span class="badge-gray">离线</span>
+                </div>
+                
+                <div class="list-item-interactive flex-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="avatar avatar-md bg-purple-100 text-purple-600 flex-center">王</div>
+                        <div>
+                            <div class="font-medium">王五</div>
+                            <div class="text-sm text-gray-500">wangwu@example.com</div>
+                        </div>
+                    </div>
+                    <span class="badge-warning">忙碌</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3 class="text-lg font-semibold mb-4">条纹列表</h3>
+            <div class="list list-bordered list-striped">
+                <div class="list-item">项目 1</div>
+                <div class="list-item">项目 2</div>
+                <div class="list-item">项目 3</div>
+                <div class="list-item">项目 4</div>
+                <div class="list-item">项目 5</div>
+            </div>
+        </div>
+    </div>
+</section>
 
+<!-- 7. 增强表格系统 -->
+<section class="py-8">
+    <h2 class="text-2xl font-bold mb-6">7. 增强表格系统</h2>
+    <div class="card">
+        <div class="flex-between mb-4">
+            <h3 class="text-lg font-semibold">产品列表</h3>
+            <button class="btn-primary btn-sm">添加产品</button>
+        </div>
+        
+        <div class="table table-striped">
+            <div class="table-header">
+                <div class="flex">
+                    <div class="table-header-cell flex-1">产品名称</div>
+                    <div class="table-header-cell w-32">价格</div>
+                    <div class="table-header-cell w-32">库存</div>
+                    <div class="table-header-cell w-32">状态</div>
+                    <div class="table-header-cell w-24">操作</div>
+                </div>
+            </div>
+            <div class="table-body">
+                <div class="flex table-row-hover">
+                    <div class="table-cell flex-1 flex items-center space-x-3">
+                        <div class="avatar avatar-sm bg-blue-100 flex-center">P1</div>
+                        <div>
+                            <div class="font-medium">智能手机</div>
+                            <div class="text-sm text-gray-500">电子产品</div>
+                        </div>
+                    </div>
+                    <div class="table-cell w-32">¥3,999</div>
+                    <div class="table-cell w-32">156</div>
+                    <div class="table-cell w-32">
+                        <span class="badge-success">有货</span>
+                    </div>
+                    <div class="table-cell w-24">
+                        <button class="btn-ghost btn-sm">编辑</button>
+                    </div>
+                </div>
+                
+                <div class="flex table-row-hover">
+                    <div class="table-cell flex-1 flex items-center space-x-3">
+                        <div class="avatar avatar-sm bg-green-100 flex-center">P2</div>
+                        <div>
+                            <div class="font-medium">无线耳机</div>
+                            <div class="text-sm text-gray-500">音频设备</div>
+                        </div>
+                    </div>
+                    <div class="table-cell w-32">¥899</div>
+                    <div class="table-cell w-32">0</div>
+                    <div class="table-cell w-32">
+                        <span class="badge-error">缺货</span>
+                    </div>
+                    <div class="table-cell w-24">
+                        <button class="btn-ghost btn-sm">编辑</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 
+<!-- 8. 增强警告系统 -->
+<section class="py-8">
+    <h2 class="text-2xl font-bold mb-6">8. 增强警告系统</h2>
+    <div class="layout-space-y-4">
+        <div class="alert-info alert-with-icon">
+            <span class="alert-icon">ℹ</span>
+            <div class="alert-content">
+                <h4 class="font-semibold">信息提示</h4>
+                <p>这是一条信息提示，用于向用户提供相关信息。</p>
+            </div>
+            <button class="alert-close">×</button>
+        </div>
+        
+        <div class="alert-success alert-with-icon">
+            <span class="alert-icon">✓</span>
+            <div class="alert-content">
+                <h4 class="font-semibold">操作成功</h4>
+                <p>您的操作已成功完成！</p>
+            </div>
+        </div>
+        
+        <div class="alert-warning alert-with-icon">
+            <span class="alert-icon">⚠</span>
+            <div class="alert-content">
+                <h4 class="font-semibold">警告提示</h4>
+                <p>您的存储空间即将用完。</p>
+            </div>
+        </div>
+        
+        <div class="alert-error alert-with-icon">
+            <span class="alert-icon">❌</span>
+            <div class="alert-content">
+                <h4 class="font-semibold">错误提示</h4>
+                <p>无法完成请求，请稍后重试。</p>
+            </div>
+            <button class="alert-close">×</button>
+        </div>
+    </div>
+</section>
 
+<!-- 9. 增强加载系统 -->
+<section class="py-8">
+    <h2 class="text-2xl font-bold mb-6">9. 增强加载系统</h2>
+    <div class="layout-grid-3 gap-8">
+        <div class="card text-center">
+            <h3 class="font-semibold mb-4">旋转加载</h3>
+            <div class="loading">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+        
+        <div class="card text-center">
+            <h3 class="font-semibold mb-4">点状加载</h3>
+            <div class="loading">
+                <div class="loading-dots">
+                    <div class="loading-dot" style="animation-delay: 0s"></div>
+                    <div class="loading-dot" style="animation-delay: 0.1s"></div>
+                    <div class="loading-dot" style="animation-delay: 0.2s"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3 class="font-semibold mb-4">进度条加载</h3>
+            <div class="loading-bar">
+                <div class="loading-bar-progress" style="width: 65%"></div>
+            </div>
+        </div>
+    </div>
+</section>
 
+<!-- 10. 增强头像系统 -->
+<section class="py-8">
+    <h2 class="text-2xl font-bold mb-6">10. 增强头像系统</h2>
+    <div class="layout-grid-2 gap-8">
+        <div class="card">
+            <h3 class="text-lg font-semibold mb-4">头像尺寸</h3>
+            <div class="flex items-center space-x-4">
+                <div class="avatar avatar-sm bg-blue-100 text-blue-600 flex-center">张</div>
+                <div class="avatar avatar-md bg-green-100 text-green-600 flex-center">李</div>
+                <div class="avatar avatar-lg bg-purple-100 text-purple-600 flex-center">王</div>
+                <div class="avatar avatar-xl bg-orange-100 text-orange-600 flex-center">赵</div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3 class="text-lg font-semibold mb-4">头像组</h3>
+            <div class="avatar-group">
+                <div class="avatar avatar-md bg-blue-100 text-blue-600 flex-center avatar-bordered">张</div>
+                <div class="avatar avatar-md bg-green-100 text-green-600 flex-center avatar-bordered">李</div>
+                <div class="avatar avatar-md bg-purple-100 text-purple-600 flex-center avatar-bordered">王</div>
+                <div class="avatar avatar-md bg-gray-200 flex-center avatar-bordered">+3</div>
+            </div>
+        </div>
+    </div>
+</section>
 
+<!-- 11. 增强进度条系统 -->
+<section class="py-8">
+    <h2 class="text-2xl font-bold mb-6">11. 增强进度条系统</h2>
+    <div class="card">
+        <div class="layout-space-y-4">
+            <div>
+                <div class="flex-between mb-2">
+                    <span class="text-sm font-medium">项目进度</span>
+                    <span class="text-sm text-gray-500">65%</span>
+                </div>
+                <div class="progress">
+                    <div class="progress-bar progress-primary" style="width: 65%"></div>
+                </div>
+            </div>
+            
+            <div>
+                <div class="flex-between mb-2">
+                    <span class="text-sm font-medium">上传进度</span>
+                    <span class="text-sm text-gray-500">85%</span>
+                </div>
+                <div class="progress progress-lg">
+                    <div class="progress-bar progress-success" style="width: 85%"></div>
+                </div>
+            </div>
+            
+            <div>
+                <div class="flex-between mb-2">
+                    <span class="text-sm font-medium">错误进度</span>
+                    <span class="text-sm text-gray-500">30%</span>
+                </div>
+                <div class="progress progress-sm">
+                    <div class="progress-bar progress-error" style="width: 30%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 
+<!-- 12. 增强工具提示系统 -->
+<section class="py-8">
+    <h2 class="text-2xl font-bold mb-6">12. 增强工具提示系统</h2>
+    <div class="card">
+        <div class="flex justify-around">
+            <div class="tooltip-container">
+                <button class="btn-outline">上方提示</button>
+                <div class="tooltip tooltip-top">这是上方的工具提示</div>
+            </div>
+            
+            <div class="tooltip-container">
+                <button class="btn-outline">下方提示</button>
+                <div class="tooltip tooltip-bottom">这是下方的工具提示</div>
+            </div>
+            
+            <div class="tooltip-container">
+                <button class="btn-outline">左侧提示</button>
+                <div class="tooltip tooltip-left">这是左侧的工具提示</div>
+            </div>
+            
+            <div class="tooltip-container">
+                <button class="btn-outline">右侧提示</button>
+                <div class="tooltip tooltip-right">这是右侧的工具提示</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 13. 增强模态框系统 -->
+<section class="py-8">
+    <h2 class="text-2xl font-bold mb-6">13. 增强模态框系统</h2>
+    <div class="card">
+        <div class="flex space-x-4">
+            <button class="btn-primary" onclick="openModal('modal-sm')">小模态框</button>
+            <button class="btn-primary" onclick="openModal('modal-default')">默认模态框</button>
+            <button class="btn-primary" onclick="openModal('modal-lg')">大模态框</button>
+            <button class="btn-primary" onclick="openModal('modal-xl')">特大模态框</button>
+        </div>
+    </div>
+    
+    <!-- 各种尺寸的模态框 -->
+    <div id="modal-sm" class="modal-overlay hidden">
+        <div class="modal-container modal-sm">
+            <div class="modal-header">
+                <h3 class="text-lg font-semibold">小模态框</h3>
+                <button class="alert-close" onclick="closeModal('modal-sm')">×</button>
+            </div>
+            <div class="modal-body">
+                <p>这是一个小尺寸的模态框。</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-outline" onclick="closeModal('modal-sm')">取消</button>
+                <button class="btn-primary" onclick="closeModal('modal-sm')">确认</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="modal-default" class="modal-overlay hidden">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="text-lg font-semibold">默认模态框</h3>
+                <button class="alert-close" onclick="closeModal('modal-default')">×</button>
+            </div>
+            <div class="modal-body">
+                <p>这是一个默认尺寸的模态框。</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-outline" onclick="closeModal('modal-default')">取消</button>
+                <button class="btn-primary" onclick="closeModal('modal-default')">确认</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="modal-lg" class="modal-overlay hidden">
+        <div class="modal-container modal-lg">
+            <div class="modal-header">
+                <h3 class="text-lg font-semibold">大模态框</h3>
+                <button class="alert-close" onclick="closeModal('modal-lg')">×</button>
+            </div>
+            <div class="modal-body">
+                <p>这是一个大尺寸的模态框，适合显示更多内容。</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-outline" onclick="closeModal('modal-lg')">取消</button>
+                <button class="btn-primary" onclick="closeModal('modal-lg')">确认</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="modal-xl" class="modal-overlay hidden">
+        <div class="modal-container modal-xl">
+            <div class="modal-header">
+                <h3 class="text-lg font-semibold">特大模态框</h3>
+                <button class="alert-close" onclick="closeModal('modal-xl')">×</button>
+            </div>
+            <div class="modal-body">
+                <p>这是一个特大尺寸的模态框，适合显示大量内容或复杂表单。</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-outline" onclick="closeModal('modal-xl')">取消</button>
+                <button class="btn-primary" onclick="closeModal('modal-xl')">确认</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 14. 增强导航系统 -->
+<section class="py-8">
+    <h2 class="text-2xl font-bold mb-6">14. 增强导航系统</h2>
+    <div class="layout-grid-2 gap-8">
+        <div class="card">
+            <h3 class="text-lg font-semibold mb-4">标签页导航</h3>
+            <div class="layout-tabs">
+                <div class="flex">
+                    <a href="#" class="nav-tab-active">概览</a>
+                    <a href="#" class="nav-tab">分析</a>
+                    <a href="#" class="nav-tab">报告</a>
+                    <a href="#" class="nav-tab">设置</a>
+                </div>
+            </div>
+            <div class="p-4">
+                <p>标签页内容区域</p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3 class="text-lg font-semibold mb-4">药丸导航</h3>
+            <div class="flex space-x-2">
+                <a href="#" class="nav-pill-active">全部</a>
+                <a href="#" class="nav-pill">进行中</a>
+                <a href="#" class="nav-pill">已完成</a>
+                <a href="#" class="nav-pill">已归档</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 15. 增强面包屑系统 -->
+<section class="py-8">
+    <h2 class="text-2xl font-bold mb-6">15. 增强面包屑系统</h2>
+    <div class="card">
+        <div class="breadcrumb">
+            <a href="#" class="breadcrumb-item">首页</a>
+            <span class="breadcrumb-separator">/</span>
+            <a href="#" class="breadcrumb-item">产品</a>
+            <span class="breadcrumb-separator">/</span>
+            <a href="#" class="breadcrumb-item">电子产品</a>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-current">智能手机</span>
+        </div>
+    </div>
+</section>
+
+<!-- 16. 增强分页系统 -->
+<section class="py-8">
+    <h2 class="text-2xl font-bold mb-6">16. 增强分页系统</h2>
+    <div class="layout-grid-3 gap-8">
+        <div class="card text-center">
+            <h3 class="font-semibold mb-4">小分页</h3>
+            <div class="pagination">
+                <button class="pagination-item pagination-sm">上一页</button>
+                <button class="pagination-item pagination-sm">1</button>
+                <button class="pagination-active pagination-sm">2</button>
+                <button class="pagination-item pagination-sm">3</button>
+                <button class="pagination-item pagination-sm">下一页</button>
+            </div>
+        </div>
+        
+        <div class="card text-center">
+            <h3 class="font-semibold mb-4">标准分页</h3>
+            <div class="pagination">
+                <button class="pagination-item">上一页</button>
+                <button class="pagination-item">1</button>
+                <button class="pagination-active">2</button>
+                <button class="pagination-item">3</button>
+                <span class="pagination-item">...</span>
+                <button class="pagination-item">10</button>
+                <button class="pagination-item">下一页</button>
+            </div>
+        </div>
+        
+        <div class="card text-center">
+            <h3 class="font-semibold mb-4">大分页</h3>
+            <div class="pagination">
+                <button class="pagination-item pagination-lg">上一页</button>
+                <button class="pagination-item pagination-lg">1</button>
+                <button class="pagination-active pagination-lg">2</button>
+                <button class="pagination-item pagination-lg">3</button>
+                <button class="pagination-item pagination-lg">下一页</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 17. 增强步骤系统 -->
+<section class="py-8">
+    <h2 class="text-2xl font-bold mb-6">17. 增强步骤系统</h2>
+    <div class="card">
+        <div class="steps">
+            <div class="step">
+                <div class="step-completed">✓</div>
+                <span class="ml-2 text-sm font-medium">基本信息</span>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+                <div class="step-active">2</div>
+                <span class="ml-2 text-sm font-medium">详细信息</span>
+            </div>
+            <div class="step-connector"></div>
+            <div class="step">
+                <div class="step-pending">3</div>
+                <span class="ml-2 text-sm text-gray-500">完成</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 18. 响应式网格布局 -->
+<section class="py-8">
+    <h2 class="text-2xl font-bold mb-6">18. 响应式网格布局</h2>
+    <div class="layout-card-grid">
+        <div class="card card-interactive">
+            <div class="w-full h-48 bg-gradient-to-br from-blue-400 to-purple-500 rounded-lg mb-4 flex-center text-white">
+                <span class="text-2xl">产品 1</span>
+            </div>
+            <h3 class="font-semibold text-lg mb-2">智能解决方案</h3>
+            <p class="text-gray-600 mb-4">为企业提供智能化的解决方案，提升工作效率。</p>
+            <div class="flex-between">
+                <span class="text-primary-600 font-semibold">¥999</span>
+                <button class="btn-primary btn-sm">购买</button>
+            </div>
+        </div>
+        
+        <div class="card card-interactive">
+            <div class="w-full h-48 bg-gradient-to-br from-green-400 to-teal-500 rounded-lg mb-4 flex-center text-white">
+                <span class="text-2xl">产品 2</span>
+            </div>
+            <h3 class="font-semibold text-lg mb-2">数据分析工具</h3>
+            <p class="text-gray-600 mb-4">强大的数据分析工具，帮助您洞察业务趋势。</p>
+            <div class="flex-between">
+                <span class="text-primary-600 font-semibold">¥1,299</span>
+                <button class="btn-primary btn-sm">购买</button>
+            </div>
+        </div>
+        
+        <div class="card card-interactive">
+            <div class="w-full h-48 bg-gradient-to-br from-orange-400 to-red-500 rounded-lg mb-4 flex-center text-white">
+                <span class="text-2xl">产品 3</span>
+            </div>
+            <h3 class="font-semibold text-lg mb-2">安全防护系统</h3>
+            <p class="text-gray-600 mb-4">全方位安全防护，保护您的数字资产安全。</p>
+            <div class="flex-between">
+                <span class="text-primary-600 font-semibold">¥1,599</span>
+                <button class="btn-primary btn-sm">购买</button>
+            </div>
+        </div>
+        
+        <div class="card card-interactive">
+            <div class="w-full h-48 bg-gradient-to-br from-purple-400 to-pink-500 rounded-lg mb-4 flex-center text-white">
+                <span class="text-2xl">产品 4</span>
+            </div>
+            <h3 class="font-semibold text-lg mb-2">协作平台</h3>
+            <p class="text-gray-600 mb-4">团队协作的最佳选择，提高团队协作效率。</p>
+            <div class="flex-between">
+                <span class="text-primary-600 font-semibold">¥799</span>
+                <button class="btn-primary btn-sm">购买</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 19. 仪表板布局 -->
+<section class="py-8">
+    <h2 class="text-2xl font-bold mb-6">19. 仪表板布局</h2>
+    <div class="layout-dashboard">
+        <div class="layout-dashboard-main">
+            <div class="layout-space-y-6">
+                <!-- 统计卡片 -->
+                <div class="layout-grid-4">
+                    <div class="card card-interactive">
+                        <div class="flex-between">
+                            <div>
+                                <p class="text-sm text-gray-500">总用户</p>
+                                <p class="text-2xl font-bold">1,234</p>
+                            </div>
+                            <div class="w-12 h-12 bg-blue-100 rounded-lg flex-center text-blue-600">
+                                <span class="text-xl">👥</span>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <div class="progress">
+                                <div class="progress-bar progress-primary" style="width: 75%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card card-interactive">
+                        <div class="flex-between">
+                            <div>
+                                <p class="text-sm text-gray-500">总收入</p>
+                                <p class="text-2xl font-bold">¥89,456</p>
+                            </div>
+                            <div class="w-12 h-12 bg-green-100 rounded-lg flex-center text-green-600">
+                                <span class="text-xl">💰</span>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <span class="text-success-600 text-sm">+12.5% 增长</span>
+                        </div>
+                    </div>
+                    
+                    <div class="card card-interactive">
+                        <div class="flex-between">
+                            <div>
+                                <p class="text-sm text-gray-500">订单数</p>
+                                <p class="text-2xl font-bold">567</p>
+                            </div>
+                            <div class="w-12 h-12 bg-purple-100 rounded-lg flex-center text-purple-600">
+                                <span class="text-xl">📦</span>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <span class="text-warning-600 text-sm">+5.2% 增长</span>
+                        </div>
+                    </div>
+                    
+                    <div class="card card-interactive">
+                        <div class="flex-between">
+                            <div>
+                                <p class="text-sm text-gray-500">满意度</p>
+                                <p class="text-2xl font-bold">98%</p>
+                            </div>
+                            <div class="w-12 h-12 bg-orange-100 rounded-lg flex-center text-orange-600">
+                                <span class="text-xl">⭐</span>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <div class="progress">
+                                <div class="progress-bar progress-success" style="width: 98%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 图表区域 -->
+                <div class="card-lg">
+                    <h3 class="text-xl font-bold mb-6">性能指标</h3>
+                    <div class="h-64 bg-gray-100 rounded-lg flex-center text-gray-500">
+                        图表区域 - 这里可以放置各种图表组件
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="layout-dashboard-sidebar">
+            <div class="card">
+                <h3 class="font-semibold mb-4">快速操作</h3>
+                <div class="layout-nav-vertical">
+                    <button class="nav-item">新建项目</button>
+                    <button class="nav-item">导入数据</button>
+                    <button class="nav-item">生成报告</button>
+                    <button class="nav-item-active">系统设置</button>
+                </div>
+            </div>
+            
+            <div class="card mt-6">
+                <h3 class="font-semibold mb-4">最近活动</h3>
+                <div class="layout-space-y-3">
+                    <div class="flex items-start space-x-3">
+                        <div class="avatar avatar-sm bg-blue-100 flex-center mt-1">张</div>
+                        <div class="flex-1">
+                            <p class="text-sm">张三创建了新项目</p>
+                            <p class="text-xs text-gray-500">2分钟前</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                        <div class="avatar avatar-sm bg-green-100 flex-center mt-1">李</div>
+                        <div class="flex-1">
+                            <p class="text-sm">李四完成了任务</p>
+                            <p class="text-xs text-gray-500">1小时前</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 20. 圣杯布局 -->
+<section class="py-8">
+    <h2 class="text-2xl font-bold mb-6">20. 圣杯布局</h2>
+    <div class="layout-holy-grail border-2 border-dashed border-gray-300 rounded-lg overflow-hidden">
+        <header class="layout-holy-grail-header bg-primary-600 text-white p-4">
+            <div class="container flex-between">
+                <h1 class="text-2xl font-bold">圣杯布局</h1>
+                <div>导航菜单</div>
+            </div>
+        </header>
+        <aside class="layout-holy-grail-left bg-gray-100 dark:bg-gray-800 p-4">
+            <div class="container">左侧边栏</div>
+        </aside>
+        <main class="layout-holy-grail-main p-6">
+            <div class="container">
+                <div class="layout-center-both min-h-64">
+                    <div class="text-center">
+                        <h2 class="text-2xl font-bold mb-4">主要内容区域</h2>
+                        <p>圣杯布局的核心内容区域</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <aside class="layout-holy-grail-right bg-gray-100 dark:bg-gray-800 p-4">
+            <div class="container">右侧边栏</div>
+        </aside>
+        <footer class="layout-holy-grail-footer bg-gray-800 text-white p-4">
+            <div class="container text-center">页脚内容</div>
+        </footer>
+    </div>
+</section>
+
+<!-- 21. 上下布局 -->
+<section class="py-8">
+    <h2 class="text-2xl font-bold mb-6">21. 上下布局</h2>
+    <div class="layout-top-bottom border-2 border-dashed border-gray-300 rounded-lg overflow-hidden">
+        <header class="layout-header p-4 bg-blue-100">
+            <div class="container flex-between">
+                <h1 class="text-xl font-bold">网站标题</h1>
+                <nav class="layout-nav-horizontal">
+                    <a href="#" class="hover:text-primary-600">首页</a>
+                    <a href="#" class="hover:text-primary-600">关于</a>
+                    <a href="#" class="hover:text-primary-600">联系</a>
+                </nav>
+            </div>
+        </header>
+        <main class="layout-top-main p-8">
+            <div class="container">
+                <div class="card">
+                    <h2 class="text-2xl font-bold mb-4">主要内容</h2>
+                    <p>这是上下布局的主要内容区域。</p>
+                </div>
+            </div>
+        </main>
+        <footer class="layout-footer p-4 bg-gray-100">
+            <div class="container text-center">
+                <p>&copy; 2024 我的网站. 保留所有权利.</p>
+            </div>
+        </footer>
+    </div>
+</section>
+
+<!-- 22. 左右布局 -->
+<section class="py-8">
+    <h2 class="text-2xl font-bold mb-6">22. 左右布局</h2>
+    <div class="layout-left-right border-2 border-dashed border-gray-300 rounded-lg overflow-hidden">
+        <aside class="layout-sidebar p-6 bg-gray-100">
+            <div class="space-y-6">
+                <div class="font-bold text-lg">导航菜单</div>
+                <nav class="layout-nav-vertical">
+                    <a href="#" class="px-3 py-2 rounded-lg bg-primary-100 text-primary-600">仪表板</a>
+                    <a href="#" class="px-3 py-2 rounded-lg hover:bg-gray-200">用户管理</a>
+                    <a href="#" class="px-3 py-2 rounded-lg hover:bg-gray-200">设置</a>
+                </nav>
+            </div>
+        </aside>
+        <main class="layout-content p-8">
+            <div class="card">
+                <h1 class="text-3xl font-bold mb-4">欢迎回来</h1>
+                <p>这是左右布局的主要内容区域。</p>
+            </div>
+        </main>
+    </div>
+</section>
+
+<!-- 23. 网格布局 -->
+<section class="py-8">
+    <h2 class="text-2xl font-bold mb-6">23. 网格布局</h2>
+    <div class="layout-grid-4 border-2 border-dashed border-gray-300 rounded-lg p-4">
+        <div class="card text-center">网格项 1</div>
+        <div class="card text-center">网格项 2</div>
+        <div class="card text-center">网格项 3</div>
+        <div class="card text-center">网格项 4</div>
+        <div class="card text-center">网格项 5</div>
+        <div class="card text-center">网格项 6</div>
+        <div class="card text-center">网格项 7</div>
+        <div class="card text-center">网格项 8</div>
+    </div>
+</section>
+
+<!-- 24. 分割布局 -->
+<section class="py-8">
+    <h2 class="text-2xl font-bold mb-6">24. 分割布局</h2>
+    <div class="layout-split-2 border-2 border-dashed border-gray-300 rounded-lg p-4">
+        <div class="card-lg">
+            <h3 class="text-xl font-bold mb-4">左侧内容</h3>
+            <p>左侧区域的详细描述内容...</p>
+        </div>
+        <div class="card-lg">
+            <h3 class="text-xl font-bold mb-4">右侧内容</h3>
+            <p>右侧区域的详细描述内容...</p>
+        </div>
+    </div>
+</section>
+
+<!-- 25. 流式布局 -->
+<section class="py-8">
+    <h2 class="text-2xl font-bold mb-6">25. 流式布局</h2>
+    <div class="layout-flow-row border-2 border-dashed border-gray-300 rounded-lg p-4">
+        <div class="card w-32">项目 1</div>
+        <div class="card w-32">项目 2</div>
+        <div class="card w-32">项目 3</div>
+        <div class="card w-32">项目 4</div>
+        <div class="card w-32">项目 5</div>
+        <div class="card w-32">项目 6</div>
+    </div>
+</section>
+
+<!-- 26. 居中布局 -->
+<section class="py-8">
+    <h2 class="text-2xl font-bold mb-6">26. 居中布局</h2>
+    <div class="layout-center-both border-2 border-dashed border-gray-300 rounded-lg p-8 h-64">
+        <div class="card text-center">
+            <h3 class="text-xl font-bold mb-2">居中内容</h3>
+            <p>这个内容完美居中于容器</p>
+        </div>
+    </div>
+</section>
+
+<!-- 27. 粘性布局 -->
+<section class="py-8">
+    <h2 class="text-2xl font-bold mb-6">27. 粘性布局</h2>
+    <div class="border-2 border-dashed border-gray-300 rounded-lg h-64 overflow-auto">
+        <div class="layout-sticky-top bg-white p-4 border-b">
+            <div class="flex-between">
+                <h3 class="font-bold">粘性标题</h3>
+                <button class="btn-primary">操作按钮</button>
+            </div>
+        </div>
+        <div class="p-4 space-y-4">
+            <div class="card">内容项 1</div>
+            <div class="card">内容项 2</div>
+            <div class="card">内容项 3</div>
+            <div class="card">内容项 4</div>
+            <div class="card">内容项 5</div>
+        </div>
+    </div>
+</section>
+
+<!-- 28. 固定布局 -->
+<section class="py-8">
+    <h2 class="text-2xl font-bold mb-6">28. 固定布局</h2>
+    <div class="relative border-2 border-dashed border-gray-300 rounded-lg h-48 overflow-auto">
+        <div class="layout-fixed-top bg-yellow-100 p-4">固定顶部栏</div>
+        <div class="pt-16 p-4">
+            <p>滚动内容区域...</p>
+            <div class="h-96"></div>
+        </div>
+    </div>
+</section>
+
+<!-- 29. 绝对定位布局 -->
+<section class="py-8">
+    <h2 class="text-2xl font-bold mb-6">29. 绝对定位布局</h2>
+    <div class="relative border-2 border-dashed border-gray-300 rounded-lg h-48">
+        <div class="layout-absolute-center bg-blue-100 p-4 rounded-lg">
+            绝对居中内容
+        </div>
+    </div>
+</section>
+
+<!-- 30. 响应式显示 -->
+<section class="py-8">
+    <h2 class="text-2xl font-bold mb-6">30. 响应式显示</h2>
+    <div class="card">
+        <div class="bg-yellow-100 p-4 rounded-lg">
+            <p class="layout-mobile-only">这个提示只在移动设备上显示</p>
+            <p class="layout-desktop-only">这个提示只在桌面设备上显示</p>
+            <p class="layout-tablet-only">这个提示只在平板设备上显示</p>
+        </div>
+    </div>
+</section>
 </div>
+
+        <script>
+// 模态框控制函数
+function openModal(modalId) {
+    document.getElementById(modalId).classList.remove('hidden');
+}
+
+function closeModal(modalId) {
+    document.getElementById(modalId).classList.add('hidden');
+}
+
+// 点击模态框外部关闭
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('modal-overlay')) {
+        e.target.classList.add('hidden');
+    }
+});
+
+// 模拟表单验证
+document.addEventListener('DOMContentLoaded', function() {
+    const inputs = document.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+        input.addEventListener('focus', function() {
+            this.classList.add('ring-2', 'ring-primary-500');
+        });
+        input.addEventListener('blur', function() {
+            this.classList.remove('ring-2', 'ring-primary-500');
+        });
+    });
+});
+</script>
