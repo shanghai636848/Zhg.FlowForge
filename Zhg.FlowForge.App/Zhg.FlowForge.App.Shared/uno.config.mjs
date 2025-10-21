@@ -490,6 +490,7 @@ html {
 
 html, body {
     width: 100%;
+    height: 100%;
     line-height: 1.6;
     color: #171717;
     background-color: #fafafa;
