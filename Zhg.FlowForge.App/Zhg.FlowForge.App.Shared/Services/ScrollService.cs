@@ -6,9 +6,9 @@ using System.Text;
 
 namespace Zhg.FlowForge.App.Shared.Services;
 
-public class ScrollService : IAsyncDisposable
+public class ScrollService(IJSRuntime js) : IAsyncDisposable
 {
-    private readonly IJSRuntime _js;
+    private readonly IJSRuntime _js = js;
     private IJSObjectReference? _jsModule;
     private DotNetObjectReference<ScrollService>? _dotnetHelper;
     private Action<double>? _onScrollChanged;
@@ -19,11 +19,6 @@ public class ScrollService : IAsyncDisposable
     {
         add => _onScrollChanged += value;
         remove => _onScrollChanged -= value;
-    }
-
-    public ScrollService(IJSRuntime js)
-    {
-        _js = js;
     }
 
     public async Task InitializeAsync()
