@@ -1,3 +1,4 @@
+using Zhg.FlowForge.App.Shared.Services;
 using Zhg.FlowForge.App.Web.Components;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -6,6 +7,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
+
+builder.Services.AddScoped<ScrollService>();
 
 var app = builder.Build();
 

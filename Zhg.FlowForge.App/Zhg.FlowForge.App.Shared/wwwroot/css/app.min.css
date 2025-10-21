@@ -5,80 +5,147 @@
 /* 导入 Inter 字体 */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* 自定义滚动条 */
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-
-/* 滚动条轨道样式 */
-::-webkit-scrollbar-track {
-    background: #f5f5f5;
-}
-
-/* 滚动条滑块样式 */
-::-webkit-scrollbar-thumb {
-    background: #d4d4d4;
-    border-radius: 4px;
-}
-
-/* 滚动条滑块悬停样式 */
-::-webkit-scrollbar-thumb:hover {
-    background: #a3a3a3;
-}
-
-/* 文本选择时的背景和文字颜色 */
-::selection {
-    background-color: #6E8CFB;
-    color: white;
-}
-
-/* 元素获得焦点时的样式 */
-:focus {
-    outline: 2px solid #6E8CFB;
-    outline-offset: 2px;
-}
-
 /* 重置所有元素的内外边距并设置盒模型 */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    transition: all 0.3s ease;
 }
 
 /* HTML和body元素样式 */
-html, body {
-  overflow-x: hidden;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  scroll-behavior: smooth;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  line-height: 1.6;
-  color: #171717;
-  background-color: #fafafa;
+html {
+  font-size: 13.5px;
 }
 
-/* ========== 动态根字体 ========== */
-/* 基础字体大小 */
-html { font-size: 16px; }
+/* ========== 动态根字体（从小屏到大屏，基准 16px） ========== */
 
-/* 不同屏幕宽度下的字体大小调整 */
-@media (min-width: 3840px) { html { font-size: 20px; } }
-@media (min-width: 2560px) { html { font-size: 18px; } }
-@media (min-width: 1920px) { html { font-size: 17px; } }
-@media (max-width: 1440px) { html { font-size: 15.5px; } }
-@media (max-width: 1280px) { html { font-size: 15px; } }
-@media (max-width: 1024px) { html { font-size: 14.5px; } }
-@media (max-width: 900px)  { html { font-size: 14px; } }
-@media (max-width: 768px)  { html { font-size: 13.5px; } }
-@media (max-width: 640px)  { html { font-size: 13px; } }
-@media (max-width: 480px)  { html { font-size: 12.5px; } }
-@media (max-width: 375px)  { html { font-size: 12px; } }
-@media (max-width: 320px)  { html { font-size: 11.5px; } }
+/* xs: ≥320px — iPhone 5/SE 等小屏手机 */
+@media (min-width: 320px) {
+  html { font-size: 14px; }
+}
 
-      
+/* sm: ≥640px — 大屏手机 / 小平板（如 iPhone Plus、Galaxy S 系列） */
+@media (min-width: 640px) {
+  html { font-size: 14.5px; }
+}
+
+/* md: ≥768px — 平板竖屏（如 iPad、Android 平板） */
+@media (min-width: 768px) {
+  html { font-size: 15px; }
+}
+
+/* lg: ≥1024px — 小桌面 / 平板横屏（如 iPad Air 横屏、13" 笔记本） */
+@media (min-width: 1024px) {
+  html { font-size: 15.5px; }
+}
+
+/* xl: ≥1280px — 中等桌面（主流笔记本、台式机，默认基准区间） */
+@media (min-width: 1280px) {
+  html { font-size: 16px; } /* ← 基准字号 */
+}
+
+/* 2xl: ≥1536px — 大桌面（如 MacBook Pro 16"、Surface Studio） */
+@media (min-width: 1536px) {
+  html { font-size: 16.5px; }
+}
+
+/* 3xl: ≥1920px — 全高清桌面（FHD，1920×1080 主流显示器） */
+@media (min-width: 1920px) {
+  html { font-size: 17px; }
+}
+
+/* 4xl: ≥2048px — QWXGA / iPad Pro 12.9" 横屏、高端平板 */
+@media (min-width: 2048px) {
+  html { font-size: 17.5px; }
+}
+
+/* 5xl: ≥2560px — 2K / WQHD 显示器（如 27" 2K 屏） */
+@media (min-width: 2560px) {
+  html { font-size: 18px; }
+}
+
+/* 6xl: ≥2880px — Retina 5K iMac（5120×2880 的一半宽度） */
+@media (min-width: 2880px) {
+  html { font-size: 19px; }
+}
+
+/* 7xl: ≥3440px — 超宽 2K 带鱼屏（如 3440×1440） */
+@media (min-width: 3440px) {
+  html { font-size: 20px; }
+}
+
+/* 8xl: ≥3840px — 4K UHD 显示器（3840×2160） */
+@media (min-width: 3840px) {
+  html { font-size: 21px; }
+}
+
+/* 9xl: ≥4096px — 4K DCI 电影级分辨率（4096×2160） */
+@media (min-width: 4096px) {
+  html { font-size: 22px; }
+}
+
+html, body {
+    width: 100%;
+    line-height: 1.6;
+    color: #171717;
+    background-color: #fafafa;
+    /* 隐藏水平方向的滚动条 */
+    overflow-x: hidden;
+    /* 页面滚动为平滑滚动 */
+    scroll-behavior: smooth;
+    /* 系统默认的无衬线字体栈 */
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+/* layer: default */
+.fixed{position:fixed;}
+.static{position:static;}
+.left-0{left:0;}
+.right-0{right:0;}
+.top-0{top:0;}
+.z-50{z-index:50;}
+.col-end-4\<\/div\>{grid-column-end:4</div>;}
+.grid-rows-\[auto_1fr_auto\]{grid-template-rows:auto 1fr auto;}
+.mb-2{margin-bottom:0.5rem;}
+.mb-8{margin-bottom:2rem;}
+.mt-16{margin-top:4rem;}
+.h-16{height:4rem;}
+.h-24{height:6rem;}
+.h-32{height:8rem;}
+.h-48{height:12rem;}
+.h1{height:0.25rem;}
+.min-h-screen{min-height:100vh;}
+.w-1\/2{width:50%;}
+.w-32{width:8rem;}
+.w-48{width:12rem;}
+.border{border-width:1px;}
+.bg-blue-500{--un-bg-opacity:1;background-color:rgb(59 130 246 / var(--un-bg-opacity));}
+.bg-gray-200{--un-bg-opacity:1;background-color:rgb(229 231 235 / var(--un-bg-opacity));}
+.bg-gray-50{--un-bg-opacity:1;background-color:rgb(249 250 251 / var(--un-bg-opacity));}
+.bg-gray-800{--un-bg-opacity:1;background-color:rgb(31 41 55 / var(--un-bg-opacity));}
+.bg-green-500{--un-bg-opacity:1;background-color:rgb(34 197 94 / var(--un-bg-opacity));}
+.bg-purple-500{--un-bg-opacity:1;background-color:rgb(168 85 247 / var(--un-bg-opacity));}
+.bg-red-500{--un-bg-opacity:1;background-color:rgb(239 68 68 / var(--un-bg-opacity));}
+.bg-white\/50{background-color:rgb(255 255 255 / 0.5);}
+.bg-yellow-500{--un-bg-opacity:1;background-color:rgb(234 179 8 / var(--un-bg-opacity));}
+.p-2{padding:0.5rem;}
+.p-4{padding:1rem;}
+.p-6{padding:1.5rem;}
+.px-4{padding-left:1rem;padding-right:1rem;}
+.text-center{text-align:center;}
+.text-3xl{font-size:1.875rem;line-height:1;}
+.text-gray-900{--un-text-opacity:1;color:rgb(17 24 39 / var(--un-text-opacity));}
+.text-white{--un-text-opacity:1;color:rgb(255 255 255 / var(--un-text-opacity));}
+.font-bold{font-weight:700;}
+.font-semibold{font-weight:600;}
+.backdrop-blur-md{--un-backdrop-blur:blur(12px);-webkit-backdrop-filter:var(--un-backdrop-blur) var(--un-backdrop-brightness) var(--un-backdrop-contrast) var(--un-backdrop-grayscale) var(--un-backdrop-hue-rotate) var(--un-backdrop-invert) var(--un-backdrop-opacity) var(--un-backdrop-saturate) var(--un-backdrop-sepia);backdrop-filter:var(--un-backdrop-blur) var(--un-backdrop-brightness) var(--un-backdrop-contrast) var(--un-backdrop-grayscale) var(--un-backdrop-hue-rotate) var(--un-backdrop-invert) var(--un-backdrop-opacity) var(--un-backdrop-saturate) var(--un-backdrop-sepia);}
+.backdrop-blur-none{--un-backdrop-blur:blur(0);-webkit-backdrop-filter:var(--un-backdrop-blur) var(--un-backdrop-brightness) var(--un-backdrop-contrast) var(--un-backdrop-grayscale) var(--un-backdrop-hue-rotate) var(--un-backdrop-invert) var(--un-backdrop-opacity) var(--un-backdrop-saturate) var(--un-backdrop-sepia);backdrop-filter:var(--un-backdrop-blur) var(--un-backdrop-brightness) var(--un-backdrop-contrast) var(--un-backdrop-grayscale) var(--un-backdrop-hue-rotate) var(--un-backdrop-invert) var(--un-backdrop-opacity) var(--un-backdrop-saturate) var(--un-backdrop-sepia);}
+.transition-colors{transition-property:color,background-color,border-color,text-decoration-color,fill,stroke;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms;}
+.duration-300{transition-duration:300ms;}
+
+/*
+  Fallback layer. It's always recommended to include.
+  Only unused layers will be injected here.
+*/
 /* layer: shortcuts */
 .order-first{order:-9999;}
 .order-last{order:9999;}
@@ -98,7 +165,7 @@ html { font-size: 16px; }
 .row-span-2{grid-row:span 2/span 2;}
 .col-start-2{grid-column-start:2;}
 .col-end-4{grid-column-end:4;}
-.container-full-2xl{margin-left:auto;margin-right:auto;width:100%;padding-left:0.25rem;padding-right:0.25rem;}
+.container-full-3xl{margin-left:auto;margin-right:auto;width:100%;padding-left:0.25rem;padding-right:0.25rem;}
 .content-around{display:flex;align-content:space-around;}
 .flex{display:flex;}
 .flex-col{display:flex;flex-direction:column;}
@@ -148,36 +215,7 @@ html { font-size: 16px; }
 @media (min-width: 1536px){
 .\32 xl\:grid-cols-6,
 .grid-responsive{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));}
-.container-full-2xl{max-width:1536px;}
 }
-/* layer: default */
-.static{position:static;}
-.col-end-4\<\/div\>{grid-column-end:4</div>;}
-.grid-rows-\[auto_1fr_auto\]{grid-template-rows:auto 1fr auto;}
-.mb-2{margin-bottom:0.5rem;}
-.mb-8{margin-bottom:2rem;}
-.h-24{height:6rem;}
-.h-32{height:8rem;}
-.h-48{height:12rem;}
-.h1{height:0.25rem;}
-.min-h-screen{min-height:100vh;}
-.w-1\/2{width:50%;}
-.w-32{width:8rem;}
-.w-48{width:12rem;}
-.border{border-width:1px;}
-.bg-blue-500{--un-bg-opacity:1;background-color:rgb(59 130 246 / var(--un-bg-opacity));}
-.bg-gray-200{--un-bg-opacity:1;background-color:rgb(229 231 235 / var(--un-bg-opacity));}
-.bg-gray-50{--un-bg-opacity:1;background-color:rgb(249 250 251 / var(--un-bg-opacity));}
-.bg-gray-800{--un-bg-opacity:1;background-color:rgb(31 41 55 / var(--un-bg-opacity));}
-.bg-green-500{--un-bg-opacity:1;background-color:rgb(34 197 94 / var(--un-bg-opacity));}
-.bg-purple-500{--un-bg-opacity:1;background-color:rgb(168 85 247 / var(--un-bg-opacity));}
-.bg-red-500{--un-bg-opacity:1;background-color:rgb(239 68 68 / var(--un-bg-opacity));}
-.bg-yellow-500{--un-bg-opacity:1;background-color:rgb(234 179 8 / var(--un-bg-opacity));}
-.p-2{padding:0.5rem;}
-.p-4{padding:1rem;}
-.p-6{padding:1.5rem;}
-.text-center{text-align:center;}
-.text-3xl{font-size:1.875rem;line-height:1;}
-.text-white{--un-text-opacity:1;color:rgb(255 255 255 / var(--un-text-opacity));}
-.font-bold{font-weight:700;}
-.font-semibold{font-weight:600;}
+@media (min-width: 1920px){
+.container-full-3xl{max-width:1920px;}
+}

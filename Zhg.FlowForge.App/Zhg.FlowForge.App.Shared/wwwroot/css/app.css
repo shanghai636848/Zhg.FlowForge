@@ -1,1 +1,9 @@
-@unocss all;
+
+@unocss preflights;
+@unocss default;
+
+/*
+  Fallback layer. It's always recommended to include.
+  Only unused layers will be injected here.
+*/
+@unocss;

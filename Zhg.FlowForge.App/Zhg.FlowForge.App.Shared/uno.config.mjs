@@ -409,79 +409,97 @@ export default defineConfig({
 /* 导入 Inter 字体 */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-/* 自定义滚动条 */
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-
-/* 滚动条轨道样式 */
-::-webkit-scrollbar-track {
-    background: #f5f5f5;
-}
-
-/* 滚动条滑块样式 */
-::-webkit-scrollbar-thumb {
-    background: #d4d4d4;
-    border-radius: 4px;
-}
-
-/* 滚动条滑块悬停样式 */
-::-webkit-scrollbar-thumb:hover {
-    background: #a3a3a3;
-}
-
-/* 文本选择时的背景和文字颜色 */
-::selection {
-    background-color: #6E8CFB;
-    color: white;
-}
-
-/* 元素获得焦点时的样式 */
-:focus {
-    outline: 2px solid #6E8CFB;
-    outline-offset: 2px;
-}
-
 /* 重置所有元素的内外边距并设置盒模型 */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    transition: all 0.3s ease;
 }
 
 /* HTML和body元素样式 */
-html, body {
-  overflow-x: hidden;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  scroll-behavior: smooth;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  line-height: 1.6;
-  color: #171717;
-  background-color: #fafafa;
+html {
+  font-size: 13.5px;
 }
 
-/* ========== 动态根字体 ========== */
-/* 基础字体大小 */
-html { font-size: 16px; }
+/* ========== 动态根字体（从小屏到大屏，基准 16px） ========== */
 
-/* 不同屏幕宽度下的字体大小调整 */
-@media (min-width: 3840px) { html { font-size: 20px; } }
-@media (min-width: 2560px) { html { font-size: 18px; } }
-@media (min-width: 1920px) { html { font-size: 17px; } }
-@media (max-width: 1440px) { html { font-size: 15.5px; } }
-@media (max-width: 1280px) { html { font-size: 15px; } }
-@media (max-width: 1024px) { html { font-size: 14.5px; } }
-@media (max-width: 900px)  { html { font-size: 14px; } }
-@media (max-width: 768px)  { html { font-size: 13.5px; } }
-@media (max-width: 640px)  { html { font-size: 13px; } }
-@media (max-width: 480px)  { html { font-size: 12.5px; } }
-@media (max-width: 375px)  { html { font-size: 12px; } }
-@media (max-width: 320px)  { html { font-size: 11.5px; } }
+/* xs: ≥320px — iPhone 5/SE 等小屏手机 */
+@media (min-width: 320px) {
+  html { font-size: 14px; }
+}
 
+/* sm: ≥640px — 大屏手机 / 小平板（如 iPhone Plus、Galaxy S 系列） */
+@media (min-width: 640px) {
+  html { font-size: 14.5px; }
+}
+
+/* md: ≥768px — 平板竖屏（如 iPad、Android 平板） */
+@media (min-width: 768px) {
+  html { font-size: 15px; }
+}
+
+/* lg: ≥1024px — 小桌面 / 平板横屏（如 iPad Air 横屏、13" 笔记本） */
+@media (min-width: 1024px) {
+  html { font-size: 15.5px; }
+}
+
+/* xl: ≥1280px — 中等桌面（主流笔记本、台式机，默认基准区间） */
+@media (min-width: 1280px) {
+  html { font-size: 16px; } /* ← 基准字号 */
+}
+
+/* 2xl: ≥1536px — 大桌面（如 MacBook Pro 16"、Surface Studio） */
+@media (min-width: 1536px) {
+  html { font-size: 16.5px; }
+}
+
+/* 3xl: ≥1920px — 全高清桌面（FHD，1920×1080 主流显示器） */
+@media (min-width: 1920px) {
+  html { font-size: 17px; }
+}
+
+/* 4xl: ≥2048px — QWXGA / iPad Pro 12.9" 横屏、高端平板 */
+@media (min-width: 2048px) {
+  html { font-size: 17.5px; }
+}
+
+/* 5xl: ≥2560px — 2K / WQHD 显示器（如 27" 2K 屏） */
+@media (min-width: 2560px) {
+  html { font-size: 18px; }
+}
+
+/* 6xl: ≥2880px — Retina 5K iMac（5120×2880 的一半宽度） */
+@media (min-width: 2880px) {
+  html { font-size: 19px; }
+}
+
+/* 7xl: ≥3440px — 超宽 2K 带鱼屏（如 3440×1440） */
+@media (min-width: 3440px) {
+  html { font-size: 20px; }
+}
+
+/* 8xl: ≥3840px — 4K UHD 显示器（3840×2160） */
+@media (min-width: 3840px) {
+  html { font-size: 21px; }
+}
+
+/* 9xl: ≥4096px — 4K DCI 电影级分辨率（4096×2160） */
+@media (min-width: 4096px) {
+  html { font-size: 22px; }
+}
+
+html, body {
+    width: 100%;
+    line-height: 1.6;
+    color: #171717;
+    background-color: #fafafa;
+    /* 隐藏水平方向的滚动条 */
+    overflow-x: hidden;
+    /* 页面滚动为平滑滚动 */
+    scroll-behavior: smooth;
+    /* 系统默认的无衬线字体栈 */
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
       `,
         },
     ],
