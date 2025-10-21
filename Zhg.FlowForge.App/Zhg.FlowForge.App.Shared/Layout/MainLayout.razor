@@ -1,9 +1,18 @@
 ﻿@inherits LayoutComponentBase
 
-@Body
+
+<div class="container-full-3xl">
+
+	<div class="flex flex-col min-h-screen"> 
+		<header class="bg-gray-800 text-white p-4">Header</header> 
+		<main class="flex-1 p-4">@Body</main>
+		<footer class="bg-gray-800 text-white p-4">Footer</footer> 
+	</div>
+
+</div>
 
 <div id="blazor-error-ui" data-nosnippet>
-    An unhandled error has occurred.
-    <a href="." class="reload">Reload</a>
-    <span class="dismiss">🗙</span>
+	An unhandled error has occurred.
+	<a href="." class="reload">Reload</a>
+	<span class="dismiss">🗙</span>
 </div>

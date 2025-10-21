@@ -1,167 +1,457 @@
-﻿// uno.config.mjs
+﻿// uno.config.mjs - UnoCSS 配置文件
+
+// 导入 UnoCSS 相关模块和函数
 import {
+    // 主配置函数，用于定义 UnoCSS 配置
     defineConfig,
+    // UnoCSS 默认预设，提供基础的原子类
     presetUno,
+    // 属性化模式预设，允许使用属性形式的类名
     presetAttributify,
+    // 图标预设，支持图标类名
     presetIcons,
+    // 排版预设，提供排版相关的样式
     presetTypography,
+    // 指令转换器，支持 CSS 指令
     transformerDirectives,
+    // 变体组转换器，支持变体组合语法
     transformerVariantGroup,
 } from 'unocss'
 
+// 导出配置对象，使用 defineConfig 函数定义
 export default defineConfig({
+    // 内容配置，指定需要扫描的文件路径
     content: {
+        // 文件系统路径配置
         filesystem: [
+            // 扫描所有 .razor 文件
             './**/*.razor',
-            './**/*.razor.css',
+            // 扫描 wwwroot 目录下的所有 .html 文件
             './wwwroot/**/*.html',
-            './wwwroot/**/*.js',
-            './Pages/**/*.razor',
-            './Components/**/*.razor',
         ],
     },
 
+    // 预设配置数组
     presets: [
+        // UnoCSS 默认预设配置
         presetUno({
+            // 暗色主题模式设置为 class 模式
             dark: 'class',
         }),
-        presetAttributify(),
+        // 属性化模式预设（当前被注释掉）
+        //presetAttributify(),
+        // 图标预设配置
         presetIcons({
+            // 图标缩放比例
             scale: 1.2,
+            // 启用警告提示
             warn: true,
         }),
-        presetTypography(),
+        // 排版预设（当前被注释掉）
+        //presetTypography(),
     ],
 
+    // 转换器配置数组（当前都被注释掉）
     transformers: [
-        transformerDirectives(),
-        transformerVariantGroup(),
+        // 指令转换器（当前被注释掉）
+        //transformerDirectives(),
+        // 变体组转换器（当前被注释掉）
+        //transformerVariantGroup(),
     ],
 
+    // 主题配置对象
     theme: {
+        // 容器配置
         container: {
+            // 容器居中显示
             center: true,
+            // 容器内边距
             padding: '1rem',
         },
+        breakpoints: {
+            'xs': '320px',    // iPhone 5/SE 等小屏设备
+            // 标准移动设备断点
+            'sm': '640px',    // 小屏幕设备
+            'md': '768px',    // 平板设备
+            'lg': '1024px',   // 小桌面设备
+            'xl': '1280px',   // 中等桌面设备
+            '2xl': '1536px',  // 大桌面设备
+            '3xl': '1920px',  // 全高清设备
+            // 超大屏幕和特殊设备
+            '4xl': '2048px',  // QWXGA, iPad Pro 12.9"
+            '5xl': '2560px',  // 2K/WQHD 显示器
+            '6xl': '2880px',  // Retina 5K iMac
+            '7xl': '3440px',  // 超宽 2K 显示器
+            '8xl': '3840px',  // 4K UHD 显示器
+            '9xl': '4096px',  // 4K DCI 显示器
+        },
+        // 颜色配置
         colors: {
+            // 专业蓝色系 - 基于提供的色彩
             primary: {
-                50: '#eff6ff',
-                100: '#dbeafe',
-                200: '#bfdbfe',
-                300: '#93c5fd',
-                400: '#60a5fa',
-                500: '#3b82f6',
-                600: '#2563eb',
-                700: '#1d4ed8',
-                800: '#1e40af',
-                900: '#1e3a8a',
+                // 最浅的主色
+                50: '#F5F9FF',
+                // 浅主色
+                100: '#E6F0FF',
+                // 较浅主色
+                200: '#CDE0FF',
+                // 中等浅主色
+                300: '#B0CBFF',
+                // 中等主色
+                400: '#94B3FF',
+                // 主色
+                500: '#7D9EFF',
+                // 深主色
+                600: '#6E8CFB',
+                // 较深主色
+                700: '#636CCB',
+                // 深主色
+                800: '#50589C',
+                // 最深主色
+                900: '#3C467B',
             },
-            secondary: {
-                50: '#f8fafc',
-                100: '#f1f5f9',
-                200: '#e2e8f0',
-                300: '#cbd5e1',
-                400: '#94a3b8',
-                500: '#64748b',
-                600: '#475569',
-                700: '#334155',
-                800: '#1e293b',
-                900: '#0f172a',
+            // 中性色调
+            neutral: {
+                // 最浅中性色
+                50: '#fafafa',
+                // 浅中性色
+                100: '#f5f5f5',
+                // 较浅中性色
+                200: '#e5e5e5',
+                // 中等浅中性色
+                300: '#d4d4d4',
+                // 中等中性色
+                400: '#a3a3a3',
+                // 中性色
+                500: '#737373',
+                // 深中性色
+                600: '#525252',
+                // 较深中性色
+                700: '#404040',
+                // 深中性色
+                800: '#262626',
+                // 最深中性色
+                900: '#171717',
             },
+            // 功能色调 - 成功色
             success: {
+                // 最浅成功色
                 50: '#f0fdf4',
-                100: '#dcfce7',
+                // 浅成功色
                 200: '#bbf7d0',
-                300: '#86efac',
-                400: '#4ade80',
+                // 成功色
                 500: '#22c55e',
-                600: '#16a34a',
+                // 深成功色
                 700: '#15803d',
-                800: '#166534',
-                900: '#14532d',
             },
+            // 功能色调 - 警告色
             warning: {
+                // 最浅警告色
                 50: '#fffbeb',
-                100: '#fef3c7',
+                // 浅警告色
                 200: '#fde68a',
-                300: '#fcd34d',
-                400: '#fbbf24',
+                // 警告色
                 500: '#f59e0b',
-                600: '#d97706',
+                // 深警告色
                 700: '#b45309',
-                800: '#92400e',
-                900: '#78350f',
             },
+            // 功能色调 - 错误色
             error: {
+                // 最浅错误色
                 50: '#fef2f2',
-                100: '#fee2e2',
+                // 浅错误色
                 200: '#fecaca',
-                300: '#fca5a5',
-                400: '#f87171',
+                // 错误色
                 500: '#ef4444',
-                600: '#dc2626',
+                // 深错误色
                 700: '#b91c1c',
-                800: '#991b1b',
-                900: '#7f1d1d',
             },
+            // 功能色调 - 信息色
             info: {
-                50: '#f0f9ff',
-                100: '#e0f2fe',
-                200: '#bae6fd',
-                300: '#7dd3fc',
-                400: '#38bdf8',
-                500: '#0ea5e9',
-                600: '#0284c7',
-                700: '#0369a1',
-                800: '#075985',
-                900: '#0c4a6e',
+                // 最浅信息色
+                50: '#eff6ff',
+                // 浅信息色
+                200: '#bfdbfe',
+                // 信息色
+                500: '#3b82f6',
+                // 深信息色
+                700: '#1d4ed8',
             }
         },
-        animation: {
-            'fade-in': 'fadeIn 0.5s ease-in-out',
-            'slide-up': 'slideUp 0.3s ease-out',
-            'bounce-subtle': 'bounceSubtle 2s infinite',
-            'pulse-subtle': 'pulseSubtle 2s infinite',
-            'shake': 'shake 0.5s ease-in-out',
-            'slide-in-right': 'slideInRight 0.3s ease-out',
-            'zoom-in': 'zoomIn 0.2s ease-out',
+        // 字体族配置
+        fontFamily: {
+            // 无衬线字体
+            sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            // 等宽字体
+            mono: ['SF Mono', 'Roboto Mono', 'Consolas', 'monospace'],
         },
+        // 字体大小配置
+        fontSize: {
+            // 超小字体
+            'xs': '0.75rem',
+            // 小字体
+            'sm': '0.875rem',
+            // 基础字体
+            'base': '1rem',
+            // 大字体
+            'lg': '1.125rem',
+            // 加大字体
+            'xl': '1.25rem',
+            // 2倍加大字体
+            '2xl': '1.5rem',
+            // 3倍加大字体
+            '3xl': '1.875rem',
+            // 4倍加大字体
+            '4xl': '2.25rem',
+            // 5倍加大字体
+            '5xl': '3rem',
+        },
+        // 字体粗细配置
+        fontWeight: {
+            // 正常粗细
+            normal: '400',
+            // 中等粗细
+            medium: '500',
+            // 半粗体
+            semibold: '600',
+            // 粗体
+            bold: '700',
+        },
+        // 行高配置
+        lineHeight: {
+            // 紧凑行高
+            tight: '1.25',
+            // 正常行高
+            normal: '1.6',
+            // 宽松行高
+            relaxed: '1.75',
+        },
+        // 间距配置
+        spacing: {
+            // 无间距
+            '0': '0',
+            // 1单位间距
+            '1': '0.25rem',
+            // 2单位间距
+            '2': '0.5rem',
+            // 3单位间距
+            '3': '0.75rem',
+            // 4单位间距
+            '4': '1rem',
+            // 5单位间距
+            '5': '1.25rem',
+            // 6单位间距
+            '6': '1.5rem',
+            // 8单位间距
+            '8': '2rem',
+            // 10单位间距
+            '10': '2.5rem',
+            // 12单位间距
+            '12': '3rem',
+            // 16单位间距
+            '16': '4rem',
+            // 20单位间距
+            '20': '5rem',
+            // 24单位间距
+            '24': '6rem',
+        },
+        // 圆角配置
+        borderRadius: {
+            // 无圆角
+            'none': '0',
+            // 小圆角
+            'sm': '0.125rem',
+            // 基础圆角
+            'base': '0.25rem',
+            // 中等圆角
+            'md': '0.375rem',
+            // 大圆角
+            'lg': '0.5rem',
+            // 加大圆角
+            'xl': '0.75rem',
+            // 2倍加大圆角
+            '2xl': '1rem',
+            // 3倍加大圆角
+            '3xl': '1.5rem',
+            // 全圆角
+            'full': '9999px',
+        },
+        // 阴影配置
+        boxShadow: {
+            // 小阴影
+            'sm': '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+            // 基础阴影
+            'base': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+            // 中等阴影
+            'md': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+            // 大阴影
+            'lg': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+            // 加大阴影
+            'xl': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+            // 2倍加大阴影
+            '2xl': '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            // 内阴影
+            'inner': 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.06)',
+        },
+        // 动画配置
+        animation: {
+            // 淡入动画
+            'fade-in': 'fadeIn 0.5s ease',
+            // 上滑动画
+            'slide-up': 'slideUp 0.5s ease',
+            // 下滑动画
+            'slide-down': 'slideDown 0.5s ease',
+            // 右侧滑入动画
+            'slide-in-right': 'slideInRight 0.3s ease',
+            // 右侧滑出动画
+            'slide-out-right': 'slideOutRight 0.3s ease',
+            // 旋转动画
+            'spin': 'spin 1s linear infinite',
+            // 脉冲动画
+            'pulse': 'pulse 2s infinite',
+            // 弹跳动画
+            'bounce': 'bounce 1s infinite',
+        },
+        // 关键帧配置
         keyframes: {
+            // 淡入关键帧
             fadeIn: {
+                // 初始状态：完全透明
                 '0%': { opacity: '0' },
+                // 结束状态：完全不透明
                 '100%': { opacity: '1' },
             },
+            // 上滑关键帧
             slideUp: {
-                '0%': { transform: 'translateY(10px)', opacity: '0' },
+                // 初始状态：向下偏移20px并透明
+                '0%': { transform: 'translateY(20px)', opacity: '0' },
+                // 结束状态：无偏移且不透明
                 '100%': { transform: 'translateY(0)', opacity: '1' },
             },
-            bounceSubtle: {
-                '0%, 100%': { transform: 'translateY(0)' },
-                '50%': { transform: 'translateY(-5px)' },
+            // 下滑关键帧
+            slideDown: {
+                // 初始状态：向上偏移20px并透明
+                '0%': { transform: 'translateY(-20px)', opacity: '0' },
+                // 结束状态：无偏移且不透明
+                '100%': { transform: 'translateY(0)', opacity: '1' },
             },
-            pulseSubtle: {
-                '0%, 100%': { opacity: '1' },
-                '50%': { opacity: '0.8' },
-            },
-            shake: {
-                '0%, 100%': { transform: 'translateX(0)' },
-                '10%, 30%, 50%, 70%, 90%': { transform: 'translateX(-5px)' },
-                '20%, 40%, 60%, 80%': { transform: 'translateX(5px)' },
-            },
+            // 右侧滑入关键帧
             slideInRight: {
-                '0%': { transform: 'translateX(100%)', opacity: '0' },
-                '100%': { transform: 'translateX(0)', opacity: '1' },
+                // 初始状态：向右偏移100%
+                '0%': { transform: 'translateX(100%)' },
+                // 结束状态：无偏移
+                '100%': { transform: 'translateX(0)' },
             },
-            zoomIn: {
-                '0%': { transform: 'scale(0.9)', opacity: '0' },
-                '100%': { transform: 'scale(1)', opacity: '1' },
+            // 右侧滑出关键帧
+            slideOutRight: {
+                // 初始状态：无偏移
+                '0%': { transform: 'translateX(0)' },
+                // 结束状态：向右偏移100%
+                '100%': { transform: 'translateX(100%)' },
             },
+            // 旋转关键帧
+            spin: {
+                // 初始状态：无旋转
+                '0%': { transform: 'rotate(0deg)' },
+                // 结束状态：旋转360度
+                '100%': { transform: 'rotate(360deg)' },
+            },
+            // 脉冲关键帧
+            pulse: {
+                // 开始和结束状态：完全不透明
+                '0%, 100%': { opacity: '1' },
+                // 中间状态：半透明
+                '50%': { opacity: '0.5' },
+            },
+            // 弹跳关键帧
+            bounce: {
+                // 开始和结束状态：向上偏移25%，使用特定缓动函数
+                '0%, 100%': {
+                    transform: 'translateY(-25%)',
+                    animationTimingFunction: 'cubic-bezier(0.8,0,1,1)'
+                },
+                // 中间状态：无偏移，使用另一种缓动函数
+                '50%': {
+                    transform: 'none',
+                    animationTimingFunction: 'cubic-bezier(0,0,0.2,1)'
+                },
+            },
+        },
+        // 层级配置
+        zIndex: {
+            // 最底层
+            '0': '0',
+            // 低层
+            '10': '10',
+            // 中低层
+            '20': '20',
+            // 中层
+            '30': '30',
+            // 中高层
+            '40': '40',
+            // 高层
+            '50': '50',
+            // 很高层
+            '100': '100',
+            // 极高层
+            '1000': '1000',
+            // 最高层
+            '1100': '1100',
         },
     },
 
+    // 预定义样式配置
     preflights: [
         {
+            // 获取CSS样式函数
             getCSS: () => `
+
+/* 导入 Inter 字体 */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* 自定义滚动条 */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+/* 滚动条轨道样式 */
+::-webkit-scrollbar-track {
+    background: #f5f5f5;
+}
+
+/* 滚动条滑块样式 */
+::-webkit-scrollbar-thumb {
+    background: #d4d4d4;
+    border-radius: 4px;
+}
+
+/* 滚动条滑块悬停样式 */
+::-webkit-scrollbar-thumb:hover {
+    background: #a3a3a3;
+}
+
+/* 文本选择时的背景和文字颜色 */
+::selection {
+    background-color: #6E8CFB;
+    color: white;
+}
+
+/* 元素获得焦点时的样式 */
+:focus {
+    outline: 2px solid #6E8CFB;
+    outline-offset: 2px;
+}
+
+/* 重置所有元素的内外边距并设置盒模型 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+}
+
+/* HTML和body元素样式 */
 html, body {
   overflow-x: hidden;
   width: 100%;
@@ -170,19 +460,18 @@ html, body {
   scroll-behavior: smooth;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   line-height: 1.6;
-  color: #333;
-  background-color: #f9fafb;
-}
-
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
+  color: #171717;
+  background-color: #fafafa;
 }
 
 /* ========== 动态根字体 ========== */
+/* 基础字体大小 */
 html { font-size: 16px; }
 
+/* 不同屏幕宽度下的字体大小调整 */
+@media (min-width: 3840px) { html { font-size: 20px; } }
+@media (min-width: 2560px) { html { font-size: 18px; } }
+@media (min-width: 1920px) { html { font-size: 17px; } }
 @media (max-width: 1440px) { html { font-size: 15.5px; } }
 @media (max-width: 1280px) { html { font-size: 15px; } }
 @media (max-width: 1024px) { html { font-size: 14.5px; } }
@@ -193,399 +482,432 @@ html { font-size: 16px; }
 @media (max-width: 375px)  { html { font-size: 12px; } }
 @media (max-width: 320px)  { html { font-size: 11.5px; } }
 
-@media (min-width: 1920px) { html { font-size: 17px; } }
-@media (min-width: 2560px) { html { font-size: 18px; } }
-@media (min-width: 3840px) { html { font-size: 20px; } }
-
-/* 平滑过渡 */
-* {
-  transition: all 0.2s ease-in-out;
-}
-
-/* 自定义滚动条 */
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
-}
-
-/* 选择文本样式 */
-::selection {
-  background-color: #3b82f6;
-  color: white;
-}
-
-/* 焦点样式 */
-:focus {
-  outline: 2px solid #3b82f6;
-  outline-offset: 2px;
-}
       `,
         },
     ],
 
+    // 快捷方式配置
     shortcuts: {
-        // ========== 基础工具类对比 ==========
-        // 原子类: 'flex items-center justify-center'
-        // 快捷类: 'flex-center'
-
-        // 原子类: 'flex items-center justify-between'
-        // 快捷类: 'flex-between'
-
-        // 原子类: 'bg-white rounded-lg shadow-md p-6'
-        // 快捷类: 'card'
-
-        // ========== 布局系统 ==========
-        'layout-base': 'w-full min-h-screen',
-        'layout-full': 'w-screen h-screen',
-        'layout-top-bottom': 'flex flex-col min-h-screen',
-        'layout-top-main': 'flex-1 overflow-auto',
-        'layout-header': 'flex-none bg-white shadow-sm',
-        'layout-footer': 'flex-none bg-gray-100 border-t',
-        'layout-header-main-footer': 'flex flex-col min-h-screen',
-        'layout-header-fixed': 'fixed top-0 left-0 right-0 z-50',
-        'layout-left-right': 'flex min-h-screen',
-        'layout-sidebar': 'w-64 flex-none bg-gray-50 border-r',
-        'layout-content': 'flex-1 overflow-auto',
-        'layout-left-center-right': 'flex min-h-screen',
-        'layout-left-sidebar': 'w-48 flex-none',
-        'layout-right-sidebar': 'w-64 flex-none',
-        'layout-holy-grail': 'grid grid-cols-1 min-h-screen md:grid-cols-[1fr_auto_1fr]',
-        'layout-holy-grail-header': 'col-span-1 md:col-span-3',
-        'layout-holy-grail-left': 'col-start-1',
-        'layout-holy-grail-main': 'col-start-1 md:col-start-2',
-        'layout-holy-grail-right': 'col-start-1 md:col-start-3',
-        'layout-holy-grail-footer': 'col-span-1 md:col-span-3',
-        'layout-center-horizontal': 'flex justify-center',
-        'layout-center-vertical': 'flex items-center',
-        'layout-center-both': 'flex items-center justify-center',
-        'layout-center-text': 'text-center',
-        'layout-grid-2': 'grid grid-cols-2 gap-4',
-        'layout-grid-3': 'grid grid-cols-3 gap-4',
-        'layout-grid-4': 'grid grid-cols-4 gap-4',
-        'layout-grid-responsive': 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4',
-        'layout-sidebar-left': 'flex min-h-screen',
-        'layout-sidebar-right': 'flex min-h-screen flex-row-reverse',
-        'layout-sidebar-collapsible': 'transition-all duration-300',
-        'layout-card-grid': 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6',
-        'layout-card-list': 'flex flex-col gap-4',
-        'layout-form': 'max-w-md mx-auto space-y-4',
-        'layout-form-wide': 'max-w-2xl mx-auto space-y-6',
-        'layout-form-grid': 'grid grid-cols-1 md:grid-cols-2 gap-4',
-        'layout-nav-horizontal': 'flex items-center space-x-4',
-        'layout-nav-vertical': 'flex flex-col space-y-2',
-        'layout-nav-stacked': 'flex flex-col space-y-1',
-        'layout-dashboard': 'grid grid-cols-1 lg:grid-cols-4 gap-6',
-        'layout-dashboard-main': 'lg:col-span-3',
-        'layout-dashboard-sidebar': 'lg:col-span-1',
-        'layout-mobile-only': 'block md:hidden',
-        'layout-desktop-only': 'hidden md:block',
-        'layout-tablet-only': 'hidden sm:block lg:hidden',
-        'layout-space-y': 'space-y-4',
-        'layout-space-x': 'space-x-4',
-        'layout-space-y-lg': 'space-y-6',
-        'layout-space-x-lg': 'space-x-6',
-        'layout-split-2': 'grid grid-cols-1 md:grid-cols-2 gap-8',
-        'layout-split-3': 'grid grid-cols-1 md:grid-cols-3 gap-8',
-        'layout-split-4': 'grid grid-cols-1 md:grid-cols-4 gap-8',
-        'layout-flow-row': 'flex flex-wrap gap-4',
-        'layout-flow-col': 'flex flex-col flex-wrap gap-4',
-        'layout-fixed-top': 'fixed top-0 left-0 right-0 z-50',
-        'layout-fixed-bottom': 'fixed bottom-0 left-0 right-0 z-50',
-        'layout-fixed-left': 'fixed left-0 top-0 bottom-0 z-40',
-        'layout-fixed-right': 'fixed right-0 top-0 bottom-0 z-40',
-        'layout-absolute-center': 'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2',
-        'layout-absolute-full': 'absolute inset-0',
-        'layout-sticky-top': 'sticky top-0 z-30',
-        'layout-sticky-bottom': 'sticky bottom-0 z-30',
-
-        // ========== Flex 布局系统 ==========
-        'flex-center': 'flex items-center justify-center',
-        'flex-between': 'flex items-center justify-between',
-        'flex-around': 'flex items-center justify-around',
-        'flex-evenly': 'flex items-center justify-evenly',
-        'flex-start': 'flex items-center justify-start',
-        'flex-end': 'flex items-center justify-end',
+        // ========== Flex 容器快捷类 ==========
+        // 弹性布局
+        'flex': 'flex',
+        // 行内弹性布局
+        'inline-flex': 'inline-flex',
+        // 水平方向弹性布局
+        'flex-row': 'flex flex-row',
+        // 垂直方向弹性布局
         'flex-col': 'flex flex-col',
+        // 水平反向弹性布局
+        'flex-row-reverse': 'flex flex-row-reverse',
+        // 垂直反向弹性布局
+        'flex-col-reverse': 'flex flex-col-reverse',
+        // 弹性换行布局
+        'flex-wrap': 'flex flex-wrap',
+        // 弹性不换行布局
+        'flex-nowrap': 'flex flex-nowrap',
+        // 弹性反向换行布局
+        'flex-wrap-reverse': 'flex flex-wrap-reverse',
+
+        // ========== Flex 对齐快捷类 ==========
+        // 主轴对齐 (justify-content)
+        // 主轴起始对齐
+        'justify-start': 'flex justify-start',
+        // 主轴末尾对齐
+        'justify-end': 'flex justify-end',
+        // 主轴居中对齐
+        'justify-center': 'flex justify-center',
+        // 主轴两端对齐
+        'justify-between': 'flex justify-between',
+        // 主轴环绕对齐
+        'justify-around': 'flex justify-around',
+        // 主轴均匀对齐
+        'justify-evenly': 'flex justify-evenly',
+
+        // 交叉轴对齐 (align-items)
+        // 交叉轴起始对齐
+        'items-start': 'flex items-start',
+        // 交叉轴末尾对齐
+        'items-end': 'flex items-end',
+        // 交叉轴居中对齐
+        'items-center': 'flex items-center',
+        // 交叉轴基线对齐
+        'items-baseline': 'flex items-baseline',
+        // 交叉轴拉伸对齐
+        'items-stretch': 'flex items-stretch',
+
+        // 多行对齐 (align-content)
+        // 多行内容起始对齐
+        'content-start': 'flex content-start',
+        // 多行内容末尾对齐
+        'content-end': 'flex content-end',
+        // 多行内容居中对齐
+        'content-center': 'flex content-center',
+        // 多行内容两端对齐
+        'content-between': 'flex content-between',
+        // 多行内容环绕对齐
+        'content-around': 'flex content-around',
+        // 多行内容均匀对齐
+        'content-evenly': 'flex content-evenly',
+
+        // ========== Flex 项目快捷类 ==========
+        // 项目排序 (order)
+        // 项目排在最前
+        'order-first': 'order-first',
+        // 项目排在最后
+        'order-last': 'order-last',
+        // 项目不排序
+        'order-none': 'order-none',
+
+        // 项目伸缩 (flex-grow/flex-shrink)
+        // 项目可伸展
+        'flex-grow': 'flex-grow',
+        // 项目不伸展
+        'flex-grow-0': 'flex-grow-0',
+        // 项目可收缩
+        'flex-shrink': 'flex-shrink',
+        // 项目不收缩
+        'flex-shrink-0': 'flex-shrink-0',
+
+        // 项目基准大小 (flex-basis)
+        // 项目自动伸缩
+        'flex-auto': 'flex-auto',
+        // 项目初始大小
+        'flex-initial': 'flex-initial',
+        // 项目占据剩余空间
+        'flex-1': 'flex-1',
+        // 项目不伸缩
+        'flex-none': 'flex-none',
+
+        // 项目自对齐 (align-self)
+        // 项目自动对齐
+        'self-auto': 'self-auto',
+        // 项目起始对齐
+        'self-start': 'self-start',
+        // 项目末尾对齐
+        'self-end': 'self-end',
+        // 项目居中对齐
+        'self-center': 'self-center',
+        // 项目拉伸对齐
+        'self-stretch': 'self-stretch',
+        // 项目基线对齐
+        'self-baseline': 'self-baseline',
+
+        // ========== Flex 复合快捷类 ==========
+        // 水平垂直居中弹性布局
+        'flex-center': 'flex items-center justify-center',
+        // 两端对齐弹性布局
+        'flex-between': 'flex items-center justify-between',
+        // 环绕对齐弹性布局
+        'flex-around': 'flex items-center justify-around',
+        // 起始对齐弹性布局
+        'flex-start': 'flex items-center justify-start',
+        // 末尾对齐弹性布局
+        'flex-end': 'flex items-center justify-end',
+        // 垂直居中弹性布局
         'flex-col-center': 'flex flex-col items-center justify-center',
+        // 垂直两端对齐弹性布局
         'flex-col-between': 'flex flex-col items-center justify-between',
-        'flex-col-start': 'flex flex-col items-start justify-start',
-        'flex-col-end': 'flex flex-col items-end justify-end',
+        // 垂直环绕对齐弹性布局
+        'flex-col-around': 'flex flex-col items-center justify-around',
+        // 垂直起始对齐弹性布局
+        'flex-col-start': 'flex flex-col items-center justify-start',
+        // 垂直末尾对齐弹性布局
+        'flex-col-end': 'flex flex-col items-center justify-end',
+        // 行内水平垂直居中弹性布局
         'inline-flex-center': 'inline-flex items-center justify-center',
+        // 拉伸对齐弹性布局
+        'flex-stretch': 'flex items-stretch justify-start',
+        // 基线对齐弹性布局
+        'flex-baseline': 'flex items-baseline justify-start',
 
-        // ========== 增强卡片系统 ==========
-        'card': 'bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300 p-6 border border-gray-100',
-        'card-sm': 'bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 p-4 border border-gray-100',
-        'card-lg': 'bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-8 border border-gray-100',
-        'card-hover': 'transform hover:-translate-y-1 cursor-pointer',
-        'card-interactive': 'card card-hover',
-        'card-bordered': 'card border-2 border-gray-200',
-        'card-primary': 'card border-primary-200 bg-primary-50',
-        'card-success': 'card border-success-200 bg-success-50',
-        'card-warning': 'card border-warning-200 bg-warning-50',
-        'card-error': 'card border-error-200 bg-error-50',
-        'card-info': 'card border-info-200 bg-info-50',
+        // ========== Grid 容器快捷类 ==========
+        // 网格布局
+        'grid': 'grid',
+        // 行内网格布局
+        'inline-grid': 'inline-grid',
 
-        // ========== 增强按钮系统 ==========
-        'btn': 'inline-flex items-center justify-center px-4 py-2 rounded-lg font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105 active:scale-95',
-        'btn-primary': 'btn bg-primary-500 text-white hover:bg-primary-600 focus:ring-primary-500 shadow-sm hover:shadow-md',
-        'btn-secondary': 'btn bg-secondary-500 text-white hover:bg-secondary-600 focus:ring-secondary-500 shadow-sm hover:shadow-md',
-        'btn-success': 'btn bg-success-500 text-white hover:bg-success-600 focus:ring-success-500 shadow-sm hover:shadow-md',
-        'btn-warning': 'btn bg-warning-500 text-white hover:bg-warning-600 focus:ring-warning-500 shadow-sm hover:shadow-md',
-        'btn-error': 'btn bg-error-500 text-white hover:bg-error-600 focus:ring-error-500 shadow-sm hover:shadow-md',
-        'btn-info': 'btn bg-info-500 text-white hover:bg-info-600 focus:ring-info-500 shadow-sm hover:shadow-md',
-        'btn-outline': 'btn bg-transparent border border-gray-300 text-gray-700 hover:bg-gray-50 focus:ring-gray-500',
-        'btn-outline-primary': 'btn bg-transparent border border-primary-500 text-primary-600 hover:bg-primary-50 focus:ring-primary-500',
-        'btn-outline-success': 'btn bg-transparent border border-success-500 text-success-600 hover:bg-success-50 focus:ring-success-500',
-        'btn-ghost': 'btn bg-transparent text-gray-600 hover:bg-gray-100 focus:ring-gray-500',
-        'btn-link': 'btn bg-transparent text-primary-600 hover:text-primary-700 hover:underline focus:ring-primary-500',
-        'btn-sm': 'px-3 py-1 text-sm rounded-md',
-        'btn-lg': 'px-6 py-3 text-lg rounded-xl',
-        'btn-xl': 'px-8 py-4 text-xl rounded-2xl',
-        'btn-icon': 'p-2 rounded-lg',
-        'btn-icon-sm': 'p-1 rounded-md',
-        'btn-icon-lg': 'p-3 rounded-xl',
-        'btn-group': 'inline-flex rounded-lg border border-gray-200 overflow-hidden',
-        'btn-group-item': 'btn-ghost rounded-none border-r border-gray-200 last:border-r-0',
+        // 列模板
+        // 1列网格
+        'grid-cols-1': 'grid grid-cols-1',
+        // 2列网格
+        'grid-cols-2': 'grid grid-cols-2',
+        // 3列网格
+        'grid-cols-3': 'grid grid-cols-3',
+        // 4列网格
+        'grid-cols-4': 'grid grid-cols-4',
+        // 5列网格
+        'grid-cols-5': 'grid grid-cols-5',
+        // 6列网格
+        'grid-cols-6': 'grid grid-cols-6',
+        // 7列网格
+        'grid-cols-7': 'grid grid-cols-7',
+        // 8列网格
+        'grid-cols-8': 'grid grid-cols-8',
+        // 9列网格
+        'grid-cols-9': 'grid grid-cols-9',
+        // 10列网格
+        'grid-cols-10': 'grid grid-cols-10',
+        // 11列网格
+        'grid-cols-11': 'grid grid-cols-11',
+        // 12列网格
+        'grid-cols-12': 'grid grid-cols-12',
+        // 无列模板
+        'grid-cols-none': 'grid grid-cols-none',
 
-        // ========== 增强表单系统 ==========
-        'input': 'w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all duration-300 bg-white placeholder-gray-400',
-        'input-sm': 'input px-3 py-1 text-sm',
-        'input-lg': 'input px-6 py-3 text-lg',
-        'input-error': 'input border-error-300 focus:ring-error-500 bg-error-50',
-        'input-success': 'input border-success-300 focus:ring-success-500 bg-success-50',
-        'input-warning': 'input border-warning-300 focus:ring-warning-500 bg-warning-50',
-        'input-disabled': 'input bg-gray-100 cursor-not-allowed opacity-70',
-        'textarea': 'input resize-vertical min-h-[100px]',
-        'textarea-sm': 'textarea px-3 py-1 text-sm',
-        'textarea-lg': 'textarea px-6 py-3 text-lg',
-        'select': 'input pr-10 appearance-none bg-no-repeat bg-right',
-        'select-sm': 'select px-3 py-1 text-sm',
-        'select-lg': 'select px-6 py-3 text-lg',
-        'select-multiple': 'select min-h-[100px]',
-        'checkbox': 'w-4 h-4 text-primary-600 border-gray-300 rounded focus:ring-primary-500 transition-colors duration-200',
-        'checkbox-sm': 'checkbox w-3 h-3',
-        'checkbox-lg': 'checkbox w-5 h-5',
-        'radio': 'w-4 h-4 text-primary-600 border-gray-300 focus:ring-primary-500 transition-colors duration-200',
-        'radio-sm': 'radio w-3 h-3',
-        'radio-lg': 'radio w-5 h-5',
-        'toggle': 'relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2',
-        'toggle-checked': 'toggle bg-primary-600',
-        'toggle-handle': 'inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200',
-        'toggle-handle-checked': 'toggle-handle translate-x-6',
-        'form-group': 'space-y-2',
-        'form-label': 'block text-sm font-medium text-gray-700 mb-2',
-        'form-help': 'text-sm text-gray-500 mt-1',
-        'form-error': 'text-sm text-error-600 mt-1',
-        'form-success': 'text-sm text-success-600 mt-1',
-        'input-group': 'flex rounded-lg border border-gray-300 overflow-hidden focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-transparent',
-        'input-group-addon': 'px-3 py-2 bg-gray-100 border-r border-gray-300 text-gray-500',
-        'input-group-input': 'flex-1 border-0 focus:ring-0 bg-transparent',
-        'search-input': 'input pl-10',
-        'date-input': 'input',
-        'time-input': 'input',
-        'color-input': 'input h-10 p-1',
-        'range-input': 'w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer',
-        'file-input': 'input file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100',
+        // 行模板
+        // 1行网格
+        'grid-rows-1': 'grid grid-rows-1',
+        // 2行网格
+        'grid-rows-2': 'grid grid-rows-2',
+        // 3行网格
+        'grid-rows-3': 'grid grid-rows-3',
+        // 4行网格
+        'grid-rows-4': 'grid grid-rows-4',
+        // 5行网格
+        'grid-rows-5': 'grid grid-rows-5',
+        // 6行网格
+        'grid-rows-6': 'grid grid-rows-6',
+        // 无行模板
+        'grid-rows-none': 'grid grid-rows-none',
 
-        // ========== 增强下拉选择系统 ==========
-        'dropdown': 'relative inline-block',
-        'dropdown-toggle': 'btn-secondary',
-        'dropdown-menu': 'absolute z-50 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none animate-slide-in-right',
-        'dropdown-item': 'block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-200',
-        'dropdown-divider': 'my-1 border-t border-gray-200',
-        'dropdown-header': 'px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider',
+        // 自动列
+        // 自动列宽
+        'grid-cols-auto': 'grid grid-cols-auto',
+        // 最小列宽
+        'grid-cols-min': 'grid grid-cols-min',
+        // 最大列宽
+        'grid-cols-max': 'grid grid-cols-max',
+        // 最小最大列宽
+        'grid-cols-minmax': 'grid grid-cols-minmax',
+        // 自适应列宽
+        'grid-cols-fit': 'grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))]',
+        // 填充列宽
+        'grid-cols-fill': 'grid grid-cols-[repeat(auto-fill,minmax(200px,1fr))]',
 
-        // ========== 增强自动完成系统 ==========
-        'autocomplete': 'relative',
-        'autocomplete-input': 'input pr-10',
-        'autocomplete-menu': 'absolute z-50 mt-1 w-full max-h-60 overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm',
-        'autocomplete-option': 'relative cursor-default select-none py-2 pl-3 pr-9 text-gray-900 hover:bg-primary-600 hover:text-white transition-colors duration-200',
-        'autocomplete-option-active': 'autocomplete-option bg-primary-600 text-white',
+        // 流方向
+        // 行流方向
+        'grid-flow-row': 'grid grid-flow-row',
+        // 列流方向
+        'grid-flow-col': 'grid grid-flow-col',
+        // 密集流方向
+        'grid-flow-dense': 'grid grid-flow-dense',
+        // 行密集流方向
+        'grid-flow-row-dense': 'grid grid-flow-row dense',
+        // 列密集流方向
+        'grid-flow-col-dense': 'grid grid-flow-col dense',
 
-        // ========== 增强标签输入系统 ==========
-        'tags-input': 'input flex flex-wrap gap-2 items-center',
-        'tag': 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 text-primary-800',
-        'tag-close': 'ml-1.5 w-3 h-3 rounded-full hover:bg-black hover:bg-opacity-10 flex-center transition-colors duration-200 cursor-pointer',
+        // ========== Grid 间隙快捷类 ==========
+        // 统一间隙 - 设置网格项目之间的统一间距
+        'gap-0': 'gap-0',           // 无间隙
+        'gap-1': 'gap-1',           // 0.25rem间隙
+        'gap-2': 'gap-2',           // 0.5rem间隙
+        'gap-3': 'gap-3',           // 0.75rem间隙
+        'gap-4': 'gap-4',           // 1rem间隙
+        'gap-5': 'gap-5',           // 1.25rem间隙
+        'gap-6': 'gap-6',           // 1.5rem间隙
+        'gap-8': 'gap-8',           // 2rem间隙
+        'gap-10': 'gap-10',         // 2.5rem间隙
+        'gap-12': 'gap-12',         // 3rem间隙
+        'gap-16': 'gap-16',         // 4rem间隙
+        'gap-20': 'gap-20',         // 5rem间隙
+        'gap-24': 'gap-24',         // 6rem间隙
+        'gap-32': 'gap-32',         // 8rem间隙
+        'gap-40': 'gap-40',         // 10rem间隙
+        'gap-48': 'gap-48',         // 12rem间隙
+        'gap-56': 'gap-56',         // 14rem间隙
+        'gap-64': 'gap-64',         // 16rem间隙
+        'gap-px': 'gap-px',         // 1px间隙
 
-        // ========== 增强列表系统 ==========
-        'list': 'divide-y divide-gray-200',
-        'list-item': 'py-4 px-4 hover:bg-gray-50 transition-colors duration-200',
-        'list-item-interactive': 'list-item cursor-pointer hover:bg-primary-50',
-        'list-bordered': 'border border-gray-200 rounded-lg overflow-hidden',
-        'list-striped': 'list-item:nth-child(even) bg-gray-50',
+        // 水平间隙 - 仅设置网格项目之间的水平间距
+        'gap-x-0': 'gap-x-0',       // 无水平间隙
+        'gap-x-1': 'gap-x-1',       // 0.25rem水平间隙
+        'gap-x-2': 'gap-x-2',       // 0.5rem水平间隙
+        'gap-x-3': 'gap-x-3',       // 0.75rem水平间隙
+        'gap-x-4': 'gap-x-4',       // 1rem水平间隙
+        'gap-x-5': 'gap-x-5',       // 1.25rem水平间隙
+        'gap-x-6': 'gap-x-6',       // 1.5rem水平间隙
+        'gap-x-8': 'gap-x-8',       // 2rem水平间隙
+        'gap-x-10': 'gap-x-10',     // 2.5rem水平间隙
+        'gap-x-12': 'gap-x-12',     // 3rem水平间隙
+        'gap-x-16': 'gap-x-16',     // 4rem水平间隙
+        'gap-x-20': 'gap-x-20',     // 5rem水平间隙
+        'gap-x-24': 'gap-x-24',     // 6rem水平间隙
+        'gap-x-32': 'gap-x-32',     // 8rem水平间隙
+        'gap-x-40': 'gap-x-40',     // 10rem水平间隙
+        'gap-x-48': 'gap-x-48',     // 12rem水平间隙
+        'gap-x-56': 'gap-x-56',     // 14rem水平间隙
+        'gap-x-64': 'gap-x-64',     // 16rem水平间隙
+        'gap-x-px': 'gap-x-px',     // 1px水平间隙
 
-        // ========== 增强表格系统 ==========
-        'table': 'w-full bg-white rounded-lg shadow-sm overflow-hidden',
-        'table-header': 'bg-gray-50 border-b border-gray-200',
-        'table-header-cell': 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider',
-        'table-body': 'divide-y divide-gray-200',
-        'table-cell': 'px-6 py-4 whitespace-nowrap text-sm text-gray-900',
-        'table-row-hover': 'hover:bg-gray-50 transition-colors duration-200',
-        'table-compact': 'table-cell px-3 py-2 text-sm',
-        'table-striped': 'table-body table-row:nth-child(even) bg-gray-50',
+        // 垂直间隙 - 仅设置网格项目之间的垂直间距
+        'gap-y-0': 'gap-y-0',       // 无垂直间隙
+        'gap-y-1': 'gap-y-1',       // 0.25rem垂直间隙
+        'gap-y-2': 'gap-y-2',       // 0.5rem垂直间隙
+        'gap-y-3': 'gap-y-3',       // 0.75rem垂直间隙
+        'gap-y-4': 'gap-y-4',       // 1rem垂直间隙
+        'gap-y-5': 'gap-y-5',       // 1.25rem垂直间隙
+        'gap-y-6': 'gap-y-6',       // 1.5rem垂直间隙
+        'gap-y-8': 'gap-y-8',       // 2rem垂直间隙
+        'gap-y-10': 'gap-y-10',     // 2.5rem垂直间隙
+        'gap-y-12': 'gap-y-12',     // 3rem垂直间隙
+        'gap-y-16': 'gap-y-16',     // 4rem垂直间隙
+        'gap-y-20': 'gap-y-20',     // 5rem垂直间隙
+        'gap-y-24': 'gap-y-24',     // 6rem垂直间隙
+        'gap-y-32': 'gap-y-32',     // 8rem垂直间隙
+        'gap-y-40': 'gap-y-40',     // 10rem垂直间隙
+        'gap-y-48': 'gap-y-48',     // 12rem垂直间隙
+        'gap-y-56': 'gap-y-56',     // 14rem垂直间隙
+        'gap-y-64': 'gap-y-64',     // 16rem垂直间隙
+        'gap-y-px': 'gap-y-px',     // 1px垂直间隙
 
-        // ========== 增强徽章系统 ==========
-        'badge': 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
-        'badge-primary': 'badge bg-primary-100 text-primary-800',
-        'badge-secondary': 'badge bg-secondary-100 text-secondary-800',
-        'badge-success': 'badge bg-success-100 text-success-800',
-        'badge-warning': 'badge bg-warning-100 text-warning-800',
-        'badge-error': 'badge bg-error-100 text-error-800',
-        'badge-info': 'badge bg-info-100 text-info-800',
-        'badge-gray': 'badge bg-gray-100 text-gray-800',
-        'badge-sm': 'badge px-2 py-0.5 text-xs',
-        'badge-lg': 'badge px-3 py-1 text-sm',
+        // ========== Grid 项目放置快捷类 ==========
+        // 列放置 - 控制网格项目跨越的列数
+        'col-auto': 'col-auto',                 // 浏览器自动决定列宽
+        'col-span-1': 'col-span-1',             // 跨越1列
+        'col-span-2': 'col-span-2',             // 跨越2列
+        'col-span-3': 'col-span-3',             // 跨越3列
+        'col-span-4': 'col-span-4',             // 跨越4列
+        'col-span-5': 'col-span-5',             // 跨越5列
+        'col-span-6': 'col-span-6',             // 跨越6列
+        'col-span-7': 'col-span-7',             // 跨越7列
+        'col-span-8': 'col-span-8',             // 跨越8列
+        'col-span-9': 'col-span-9',             // 跨越9列
+        'col-span-10': 'col-span-10',           // 跨越10列
+        'col-span-11': 'col-span-11',           // 跨越11列
+        'col-span-12': 'col-span-12',           // 跨越12列
+        'col-span-full': 'col-span-full',       // 跨越所有列
 
-        // ========== 增强警告系统 ==========
-        'alert': 'p-4 rounded-lg border',
-        'alert-info': 'alert bg-blue-50 border-blue-200 text-blue-800',
-        'alert-success': 'alert bg-success-50 border-success-200 text-success-800',
-        'alert-warning': 'alert bg-warning-50 border-warning-200 text-warning-800',
-        'alert-error': 'alert bg-error-50 border-error-200 text-error-800',
-        'alert-with-icon': 'alert flex items-start space-x-3',
-        'alert-icon': 'w-5 h-5 mt-0.5 flex-shrink-0',
-        'alert-content': 'flex-1',
-        'alert-close': 'btn-ghost btn-sm p-1',
+        // 列起始线 - 控制网格项目开始的列线
+        'col-start-1': 'col-start-1',           // 从第1条列线开始
+        'col-start-2': 'col-start-2',           // 从第2条列线开始
+        'col-start-3': 'col-start-3',           // 从第3条列线开始
+        'col-start-4': 'col-start-4',           // 从第4条列线开始
+        'col-start-5': 'col-start-5',           // 从第5条列线开始
+        'col-start-6': 'col-start-6',           // 从第6条列线开始
+        'col-start-7': 'col-start-7',           // 从第7条列线开始
+        'col-start-8': 'col-start-8',           // 从第8条列线开始
+        'col-start-9': 'col-start-9',           // 从第9条列线开始
+        'col-start-10': 'col-start-10',         // 从第10条列线开始
+        'col-start-11': 'col-start-11',         // 从第11条列线开始
+        'col-start-12': 'col-start-12',         // 从第12条列线开始
+        'col-start-13': 'col-start-13',         // 从第13条列线开始
+        'col-start-auto': 'col-start-auto',     // 浏览器自动决定起始列线
 
-        // ========== 增强加载系统 ==========
-        'loading': 'flex items-center justify-center',
-        'loading-spinner': 'animate-spin rounded-full h-6 w-6 border-b-2 border-primary-500',
-        'loading-spinner-sm': 'loading-spinner h-4 w-4',
-        'loading-spinner-lg': 'loading-spinner h-8 w-8',
-        'loading-dots': 'flex space-x-1',
-        'loading-dot': 'w-2 h-2 bg-gray-400 rounded-full animate-bounce-subtle',
-        'loading-bar': 'w-full bg-gray-200 rounded-full h-1.5 overflow-hidden',
-        'loading-bar-progress': 'h-full bg-primary-500 rounded-full animate-pulse-subtle',
+        // 列结束线 - 控制网格项目结束的列线
+        'col-end-1': 'col-end-1',               // 在第1条列线结束
+        'col-end-2': 'col-end-2',               // 在第2条列线结束
+        'col-end-3': 'col-end-3',               // 在第3条列线结束
+        'col-end-4': 'col-end-4',               // 在第4条列线结束
+        'col-end-5': 'col-end-5',               // 在第5条列线结束
+        'col-end-6': 'col-end-6',               // 在第6条列线结束
+        'col-end-7': 'col-end-7',               // 在第7条列线结束
+        'col-end-8': 'col-end-8',               // 在第8条列线结束
+        'col-end-9': 'col-end-9',               // 在第9条列线结束
+        'col-end-10': 'col-end-10',             // 在第10条列线结束
+        'col-end-11': 'col-end-11',             // 在第11条列线结束
+        'col-end-12': 'col-end-12',             // 在第12条列线结束
+        'col-end-13': 'col-end-13',             // 在第13条列线结束
+        'col-end-auto': 'col-end-auto',         // 浏览器自动决定结束列线
 
-        // ========== 增强头像系统 ==========
-        'avatar': 'inline-block rounded-full overflow-hidden bg-gray-200 flex-center',
-        'avatar-sm': 'w-8 h-8 text-sm',
-        'avatar-md': 'w-12 h-12 text-base',
-        'avatar-lg': 'w-16 h-16 text-lg',
-        'avatar-xl': 'w-20 h-20 text-xl',
-        'avatar-group': 'flex -space-x-2',
-        'avatar-bordered': 'avatar border-2 border-white',
+        // 行放置 - 控制网格项目跨越的行数
+        'row-auto': 'row-auto',                 // 浏览器自动决定行高
+        'row-span-1': 'row-span-1',             // 跨越1行
+        'row-span-2': 'row-span-2',             // 跨越2行
+        'row-span-3': 'row-span-3',             // 跨越3行
+        'row-span-4': 'row-span-4',             // 跨越4行
+        'row-span-5': 'row-span-5',             // 跨越5行
+        'row-span-6': 'row-span-6',             // 跨越6行
+        'row-span-full': 'row-span-full',       // 跨越所有行
 
-        // ========== 增强进度条系统 ==========
-        'progress': 'w-full bg-gray-200 rounded-full h-2 overflow-hidden',
-        'progress-bar': 'h-full rounded-full transition-all duration-500',
-        'progress-primary': 'progress-bar bg-primary-500',
-        'progress-success': 'progress-bar bg-success-500',
-        'progress-warning': 'progress-bar bg-warning-500',
-        'progress-error': 'progress-bar bg-error-500',
-        'progress-info': 'progress-bar bg-info-500',
-        'progress-sm': 'progress h-1',
-        'progress-lg': 'progress h-3',
+        // 行起始线 - 控制网格项目开始的行线
+        'row-start-1': 'row-start-1',           // 从第1条行线开始
+        'row-start-2': 'row-start-2',           // 从第2条行线开始
+        'row-start-3': 'row-start-3',           // 从第3条行线开始
+        'row-start-4': 'row-start-4',           // 从第4条行线开始
+        'row-start-5': 'row-start-5',           // 从第5条行线开始
+        'row-start-6': 'row-start-6',           // 从第6条行线开始
+        'row-start-7': 'row-start-7',           // 从第7条行线开始
+        'row-start-auto': 'row-start-auto',     // 浏览器自动决定起始行线
 
-        // ========== 增强工具提示系统 ==========
-        'tooltip': 'absolute invisible group-hover:visible bg-gray-900 text-white text-sm px-2 py-1 rounded z-50 transform -translate-x-1/2 left-1/2 bottom-full mb-2 animate-fade-in',
-        'tooltip-container': 'relative group',
-        'tooltip-top': 'tooltip bottom-full mb-2',
-        'tooltip-bottom': 'tooltip top-full mt-2',
-        'tooltip-left': 'tooltip right-full mr-2 top-1/2 transform -translate-y-1/2',
-        'tooltip-right': 'tooltip left-full ml-2 top-1/2 transform -translate-y-1/2',
+        // 行结束线 - 控制网格项目结束的行线
+        'row-end-1': 'row-end-1',               // 在第1条行线结束
+        'row-end-2': 'row-end-2',               // 在第2条行线结束
+        'row-end-3': 'row-end-3',               // 在第3条行线结束
+        'row-end-4': 'row-end-4',               // 在第4条行线结束
+        'row-end-5': 'row-end-5',               // 在第5条行线结束
+        'row-end-6': 'row-end-6',               // 在第6条行线结束
+        'row-end-7': 'row-end-7',               // 在第7条行线结束
+        'row-end-auto': 'row-end-auto',         // 浏览器自动决定结束行线
 
-        // ========== 增强模态框系统 ==========
-        'modal-overlay': 'fixed inset-0 bg-black bg-opacity-50 flex-center z-50 animate-fade-in',
-        'modal-container': 'bg-white rounded-2xl shadow-xl max-w-md w-full mx-4 max-h-[90vh] overflow-auto animate-zoom-in',
-        'modal-header': 'px-6 py-4 border-b border-gray-200 flex-between',
-        'modal-body': 'px-6 py-4',
-        'modal-footer': 'px-6 py-4 border-t border-gray-200 flex-between',
-        'modal-sm': 'modal-container max-w-sm',
-        'modal-lg': 'modal-container max-w-2xl',
-        'modal-xl': 'modal-container max-w-4xl',
+        // ========== Grid 对齐快捷类 ==========
+        // 容器内项目对齐 - 控制网格容器内所有项目的对齐方式
+        'justify-items-start': 'justify-items-start',       // 网格项目在网格区域中水平起始对齐
+        'justify-items-end': 'justify-items-end',           // 网格项目在网格区域中水平末尾对齐
+        'justify-items-center': 'justify-items-center',     // 网格项目在网格区域中水平居中对齐
+        'justify-items-stretch': 'justify-items-stretch',   // 网格项目在网格区域中水平拉伸对齐
 
-        // ========== 增强导航系统 ==========
-        'nav-item': 'px-3 py-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors duration-200',
-        'nav-item-active': 'nav-item bg-primary-100 text-primary-700',
-        'nav-tab': 'border-b-2 border-transparent px-4 py-2 text-gray-500 hover:text-gray-700 hover:border-gray-300 transition-colors duration-200',
-        'nav-tab-active': 'nav-tab border-primary-500 text-primary-600',
-        'nav-pill': 'nav-item rounded-full',
-        'nav-pill-active': 'nav-pill bg-primary-500 text-white hover:bg-primary-600 hover:text-white',
+        'align-items-start': 'align-items-start',           // 网格项目在网格区域中垂直起始对齐
+        'align-items-end': 'align-items-end',               // 网格项目在网格区域中垂直末尾对齐
+        'align-items-center': 'align-items-center',         // 网格项目在网格区域中垂直居中对齐
+        'align-items-stretch': 'align-items-stretch',       // 网格项目在网格区域中垂直拉伸对齐
 
-        // ========== 增强面包屑系统 ==========
-        'breadcrumb': 'flex items-center space-x-2 text-sm text-gray-500',
-        'breadcrumb-item': 'hover:text-gray-700 transition-colors duration-200',
-        'breadcrumb-separator': 'text-gray-400',
-        'breadcrumb-current': 'text-gray-700 font-medium',
+        'place-items-start': 'place-items-start',           // 网格项目在网格区域中水平和垂直都起始对齐
+        'place-items-end': 'place-items-end',               // 网格项目在网格区域中水平和垂直都末尾对齐
+        'place-items-center': 'place-items-center',         // 网格项目在网格区域中水平和垂直都居中对齐
+        'place-items-stretch': 'place-items-stretch',       // 网格项目在网格区域中水平和垂直都拉伸对齐
 
-        // ========== 增强分页系统 ==========
-        'pagination': 'flex items-center justify-center space-x-1',
-        'pagination-item': 'px-3 py-1 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors duration-200',
-        'pagination-active': 'pagination-item bg-primary-500 text-white hover:bg-primary-600',
-        'pagination-disabled': 'pagination-item opacity-50 cursor-not-allowed',
-        'pagination-sm': 'pagination-item px-2 py-1 text-sm',
-        'pagination-lg': 'pagination-item px-4 py-2 text-lg',
+        // 容器本身对齐 - 控制单个网格项目在其网格区域内的对齐方式
+        'justify-self-auto': 'justify-self-auto',           // 网格项目水平对齐方式由justify-items属性决定
+        'justify-self-start': 'justify-self-start',         // 网格项目在网格区域中水平起始对齐
+        'justify-self-end': 'justify-self-end',             // 网格项目在网格区域中水平末尾对齐
+        'justify-self-center': 'justify-self-center',       // 网格项目在网格区域中水平居中对齐
+        'justify-self-stretch': 'justify-self-stretch',     // 网格项目在网格区域中水平拉伸对齐
 
-        // ========== 增强标签系统 ==========
-        'tag': 'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium',
-        'tag-primary': 'tag bg-primary-100 text-primary-800',
-        'tag-close': 'ml-1.5 w-4 h-4 rounded-full hover:bg-black hover:bg-opacity-10 flex-center transition-colors duration-200',
+        'align-self-auto': 'align-self-auto',               // 网格项目垂直对齐方式由align-items属性决定
+        'align-self-start': 'align-self-start',             // 网格项目在网格区域中垂直起始对齐
+        'align-self-end': 'align-self-end',                 // 网格项目在网格区域中垂直末尾对齐
+        'align-self-center': 'align-self-center',           // 网格项目在网格区域中垂直居中对齐
+        'align-self-stretch': 'align-self-stretch',         // 网格项目在网格区域中垂直拉伸对齐
 
-        // ========== 增强步骤系统 ==========
-        'steps': 'flex items-center space-x-4',
-        'step': 'flex items-center',
-        'step-number': 'w-8 h-8 rounded-full border-2 flex-center text-sm font-medium transition-colors duration-300',
-        'step-active': 'step-number border-primary-500 bg-primary-500 text-white',
-        'step-completed': 'step-number border-success-500 bg-success-500 text-white',
-        'step-pending': 'step-number border-gray-300 text-gray-500',
-        'step-error': 'step-number border-error-500 bg-error-500 text-white',
-        'step-connector': 'flex-1 h-0.5 bg-gray-300',
+        'place-self-auto': 'place-self-auto',               // 网格项目对齐方式由place-items属性决定
+        'place-self-start': 'place-self-start',             // 网格项目在网格区域中水平和垂直都起始对齐
+        'place-self-end': 'place-self-end',                 // 网格项目在网格区域中水平和垂直都末尾对齐
+        'place-self-center': 'place-self-center',           // 网格项目在网格区域中水平和垂直都居中对齐
+        'place-self-stretch': 'place-self-stretch',         // 网格项目在网格区域中水平和垂直都拉伸对齐
 
-        // ========== 其他实用布局 ==========
-        'layout-masonry': 'columns-1 sm:columns-2 lg:columns-3 gap-4',
-        'layout-stack': 'flex flex-col divide-y divide-gray-200',
-        'layout-cover': 'relative min-h-screen bg-cover bg-center',
-        'layout-hero': 'min-h-80 flex-center bg-gradient-to-r from-blue-500 to-purple-600 text-white',
-        'layout-feature': 'grid grid-cols-1 md:grid-cols-3 gap-8 items-start',
-        'layout-testimonial': 'grid grid-cols-1 lg:grid-cols-2 gap-8 items-center',
-        'layout-pricing': 'grid grid-cols-1 md:grid-cols-3 gap-8',
-        'layout-team': 'grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6',
-        'layout-gallery': 'grid grid-cols-2 md:grid-cols-4 gap-2',
-        'layout-timeline': 'relative border-l border-gray-200 ml-4 pl-8 space-y-8',
-        'layout-faq': 'grid grid-cols-1 lg:grid-cols-2 gap-8',
-        'layout-contact': 'grid grid-cols-1 lg:grid-cols-2 gap-12 items-start',
-        'layout-blog': 'grid grid-cols-1 lg:grid-cols-4 gap-8',
-        'layout-ecommerce': 'grid grid-cols-1 lg:grid-cols-12 gap-8',
-        'layout-product': 'grid grid-cols-1 lg:grid-cols-2 gap-12 items-start',
-        'layout-checkout': 'grid grid-cols-1 lg:grid-cols-3 gap-8',
-        'layout-profile': 'grid grid-cols-1 lg:grid-cols-4 gap-8',
-        'layout-settings': 'grid grid-cols-1 lg:grid-cols-12 gap-8',
-        'layout-onboarding': 'min-h-screen flex-center bg-gray-50',
-        'layout-error': 'min-h-screen flex-center bg-white text-center',
-        'layout-success': 'min-h-96 flex-center bg-green-50 text-green-800',
-        'layout-loading': 'flex-center min-h-40',
-        'layout-empty': 'flex-col-center min-h-60 text-gray-500',
-        'layout-modal': 'modal-overlay',
-        'layout-drawer': 'fixed inset-y-0 right-0 w-96 bg-white shadow-xl z-40',
-        'layout-tabs': 'border-b border-gray-200',
-        'layout-accordion': 'divide-y divide-gray-200',
-        'layout-breadcrumb': 'breadcrumb',
-        'layout-pagination': 'pagination',
-        'layout-progress': 'progress',
-        'layout-stats': 'grid grid-cols-2 md:grid-cols-4 gap-4',
-        'layout-chart': 'card',
-        'layout-table': 'table',
-        'layout-list': 'list list-bordered',
-        'layout-filter': 'card-sm space-y-4',
-        'layout-search': 'relative max-w-md',
-        'layout-notification': 'fixed top-4 right-4 max-w-sm z-50',
-        'layout-tooltip': 'tooltip',
-        'layout-badge': 'badge',
-        'layout-avatar-group': 'avatar-group',
-        'layout-step': 'steps',
-    },
+        // ========== Grid 复合快捷类 ==========
+        'grid-center': 'grid place-items-center',           // 创建网格容器并使所有项目居中对齐
+        'grid-start': 'grid place-items-start',             // 创建网格容器并使所有项目起始对齐
+        'grid-end': 'grid place-items-end',                 // 创建网格容器并使所有项目末尾对齐
+        'grid-stretch': 'grid place-items-stretch',         // 创建网格容器并使所有项目拉伸对齐
+        'grid-area-center': 'grid place-items-center',      // 创建网格容器并使所有项目居中对齐（重复定义）
+        'grid-template-areas': 'grid grid-template-areas',  // 创建网格容器并应用网格区域模板
+        'grid-area-header': 'grid-area-header',             // 应用头部网格区域
+        'grid-area-sidebar': 'grid-area-sidebar',           // 应用侧边栏网格区域
+        'grid-area-main': 'grid-area-main',                 // 应用主内容网格区域
+        'grid-area-footer': 'grid-area-footer',             // 应用底部网格区域
+
+        // ========== 响应式网格快捷类 ==========
+        'grid-responsive': 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6',  // 响应式网格，随屏幕尺寸增加列数
+        'grid-responsive-2': 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4',  // 响应式网格，最多4列
+        'grid-responsive-3': 'grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4', // 响应式网格，最多4列
+        'grid-card': 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6',    // 卡片网格布局，设置项目间距
+        'grid-dashboard': 'grid grid-cols-1 lg:grid-cols-4 gap-6',                            // 仪表板网格布局，设置项目间距
+        'grid-form': 'grid grid-cols-1 md:grid-cols-2 gap-4',                                 // 表单网格布局，设置项目间距
+        'grid-form-3': 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4',                // 三列表单网格布局，设置项目间距
+
+        // 全宽容器 - 移动端全宽，大屏固定宽度
+        'container-full': 'w-full mx-auto px-1',
+        // 响应式全宽容器变体
+        'container-full-xs': 'container-full xs:max-w-screen-xs',
+        'container-full-sm': 'container-full sm:max-w-screen-sm',
+        'container-full-md': 'container-full md:max-w-screen-md',
+        'container-full-lg': 'container-full lg:max-w-screen-lg',
+        'container-full-xl': 'container-full xl:max-w-screen-xl',
+        'container-full-2xl': 'container-full 2xl:max-w-screen-2xl',
+        'container-full-3xl': 'container-full 3xl:max-w-screen-3xl',
+        'container-full-4xl': 'container-full 4xl:max-w-screen-4xl',    
+
+
+    }
 })
