@@ -8,6 +8,17 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="Resources\**" />
+	  <Compile Remove="VMs\**" />
+	  <Content Remove="Resources\**" />
+	  <Content Remove="VMs\**" />
+	  <EmbeddedResource Remove="Resources\**" />
+	  <EmbeddedResource Remove="VMs\**" />
+	  <None Remove="Resources\**" />
+	  <None Remove="VMs\**" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<SupportedPlatform Include="browser" />
 	</ItemGroup>
 
@@ -15,11 +26,6 @@
 		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.0-rc.2.25502.107" />
 		<PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.0-rc.2.25502.107" />
 		<PackageReference Include="Microsoft.Extensions.Localization" Version="10.0.0-rc.2.25502.107" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Resources\" />
-	  <Folder Include="VMs\" />
 	</ItemGroup>
 
 
