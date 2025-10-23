@@ -1,4 +1,4 @@
-﻿<!-- 左侧工具面板 - 优化版 -->
+﻿<!-- 左侧工具面板 - 响应式完整版 -->
 <div class="@GetPanelClass()">
     <!-- 面板头部 -->
     <div class="flex h-10 items-center justify-between border-b border-violet-200/60 bg-gradient-to-r from-violet-50 via-purple-50 to-fuchsia-50 px-3 shadow-sm backdrop-blur-md">
@@ -48,7 +48,7 @@
     </div>
 </div>
 
-<!-- 模态遮罩 - 仅手机端显示 -->
+<!-- 模态遮罩 - 仅在面板打开且为移动端时显示 -->
 @if (IsOpen)
 {
     <div class="fixed inset-0 z-30 bg-black/30 backdrop-blur-sm transition-opacity md:hidden"
@@ -74,15 +74,6 @@
         .overflow-y-auto::-webkit-scrollbar-thumb:hover {
             background: linear-gradient(to bottom, #a5b4fc, #818cf8);
         }
-
-    ::-webkit-scrollbar-thumb {
-        background: linear-gradient(to bottom, #c7d2fe, #a5b4fc);
-        border-radius: 3px;
-    }
-
-    .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-        background: linear-gradient(to bottom, #a5b4fc, #818cf8);
-    }
 </style>
 
 @code {
@@ -101,6 +92,8 @@
     {
         var baseClass = "flex flex-col border-r border-violet-200/60 bg-white/95 shadow-xl backdrop-blur-sm transition-all duration-300 ease-in-out";
 
+        // 桌面端(>=768px): 固定显示或隐藏
+        // 移动端(<768px): 固定定位浮动
         if (IsOpen)
         {
             return $"{baseClass} fixed left-0 top-14 bottom-0 z-40 w-52 translate-x-0 md:relative md:top-0 md:w-52";

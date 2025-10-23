@@ -77,19 +77,23 @@
                                         <input type="text"
                                                class="w-full rounded-md border border-emerald-200 bg-white px-2 py-1.5 text-xs text-slate-700 transition-all focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-100"
                                                placeholder="变量或表达式"
-                                               list="condition-left-suggestions" />
+                                               value="@ConditionLeftValue"
+                                               list="condition-left-suggestions"
+                                               @onchange="@(async (e) => { ConditionLeftValue = e.Value?.ToString() ?? ""; await UpdateConditionExpression(); })" />
                                         <datalist id="condition-left-suggestions">
-                                            <option value="string">string</option>
-                                            <option value="long">long</option>
-                                            <option value="boolean">boolean</option>
-                                            <option value="json">json</option>
+                                            <option value="string">String (字符串)</option>
+                                            <option value="long">Long (长整型)</option>
+                                            <option value="boolean">Boolean (布尔)</option>
+                                            <option value="json">JSON (对象)</option>
                                         </datalist>
                                     </div>
 
                                     <!-- 逻辑表达式 -->
                                     <div class="flex flex-col">
                                         <label class="mb-1 text-[10px] font-medium text-slate-600">运算符</label>
-                                        <select class="w-full rounded-md border border-emerald-200 bg-white px-2 py-1.5 text-xs text-slate-700 transition-all focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-100">
+                                        <select class="w-full rounded-md border border-emerald-200 bg-white px-2 py-1.5 text-xs text-slate-700 transition-all focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-100"
+                                                value="@ConditionOperator"
+                                                @onchange="@(async (e) => { ConditionOperator = e.Value?.ToString() ?? "=="; await UpdateConditionExpression(); })">
                                             <option value="==">等于 (==)</option>
                                             <option value="!=">不等于 (!=)</option>
                                             <option value=">">大于 (>)</option>
@@ -108,12 +112,14 @@
                                         <input type="text"
                                                class="w-full rounded-md border border-emerald-200 bg-white px-2 py-1.5 text-xs text-slate-700 transition-all focus:border-emerald-400 focus:outline-none focus:ring-1 focus:ring-emerald-100"
                                                placeholder="值或表达式"
-                                               list="condition-right-suggestions" />
+                                               value="@ConditionRightValue"
+                                               list="condition-right-suggestions"
+                                               @onchange="@(async (e) => { ConditionRightValue = e.Value?.ToString() ?? ""; await UpdateConditionExpression(); })" />
                                         <datalist id="condition-right-suggestions">
-                                            <option value="string">string</option>
-                                            <option value="long">long</option>
-                                            <option value="boolean">boolean</option>
-                                            <option value="json">json</option>
+                                            <option value="string">String (字符串)</option>
+                                            <option value="long">Long (长整型)</option>
+                                            <option value="boolean">Boolean (布尔)</option>
+                                            <option value="json">JSON (对象)</option>
                                         </datalist>
                                     </div>
                                 </div>
@@ -157,10 +163,10 @@
                                                 </button>
                                             </div>
                                             <datalist id="param-name-suggestions">
-                                                <option value="string">string</option>
-                                                <option value="long">long</option>
-                                                <option value="boolean">boolean</option>
-                                                <option value="json">json</option>
+                                                <option value="string">String (字符串)</option>
+                                                <option value="long">Long (长整型)</option>
+                                                <option value="boolean">Boolean (布尔)</option>
+                                                <option value="json">JSON (对象)</option>
                                             </datalist>
 
                                             <!-- 类型 -->
@@ -184,10 +190,10 @@
                                                        list="input-value-suggestions"
                                                        @onchange="@(async (e) => await UpdateInputParamField(param, "value", e.Value?.ToString()))" />
                                                 <datalist id="input-value-suggestions">
-                                                    <option value="string">string</option>
-                                                    <option value="long">long</option>
-                                                    <option value="boolean">boolean</option>
-                                                    <option value="json">json</option>
+                                                    <option value="string">String (字符串)</option>
+                                                    <option value="long">Long (长整型)</option>
+                                                    <option value="boolean">Boolean (布尔)</option>
+                                                    <option value="json">JSON (对象)</option>
                                                 </datalist>
                                             </div>
                                         </div>
@@ -222,10 +228,10 @@
                                                 </button>
                                             </div>
                                             <datalist id="output-name-suggestions">
-                                                <option value="string">string</option>
-                                                <option value="long">long</option>
-                                                <option value="boolean">boolean</option>
-                                                <option value="json">json</option>
+                                                <option value="string">String (字符串)</option>
+                                                <option value="long">Long (长整型)</option>
+                                                <option value="boolean">Boolean (布尔)</option>
+                                                <option value="json">JSON (对象)</option>
                                             </datalist>
 
                                             <!-- 类型 -->
@@ -249,10 +255,10 @@
                                                        list="output-value-suggestions"
                                                        @onchange="@(async (e) => await UpdateOutputParamField(param, "value", e.Value?.ToString()))" />
                                                 <datalist id="output-value-suggestions">
-                                                    <option value="string">string</option>
-                                                    <option value="long">long</option>
-                                                    <option value="boolean">boolean</option>
-                                                    <option value="json">json</option>
+                                                    <option value="string">String (字符串)</option>
+                                                    <option value="long">Long (长整型)</option>
+                                                    <option value="boolean">Boolean (布尔)</option>
+                                                    <option value="json">JSON (对象)</option>
                                                 </datalist>
                                             </div>
                                         </div>
@@ -271,7 +277,7 @@
     </div>
 </div>
 
-<!-- 模态遮罩 - 桌面优先，移动端支持 -->
+<!-- 模态遮罩 - 仅在面板打开且为平板/手机端时显示 -->
 @if (IsOpen)
 {
     <div class="fixed inset-0 z-30 bg-black/30 backdrop-blur-sm transition-opacity xl:hidden"
@@ -322,6 +328,20 @@
     [Parameter] public EventCallback<BpmnParameter> OnUpdateInputParam { get; set; }
     [Parameter] public EventCallback<BpmnParameter> OnUpdateOutputParam { get; set; }
 
+    // 条件表达式状态
+    private string ConditionLeftValue { get; set; } = "";
+    private string ConditionOperator { get; set; } = "==";
+    private string ConditionRightValue { get; set; } = "";
+
+    protected override void OnParametersSet()
+    {
+        // 当选中连线时，解析现有条件表达式
+        if (IsSequenceFlowSelected && !string.IsNullOrEmpty(SelectedElementId))
+        {
+            ParseConditionExpression();
+        }
+    }
+
     private async Task Close()
     {
         IsOpen = false;
@@ -341,6 +361,41 @@
         {
             return $"{baseClass} fixed right-0 top-14 bottom-0 z-40 w-72 translate-x-full xl:w-0 xl:overflow-hidden";
         }
+    }
+
+    private void ParseConditionExpression()
+    {
+        // 这里可以解析已有的条件表达式
+        // 暂时留空，后续可以从 BPMN 中读取
+    }
+
+    private async Task UpdateConditionExpression()
+    {
+        if (string.IsNullOrEmpty(ConditionLeftValue) || string.IsNullOrEmpty(ConditionRightValue))
+            return;
+
+        // 构建条件表达式
+        string expression = "";
+        
+        if (ConditionOperator == "contains")
+        {
+            expression = $"{ConditionLeftValue}.contains({ConditionRightValue})";
+        }
+        else if (ConditionOperator == "startsWith")
+        {
+            expression = $"{ConditionLeftValue}.startsWith({ConditionRightValue})";
+        }
+        else if (ConditionOperator == "endsWith")
+        {
+            expression = $"{ConditionLeftValue}.endsWith({ConditionRightValue})";
+        }
+        else
+        {
+            expression = $"{ConditionLeftValue} {ConditionOperator} {ConditionRightValue}";
+        }
+
+        // 调用 OnUpdateProperty 更新条件表达式
+        await OnUpdateProperty.InvokeAsync(("conditionExpression", expression));
     }
 
     private async Task UpdateInputParamField(BpmnParameter param, string field, string? value)

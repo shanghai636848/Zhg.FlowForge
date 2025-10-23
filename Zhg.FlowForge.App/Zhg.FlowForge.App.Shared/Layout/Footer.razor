@@ -1,4 +1,6 @@
-﻿<!-- 页脚 - 紧凑版 -->
+﻿@using static Zhg.FlowForge.App.Shared.Layout.LanguageSwitcher
+
+<!-- 页脚 - 紧凑版 -->
 <footer class="border-t border-slate-200/60 bg-gradient-to-br from-slate-50 via-purple-50/20 to-pink-50/20">
     <div class="mx-auto max-w-full px-3 py-2.5">
         <div class="flex flex-col items-center justify-between gap-2 md:flex-row">
@@ -38,5 +40,6 @@
 </footer>
 
 @code {
-    // Footer 逻辑
+    [Parameter]
+    public LanguageData CurrentLanguage { get; set; } = LanguageData.English;
 }

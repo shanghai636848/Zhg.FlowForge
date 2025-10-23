@@ -1,8 +1,9 @@
-﻿@inherits LayoutComponentBase
+﻿@using static Zhg.FlowForge.App.Shared.Layout.LanguageSwitcher
+@inherits LayoutComponentBase
 
 <!-- 主布局 - 紧凑优化版 -->
 <div class="flex h-screen flex-col overflow-hidden bg-gradient-to-br from-slate-50 via-purple-50/20 to-pink-50/20">
-    <Header />
+    <Header @bind-CurrentLanguage="currentLanguage" />
 
     <!-- 主内容区域 - 占据剩余空间 -->
     <main class="flex-1 overflow-hidden">
@@ -11,7 +12,7 @@
         </div>
     </main>
 
-    <Footer />
+    <Footer CurrentLanguage="currentLanguage" />
 </div>
 
 <style>
@@ -104,5 +105,5 @@
 </style>
 
 @code {
-    // 主布局逻辑
+    private LanguageData currentLanguage = LanguageData.English;
 }

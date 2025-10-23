@@ -440,8 +440,23 @@ export function updateProperty(key, value) {
 
     try {
         const modeling = bpmnModeler.get('modeling');
-        modeling.updateProperties(currentElement, { [key]: value });
-        console.log(`Property ${key} updated to ${value}`);
+
+        // 特殊处理条件表达式
+        if (key === 'conditionExpression' && currentElement.type === 'bpmn:SequenceFlow') {
+            const moddle = bpmnModeler.get('moddle');
+            const conditionExpression = moddle.create('bpmn:FormalExpression', {
+                body: value
+            });
+
+            modeling.updateProperties(currentElement, {
+                conditionExpression: conditionExpression
+            });
+
+            console.log(`Condition expression updated: ${value}`);
+        } else {
+            modeling.updateProperties(currentElement, { [key]: value });
+            console.log(`Property ${key} updated to ${value}`);
+        }
     } catch (error) {
         console.error('Error updating property:', error);
     }
