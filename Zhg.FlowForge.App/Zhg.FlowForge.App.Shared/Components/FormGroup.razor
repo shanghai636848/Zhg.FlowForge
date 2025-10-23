@@ -1,4 +1,8 @@
-﻿<!-- 表单组件 - 丰富色彩版 -->
+﻿<!-- ============================================ -->
+<!-- FormGroup.razor - 表单组件 -->
+<!-- ============================================ -->
+@* @page "/components/form-group" *@
+
 <div class="flex flex-col space-y-1.5">
     <label class="flex items-center gap-1.5 text-xs font-semibold @GetTextColor()">
         <i class="fas @Icon text-[10px] @GetIconColor()"></i>
@@ -13,37 +17,31 @@
     [Parameter] public string Color { get; set; } = "slate";
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
-    private string GetTextColor()
+    private string GetTextColor() => Color switch
     {
-        return Color switch
-        {
-            "violet" => "text-violet-700",
-            "cyan" => "text-cyan-700",
-            "indigo" => "text-indigo-700",
-            "amber" => "text-amber-700",
-            "emerald" => "text-emerald-700",
-            "purple" => "text-purple-700",
-            "rose" => "text-rose-700",
-            "blue" => "text-blue-700",
-            "fuchsia" => "text-fuchsia-700",
-            _ => "text-slate-700"
-        };
-    }
+        "violet" => "text-violet-700",
+        "cyan" => "text-cyan-700",
+        "indigo" => "text-indigo-700",
+        "amber" => "text-amber-700",
+        "emerald" => "text-emerald-700",
+        "purple" => "text-purple-700",
+        "rose" => "text-rose-700",
+        "blue" => "text-blue-700",
+        "fuchsia" => "text-fuchsia-700",
+        _ => "text-slate-700"
+    };
 
-    private string GetIconColor()
+    private string GetIconColor() => Color switch
     {
-        return Color switch
-        {
-            "violet" => "text-violet-500",
-            "cyan" => "text-cyan-500",
-            "indigo" => "text-indigo-500",
-            "amber" => "text-amber-500",
-            "emerald" => "text-emerald-500",
-            "purple" => "text-purple-500",
-            "rose" => "text-rose-500",
-            "blue" => "text-blue-500",
-            "fuchsia" => "text-fuchsia-500",
-            _ => "text-slate-500"
-        };
-    }
+        "violet" => "text-violet-500",
+        "cyan" => "text-cyan-500",
+        "indigo" => "text-indigo-500",
+        "amber" => "text-amber-500",
+        "emerald" => "text-emerald-500",
+        "purple" => "text-purple-500",
+        "rose" => "text-rose-500",
+        "blue" => "text-blue-500",
+        "fuchsia" => "text-fuchsia-500",
+        _ => "text-slate-500"
+    };
 }

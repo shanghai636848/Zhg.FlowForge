@@ -1,8 +1,12 @@
-﻿<!-- 现代化语言切换器 -->
+﻿<!-- ============================================ -->
+<!-- LanguageSwitcher.razor - 语言切换器 -->
+<!-- ============================================ -->
+@* @page "/components/language-switcher" *@
+
 <div class="relative" @ref="dropdownRef">
     <button @onclick="ToggleDropdown"
-            class="group flex h-9 items-center gap-2 rounded-lg border border-slate-200 bg-white/90 px-3 py-1.5 shadow-sm backdrop-blur-sm transition-all hover:scale-105 hover:border-slate-300 hover:bg-white hover:shadow-md active:scale-95">
-        <span class="text-base transition-transform group-hover:scale-110">@GetCurrentFlag()</span>
+            class="group flex h-8 items-center gap-1.5 rounded-lg border border-slate-200 bg-white/90 px-2.5 py-1.5 shadow-sm backdrop-blur-sm transition-all hover:scale-105 hover:border-slate-300 hover:bg-white hover:shadow-md active:scale-95">
+        <span class="text-sm transition-transform group-hover:scale-110">@GetCurrentFlag()</span>
         <span class="text-xs font-medium text-slate-700 transition-colors group-hover:text-indigo-600">@GetCurrentLanguageCode()</span>
         <svg class="h-3 w-3 text-slate-500 transition-all duration-300 group-hover:text-indigo-600 @(isOpen ? "rotate-180" : "")"
              fill="none"
@@ -20,8 +24,8 @@
                 {
                     <button @onclick="() => SelectLanguage(lang.Key)"
                             class="group relative w-full overflow-hidden rounded-lg transition-all duration-200 @(lang.Key == currentLangKey ? "bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50" : "hover:bg-gradient-to-r hover:from-slate-50 hover:to-blue-50/50")">
-                        <div class="flex items-center gap-3 px-3 py-2">
-                            <span class="text-lg transition-transform group-hover:scale-125">@lang.Value.Flag</span>
+                        <div class="flex items-center gap-2.5 px-3 py-2">
+                            <span class="text-base transition-transform group-hover:scale-125">@lang.Value.Flag</span>
                             <div class="flex-1 text-left">
                                 <div class="text-xs font-semibold text-slate-900 transition-colors group-hover:text-indigo-600">
                                     @lang.Value.Name
@@ -38,7 +42,6 @@
                             }
                         </div>
 
-                        <!-- 悬停指示器 -->
                         <div class="absolute bottom-0 left-0 h-0.5 w-0 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 transition-all duration-300 group-hover:w-full"></div>
                     </button>
                 }
@@ -70,11 +73,8 @@
     private ElementReference dropdownRef;
     private string currentLangKey = "en";
 
-    [Parameter]
-    public LanguageData CurrentLanguage { get; set; } = LanguageData.English;
-
-    [Parameter]
-    public EventCallback<LanguageData> CurrentLanguageChanged { get; set; }
+    [Parameter] public LanguageData CurrentLanguage { get; set; } = LanguageData.English;
+    [Parameter] public EventCallback<LanguageData> CurrentLanguageChanged { get; set; }
 
     private Dictionary<string, LanguageInfo> languages = new()
     {
@@ -86,10 +86,7 @@
         { "ja", new LanguageInfo { Flag = "🇯🇵", Name = "Japanese", NativeName = "日本語", Code = "日本語" } }
     };
 
-    private void ToggleDropdown()
-    {
-        isOpen = !isOpen;
-    }
+    private void ToggleDropdown() => isOpen = !isOpen;
 
     private async Task SelectLanguage(string langKey)
     {
@@ -109,15 +106,8 @@
         await CurrentLanguageChanged.InvokeAsync(CurrentLanguage);
     }
 
-    private string GetCurrentFlag()
-    {
-        return languages[currentLangKey].Flag;
-    }
-
-    private string GetCurrentLanguageCode()
-    {
-        return languages[currentLangKey].Code;
-    }
+    private string GetCurrentFlag() => languages[currentLangKey].Flag;
+    private string GetCurrentLanguageCode() => languages[currentLangKey].Code;
 
     private class LanguageInfo
     {
@@ -134,18 +124,6 @@
         public string About { get; set; } = string.Empty;
         public string Contact { get; set; } = string.Empty;
         public string Login { get; set; } = string.Empty;
-        public string FooterDescription { get; set; } = string.Empty;
-        public string QuickLinks { get; set; } = string.Empty;
-        public string Resources { get; set; } = string.Empty;
-        public string Documentation { get; set; } = string.Empty;
-        public string Blog { get; set; } = string.Empty;
-        public string Support { get; set; } = string.Empty;
-        public string FAQ { get; set; } = string.Empty;
-        public string Newsletter { get; set; } = string.Empty;
-        public string NewsletterDescription { get; set; } = string.Empty;
-        public string EmailPlaceholder { get; set; } = string.Empty;
-        public string Subscribe { get; set; } = string.Empty;
-        public string SubscribeSuccess { get; set; } = string.Empty;
         public string AllRightsReserved { get; set; } = string.Empty;
         public string Privacy { get; set; } = string.Empty;
         public string Terms { get; set; } = string.Empty;
@@ -158,18 +136,6 @@
             About = "About",
             Contact = "Contact",
             Login = "Login",
-            FooterDescription = "Building innovative solutions for a better tomorrow.",
-            QuickLinks = "Quick Links",
-            Resources = "Resources",
-            Documentation = "Documentation",
-            Blog = "Blog",
-            Support = "Support",
-            FAQ = "FAQ",
-            Newsletter = "Newsletter",
-            NewsletterDescription = "Subscribe to get the latest updates.",
-            EmailPlaceholder = "Enter your email",
-            Subscribe = "Subscribe",
-            SubscribeSuccess = "✓ Successfully subscribed!",
             AllRightsReserved = "All rights reserved.",
             Privacy = "Privacy",
             Terms = "Terms",
@@ -183,18 +149,6 @@
             About = "关于",
             Contact = "联系",
             Login = "登录",
-            FooterDescription = "为更美好的明天打造创新解决方案。",
-            QuickLinks = "快速链接",
-            Resources = "资源",
-            Documentation = "文档",
-            Blog = "博客",
-            Support = "支持",
-            FAQ = "常见问题",
-            Newsletter = "订阅",
-            NewsletterDescription = "订阅获取最新动态。",
-            EmailPlaceholder = "输入邮箱",
-            Subscribe = "订阅",
-            SubscribeSuccess = "✓ 订阅成功！",
             AllRightsReserved = "版权所有。",
             Privacy = "隐私",
             Terms = "条款",
@@ -208,18 +162,6 @@
             About = "Acerca de",
             Contact = "Contacto",
             Login = "Iniciar sesión",
-            FooterDescription = "Construyendo soluciones innovadoras.",
-            QuickLinks = "Enlaces",
-            Resources = "Recursos",
-            Documentation = "Documentación",
-            Blog = "Blog",
-            Support = "Soporte",
-            FAQ = "Preguntas",
-            Newsletter = "Boletín",
-            NewsletterDescription = "Suscríbete para actualizaciones.",
-            EmailPlaceholder = "Correo electrónico",
-            Subscribe = "Suscribirse",
-            SubscribeSuccess = "✓ ¡Suscripción exitosa!",
             AllRightsReserved = "Todos los derechos reservados.",
             Privacy = "Privacidad",
             Terms = "Términos",
@@ -233,18 +175,6 @@
             About = "À propos",
             Contact = "Contact",
             Login = "Connexion",
-            FooterDescription = "Créer des solutions innovantes.",
-            QuickLinks = "Liens",
-            Resources = "Ressources",
-            Documentation = "Documentation",
-            Blog = "Blog",
-            Support = "Support",
-            FAQ = "FAQ",
-            Newsletter = "Newsletter",
-            NewsletterDescription = "Abonnez-vous aux mises à jour.",
-            EmailPlaceholder = "Votre email",
-            Subscribe = "S'abonner",
-            SubscribeSuccess = "✓ Abonnement réussi!",
             AllRightsReserved = "Tous droits réservés.",
             Privacy = "Confidentialité",
             Terms = "Conditions",
@@ -258,18 +188,6 @@
             About = "Über uns",
             Contact = "Kontakt",
             Login = "Anmelden",
-            FooterDescription = "Innovative Lösungen entwickeln.",
-            QuickLinks = "Links",
-            Resources = "Ressourcen",
-            Documentation = "Dokumentation",
-            Blog = "Blog",
-            Support = "Support",
-            FAQ = "FAQ",
-            Newsletter = "Newsletter",
-            NewsletterDescription = "Abonnieren Sie Updates.",
-            EmailPlaceholder = "Ihre E-Mail",
-            Subscribe = "Abonnieren",
-            SubscribeSuccess = "✓ Erfolgreich abonniert!",
             AllRightsReserved = "Alle Rechte vorbehalten.",
             Privacy = "Datenschutz",
             Terms = "Bedingungen",
@@ -283,18 +201,6 @@
             About = "概要",
             Contact = "お問合せ",
             Login = "ログイン",
-            FooterDescription = "革新的なソリューションを構築。",
-            QuickLinks = "リンク",
-            Resources = "リソース",
-            Documentation = "ドキュメント",
-            Blog = "ブログ",
-            Support = "サポート",
-            FAQ = "よくある質問",
-            Newsletter = "ニュースレター",
-            NewsletterDescription = "最新情報を購読。",
-            EmailPlaceholder = "メール",
-            Subscribe = "購読",
-            SubscribeSuccess = "✓ 購読成功！",
             AllRightsReserved = "無断転載禁止。",
             Privacy = "プライバシー",
             Terms = "利用規約",

@@ -1,4 +1,8 @@
-﻿<!-- 属性区块组件 - 丰富色彩版 -->
+﻿<!-- ============================================ -->
+<!-- PropertySection.razor - 属性区块组件 -->
+<!-- ============================================ -->
+@* @page "/components/property-section" *@
+
 <div class="group overflow-hidden rounded-xl border @GetBorderColor() bg-white shadow-sm transition-all hover:shadow-md">
     <div class="flex cursor-pointer select-none items-center justify-between border-b @GetBorderColor() bg-gradient-to-r @GetGradient() px-3 py-2 transition-all hover:@GetHoverGradient()"
          @onclick="ToggleSection">
@@ -45,88 +49,49 @@
             : "max-h-[2000px] overflow-hidden transition-all duration-300 ease-in-out px-3 py-2.5";
     }
 
-    private string GetBorderColor()
+    private string GetBorderColor() => Color switch
     {
-        return Color switch
-        {
-            "blue" => "border-blue-200",
-            "emerald" => "border-emerald-200",
-            "purple" => "border-purple-200",
-            "amber" => "border-amber-200",
-            "rose" => "border-rose-200",
-            "indigo" => "border-indigo-200",
-            "violet" => "border-violet-200",
-            "cyan" => "border-cyan-200",
-            "fuchsia" => "border-fuchsia-200",
-            _ => "border-slate-200"
-        };
-    }
+        "blue" => "border-blue-200",
+        "emerald" => "border-emerald-200",
+        "purple" => "border-purple-200",
+        "amber" => "border-amber-200",
+        "rose" => "border-rose-200",
+        "indigo" => "border-indigo-200",
+        "violet" => "border-violet-200",
+        "cyan" => "border-cyan-200",
+        "fuchsia" => "border-fuchsia-200",
+        _ => "border-slate-200"
+    };
 
-    private string GetGradient()
+    private string GetGradient() => Color switch
     {
-        return Color switch
-        {
-            "blue" => "from-blue-50 via-cyan-50/50 to-blue-50",
-            "emerald" => "from-emerald-50 via-teal-50/50 to-emerald-50",
-            "purple" => "from-purple-50 via-fuchsia-50/50 to-purple-50",
-            "amber" => "from-amber-50 via-yellow-50/50 to-amber-50",
-            "rose" => "from-rose-50 via-pink-50/50 to-rose-50",
-            "indigo" => "from-indigo-50 via-purple-50/50 to-indigo-50",
-            "violet" => "from-violet-50 via-purple-50/50 to-violet-50",
-            "cyan" => "from-cyan-50 via-blue-50/50 to-cyan-50",
-            "fuchsia" => "from-fuchsia-50 via-pink-50/50 to-fuchsia-50",
-            _ => "from-slate-50 via-blue-50/50 to-slate-50"
-        };
-    }
+        "blue" => "from-blue-50 via-cyan-50/50 to-blue-50",
+        "emerald" => "from-emerald-50 via-teal-50/50 to-emerald-50",
+        "purple" => "from-purple-50 via-fuchsia-50/50 to-purple-50",
+        "amber" => "from-amber-50 via-yellow-50/50 to-amber-50",
+        "rose" => "from-rose-50 via-pink-50/50 to-rose-50",
+        "indigo" => "from-indigo-50 via-purple-50/50 to-indigo-50",
+        "violet" => "from-violet-50 via-purple-50/50 to-violet-50",
+        "cyan" => "from-cyan-50 via-blue-50/50 to-cyan-50",
+        "fuchsia" => "from-fuchsia-50 via-pink-50/50 to-fuchsia-50",
+        _ => "from-slate-50 via-blue-50/50 to-slate-50"
+    };
 
-    private string GetHoverGradient()
+    private string GetHoverGradient() => Color switch
     {
-        return Color switch
-        {
-            "blue" => "from-blue-100 via-cyan-100/50 to-blue-100",
-            "emerald" => "from-emerald-100 via-teal-100/50 to-emerald-100",
-            "purple" => "from-purple-100 via-fuchsia-100/50 to-purple-100",
-            "amber" => "from-amber-100 via-yellow-100/50 to-amber-100",
-            "rose" => "from-rose-100 via-pink-100/50 to-rose-100",
-            "indigo" => "from-indigo-100 via-purple-100/50 to-indigo-100",
-            "violet" => "from-violet-100 via-purple-100/50 to-violet-100",
-            "cyan" => "from-cyan-100 via-blue-100/50 to-cyan-100",
-            "fuchsia" => "from-fuchsia-100 via-pink-100/50 to-fuchsia-100",
-            _ => "from-slate-100 via-blue-100/50 to-slate-100"
-        };
-    }
+        "blue" => "from-blue-100 via-cyan-100/50 to-blue-100",
+        "emerald" => "from-emerald-100 via-teal-100/50 to-emerald-100",
+        "purple" => "from-purple-100 via-fuchsia-100/50 to-purple-100",
+        "amber" => "from-amber-100 via-yellow-100/50 to-amber-100",
+        "rose" => "from-rose-100 via-pink-100/50 to-rose-100",
+        "indigo" => "from-indigo-100 via-purple-100/50 to-indigo-100",
+        "violet" => "from-violet-100 via-purple-100/50 to-violet-100",
+        "cyan" => "from-cyan-100 via-blue-100/50 to-cyan-100",
+        "fuchsia" => "from-fuchsia-100 via-pink-100/50 to-fuchsia-100",
+        _ => "from-slate-100 via-blue-100/50 to-slate-100"
+    };
 
-    private string GetTextGradient()
-    {
-        return Color switch
-        {
-            "blue" => "bg-gradient-to-r from-blue-600 to-cyan-600",
-            "emerald" => "bg-gradient-to-r from-emerald-600 to-teal-600",
-            "purple" => "bg-gradient-to-r from-purple-600 to-fuchsia-600",
-            "amber" => "bg-gradient-to-r from-amber-600 to-yellow-600",
-            "rose" => "bg-gradient-to-r from-rose-600 to-pink-600",
-            "indigo" => "bg-gradient-to-r from-indigo-600 to-purple-600",
-            "violet" => "bg-gradient-to-r from-violet-600 to-purple-600",
-            "cyan" => "bg-gradient-to-r from-cyan-600 to-blue-600",
-            "fuchsia" => "bg-gradient-to-r from-fuchsia-600 to-pink-600",
-            _ => "bg-gradient-to-r from-slate-600 to-blue-600"
-        };
-    }
-
-    private string GetIconColor()
-    {
-        return Color switch
-        {
-            "blue" => "text-blue-500",
-            "emerald" => "text-emerald-500",
-            "purple" => "text-purple-500",
-            "amber" => "text-amber-500",
-            "rose" => "text-rose-500",
-            "indigo" => "text-indigo-500",
-            "violet" => "text-violet-500",
-            "cyan" => "text-cyan-500",
-            "fuchsia" => "text-fuchsia-500",
-            _ => "text-slate-500"
-        };
-    }
+    private string GetTextGradient() => $"bg-gradient-to-r from-{Color}-600 to-{(Color == "emerald" ? "teal" : Color == "blue" ? "cyan" : Color)}-600";
+    private string GetIconColor() => $"text-{Color}-500";
 }
+

@@ -1,4 +1,8 @@
-﻿<!-- 工具分类组件 - 丰富色彩版 -->
+﻿<!-- ============================================ -->
+<!-- ToolCategory.razor - 工具分类组件 -->
+<!-- ============================================ -->
+@* @page "/components/tool-category" *@
+
 <div class="tool-category">
     <div class="group flex cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 transition-all hover:bg-gradient-to-r @GetHoverGradient()"
          @onclick="ToggleCategory">
@@ -43,8 +47,6 @@
             "emerald" => "bg-gradient-to-r from-emerald-600 to-teal-600",
             "sky" => "bg-gradient-to-r from-sky-600 to-blue-600",
             "cyan" => "bg-gradient-to-r from-cyan-600 to-teal-600",
-            "violet" => "bg-gradient-to-r from-violet-600 to-purple-600",
-            "fuchsia" => "bg-gradient-to-r from-fuchsia-600 to-pink-600",
             _ => "bg-gradient-to-r from-blue-600 to-indigo-600"
         };
     }
@@ -56,8 +58,6 @@
             "emerald" => "text-emerald-500",
             "sky" => "text-sky-500",
             "cyan" => "text-cyan-500",
-            "violet" => "text-violet-500",
-            "fuchsia" => "text-fuchsia-500",
             _ => "text-blue-500"
         };
     }
@@ -69,8 +69,6 @@
             "emerald" => "hover:from-emerald-50 hover:to-teal-50",
             "sky" => "hover:from-sky-50 hover:to-blue-50",
             "cyan" => "hover:from-cyan-50 hover:to-teal-50",
-            "violet" => "hover:from-violet-50 hover:to-purple-50",
-            "fuchsia" => "hover:from-fuchsia-50 hover:to-pink-50",
             _ => "hover:from-blue-50 hover:to-indigo-50"
         };
     }

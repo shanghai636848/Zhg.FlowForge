@@ -3,10 +3,11 @@
 @page "/"
 @implements IAsyncDisposable
 
-<!-- 增强版 BPMN 编辑器 - 响应式 + 丰富色彩 + 流畅动画 -->
+<!-- BPMN 编辑器 - 最终完整版 -->
 <div class="flex h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-purple-50/20 to-pink-50/20">
 	<!-- 左侧工具面板 - 响应式 -->
-	<LeftPanel @bind-IsOpen="leftPanelOpen" />
+	<LeftPanel @bind-IsOpen="leftPanelOpen"
+			   OnClose="HandleLeftPanelClose" />
 
 	<!-- 中央画布 -->
 	<CenterPanel CurrentZoom="@CurrentZoom"
@@ -17,13 +18,16 @@
 				 OnZoomIn="ZoomIn"
 				 OnZoomOut="ZoomOut"
 				 OnResetZoom="ResetZoom"
-				 OnToggleLeftPanel="ToggleLeftPanel"
-				 OnToggleRightPanel="ToggleRightPanel"
+				 OnFitViewport="FitViewport"
+				 OnTogglePalette="TogglePalette"
 				 LeftPanelOpen="@leftPanelOpen"
-				 RightPanelOpen="@rightPanelOpen" />
+				 RightPanelOpen="@rightPanelOpen"
+				 OnOpenLeftPanel="OpenLeftPanel"
+				 OnOpenRightPanel="OpenRightPanel" />
 
 	<!-- 右侧属性面板 - 响应式 -->
 	<RightPanel @bind-IsOpen="rightPanelOpen"
+				OnClose="HandleRightPanelClose"
 				SelectedElementId="@SelectedElementId"
 				SelectedElementType="@SelectedElementType"
 				SelectedElementName="@SelectedElementName"
@@ -49,7 +53,7 @@
 	private IJSObjectReference? _jsModule;
 	private DotNetObjectReference<BpmnEditor>? _dotnetHelper;
 
-	// 面板状态
+	// 面板状态 - 互斥逻辑
 	private bool leftPanelOpen = true;
 	private bool rightPanelOpen = true;
 
@@ -98,17 +102,39 @@
 		}
 	}
 
-	// 面板切换
-	private void ToggleLeftPanel()
+	// 面板切换 - 互斥逻辑
+	private void OpenLeftPanel()
 	{
-		leftPanelOpen = !leftPanelOpen;
+		leftPanelOpen = true;
+		rightPanelOpen = false; // 互斥：打开左侧时关闭右侧
 		StateHasChanged();
 	}
 
-	private void ToggleRightPanel()
+	private void OpenRightPanel()
 	{
-		rightPanelOpen = !rightPanelOpen;
+		rightPanelOpen = true;
+		leftPanelOpen = false; // 互斥：打开右侧时关闭左侧
 		StateHasChanged();
+	}
+
+	private void HandleLeftPanelClose()
+	{
+		leftPanelOpen = false;
+		StateHasChanged();
+	}
+
+	private void HandleRightPanelClose()
+	{
+		rightPanelOpen = false;
+		StateHasChanged();
+	}
+
+	private async Task TogglePalette()
+	{
+		if (_jsModule is not null)
+		{
+			await _jsModule.InvokeVoidAsync("togglePalette");
+		}
 	}
 
 	[JSInvokable]
@@ -286,6 +312,14 @@
 		if (_jsModule is not null)
 		{
 			await _jsModule.InvokeVoidAsync("resetZoom");
+		}
+	}
+
+	public async Task FitViewport()
+	{
+		if (_jsModule is not null)
+		{
+			await _jsModule.InvokeVoidAsync("fitViewport");
 		}
 	}
 

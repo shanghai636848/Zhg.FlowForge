@@ -2,16 +2,17 @@
 @using Zhg.FlowForge.App.Shared.Models
 @implements IDisposable
 
-<!-- 右侧属性面板 - 响应式支持 + 丰富色彩 -->
+<!-- 右侧属性面板 - 响应式完整版 -->
 <div class="@GetPanelClass()">
-    <!-- 面板头部 -->
-    <div class="flex items-center justify-between border-b border-fuchsia-200/80 bg-gradient-to-r from-fuchsia-50 via-pink-50 to-rose-50 px-3 py-2.5 shadow-sm">
+    <!-- 面板头部 - 统一样式 -->
+    <div class="flex h-11 items-center justify-between border-b border-fuchsia-200/60 bg-gradient-to-r from-fuchsia-50 via-pink-50 to-rose-50 px-3 py-2 shadow-sm backdrop-blur-md">
         <span class="text-xs font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-600 to-pink-600">属性面板</span>
         <div class="flex items-center gap-2">
             <div class="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-fuchsia-500 to-pink-500 shadow-sm">
                 <i class="fas fa-sliders-h text-[10px] text-white"></i>
             </div>
-            <button @onclick="Close" class="flex h-6 w-6 items-center justify-center rounded-md border border-fuchsia-200 bg-white/80 text-fuchsia-600 transition-all hover:scale-110 hover:border-fuchsia-300 hover:bg-fuchsia-50 hover:shadow-md active:scale-95 xl:hidden">
+            <button @onclick="Close"
+                    class="flex h-6 w-6 items-center justify-center rounded-md border border-fuchsia-200 bg-white/80 text-fuchsia-600 transition-all hover:scale-110 hover:border-fuchsia-300 hover:bg-fuchsia-50 hover:shadow-md active:scale-95 xl:hidden">
                 <i class="fas fa-times text-xs"></i>
             </button>
         </div>
@@ -180,6 +181,7 @@
 @code {
     [Parameter] public bool IsOpen { get; set; } = true;
     [Parameter] public EventCallback<bool> IsOpenChanged { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
     [Parameter] public string? SelectedElementId { get; set; }
     [Parameter] public string SelectedElementType { get; set; } = string.Empty;
     [Parameter] public string SelectedElementName { get; set; } = string.Empty;
@@ -203,19 +205,23 @@
     {
         IsOpen = false;
         await IsOpenChanged.InvokeAsync(IsOpen);
+        await OnClose.InvokeAsync();
     }
 
     private string GetPanelClass()
     {
         var baseClass = "flex flex-col border-l border-fuchsia-200/60 bg-white/95 shadow-lg backdrop-blur-sm transition-all duration-300 ease-in-out";
 
+        // 桌面 (≥1280px): 始终显示
+        // 平板 (768px-1279px): 隐藏
+        // 手机 (<768px): 固定定位悬浮
         if (IsOpen)
         {
-            return $"{baseClass} w-72 translate-x-0 xl:relative xl:translate-x-0";
+            return $"{baseClass} fixed right-0 top-14 bottom-0 z-40 w-72 translate-x-0 xl:relative xl:top-0";
         }
         else
         {
-            return $"{baseClass} w-0 translate-x-full xl:w-0 xl:translate-x-full overflow-hidden";
+            return $"{baseClass} fixed right-0 top-14 bottom-0 z-40 w-72 translate-x-full xl:w-0 xl:overflow-hidden";
         }
     }
 

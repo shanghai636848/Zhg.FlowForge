@@ -1,126 +1,133 @@
-﻿<!-- 中央画布面板 - 精简工具栏 -->
+﻿<!-- 中央画布面板 - 最终版 -->
 <div class="relative flex min-w-0 flex-1 flex-col bg-gradient-to-br from-white via-slate-50/30 to-blue-50/20 backdrop-blur-sm">
-	<!-- 画布工具栏 -->
-	<div class="flex h-11 items-center justify-between border-b border-slate-200/60 bg-white/90 px-3 py-2 shadow-sm backdrop-blur-md">
-		<!-- 左侧 - 面板切换和导入导出 -->
-		<div class="flex items-center gap-1.5">
-			<!-- 工具箱切换 (移动端可见) -->
-			<button @onclick="() => OnToggleLeftPanel.InvokeAsync()"
-					class="@GetToggleButtonClass(!LeftPanelOpen, "violet")"
-					title="工具箱">
-				<i class="fas fa-bars text-xs"></i>
-			</button>
+    <!-- 画布工具栏 - 与面板头部统一样式 -->
+    <div class="flex h-11 items-center justify-between border-b border-slate-200/60 bg-gradient-to-r from-slate-50 via-blue-50/50 to-purple-50/50 px-3 py-2 shadow-sm backdrop-blur-md">
+        <!-- 左侧 - 导入导出 -->
+        <div class="flex items-center gap-1.5">
+            <!-- 导入 -->
+            <button class="group flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50 px-2.5 py-1.5 text-xs font-medium text-emerald-700 shadow-sm transition-all hover:scale-105 hover:border-emerald-300 hover:from-emerald-100 hover:to-teal-100 hover:shadow-md active:scale-95"
+                    @onclick="OnImportBpmn">
+                <i class="fas fa-file-import text-xs transition-transform group-hover:rotate-12"></i>
+                <span class="hidden sm:inline">导入</span>
+            </button>
 
-			<div class="mx-1 h-6 w-px bg-gradient-to-b from-transparent via-slate-300 to-transparent"></div>
+            <!-- 导出 -->
+            <button class="group flex items-center gap-1.5 rounded-lg border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-2.5 py-1.5 text-xs font-medium text-blue-700 shadow-sm transition-all hover:scale-105 hover:border-blue-300 hover:from-blue-100 hover:to-indigo-100 hover:shadow-md active:scale-95"
+                    @onclick="OnExportBpmn">
+                <i class="fas fa-file-export text-xs transition-transform group-hover:rotate-12"></i>
+                <span class="hidden sm:inline">导出</span>
+            </button>
 
-			<!-- 导入 -->
-			<button class="group flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50 px-3 py-1.5 text-xs font-medium text-emerald-700 shadow-sm transition-all hover:scale-105 hover:border-emerald-300 hover:from-emerald-100 hover:to-teal-100 hover:shadow-md active:scale-95"
-					@onclick="OnImportBpmn">
-				<i class="fas fa-file-import text-xs transition-transform group-hover:rotate-12"></i>
-				<span class="hidden sm:inline">导入</span>
-			</button>
+            <div class="mx-1 h-6 w-px bg-gradient-to-b from-transparent via-slate-300 to-transparent"></div>
 
-			<!-- 导出 -->
-			<button class="group flex items-center gap-1.5 rounded-lg border border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 px-3 py-1.5 text-xs font-medium text-blue-700 shadow-sm transition-all hover:scale-105 hover:border-blue-300 hover:from-blue-100 hover:to-indigo-100 hover:shadow-md active:scale-95"
-					@onclick="OnExportBpmn">
-				<i class="fas fa-file-export text-xs transition-transform group-hover:rotate-12"></i>
-				<span class="hidden sm:inline">导出</span>
-			</button>
-		</div>
+            <!-- BPMN.js 工具箱 -->
+            <button class="@GetIconButtonClass("purple")" @onclick="OnTogglePalette" title="工具面板">
+                <i class="fas fa-th text-xs"></i>
+            </button>
+        </div>
 
-		<!-- 右侧 - 编辑操作和属性面板切换 -->
-		<div class="flex items-center gap-1.5">
-			<!-- 撤销 -->
-			<button class="@GetIconButtonClass("amber")" @onclick="OnUndo" title="撤销 (Ctrl+Z)">
-				<i class="fas fa-undo text-xs"></i>
-			</button>
+        <!-- 右侧 - 编辑和视图控制 -->
+        <div class="flex items-center gap-1.5">
+            <!-- 撤销 -->
+            <button class="@GetIconButtonClass("amber")" @onclick="OnUndo" title="撤销 (Ctrl+Z)">
+                <i class="fas fa-undo text-xs"></i>
+            </button>
 
-			<!-- 重做 -->
-			<button class="@GetIconButtonClass("amber")" @onclick="OnRedo" title="重做 (Ctrl+Y)">
-				<i class="fas fa-redo text-xs"></i>
-			</button>
+            <!-- 重做 -->
+            <button class="@GetIconButtonClass("amber")" @onclick="OnRedo" title="重做 (Ctrl+Y)">
+                <i class="fas fa-redo text-xs"></i>
+            </button>
 
-			<div class="mx-1 h-6 w-px bg-gradient-to-b from-transparent via-slate-300 to-transparent"></div>
+            <div class="mx-1 h-6 w-px bg-gradient-to-b from-transparent via-slate-300 to-transparent"></div>
 
-			<!-- 缩小 -->
-			<button class="@GetIconButtonClass("cyan")" @onclick="OnZoomOut" title="缩小">
-				<i class="fas fa-search-minus text-xs"></i>
-			</button>
+            <!-- 适应窗口 -->
+            <button class="@GetIconButtonClass("teal")" @onclick="OnFitViewport" title="适应窗口">
+                <i class="fas fa-compress-arrows-alt text-xs"></i>
+            </button>
 
-			<!-- 100% -->
-			<button class="@GetIconButtonClass("indigo")" @onclick="OnResetZoom" title="100%">
-				<span class="text-[10px] font-bold">100%</span>
-			</button>
+            <!-- 缩小 -->
+            <button class="@GetIconButtonClass("cyan")" @onclick="OnZoomOut" title="缩小">
+                <i class="fas fa-search-minus text-xs"></i>
+            </button>
 
-			<!-- 放大 -->
-			<button class="@GetIconButtonClass("cyan")" @onclick="OnZoomIn" title="放大">
-				<i class="fas fa-search-plus text-xs"></i>
-			</button>
+            <!-- 重置 100% -->
+            <button class="@GetIconButtonClass("indigo")" @onclick="OnResetZoom" title="重置 100%">
+                <span class="text-[10px] font-bold">100%</span>
+            </button>
 
-			<button class="@GetIconButtonClass("cyan")" title="适应窗口">
-				<i class="fas fa-search-plus text-xs"></i>
-			</button>
+            <!-- 放大 -->
+            <button class="@GetIconButtonClass("cyan")" @onclick="OnZoomIn" title="放大">
+                <i class="fas fa-search-plus text-xs"></i>
+            </button>
+        </div>
+    </div>
 
+    <!-- 画布 - 带网格背景 -->
+    <div id="canvas" class="bpmn-canvas relative flex-1"></div>
 
-			<button class="@GetIconButtonClass("cyan")" @onclick="OnResetZoom" title="重置缩放">
-				<i class="fas fa-search-plus text-xs"></i>
-			</button>
+    <!-- 悬浮面板切换按钮 - 相对于视口固定 -->
+    @if (!LeftPanelOpen)
+    {
+        <button @onclick="() => OnOpenLeftPanel.InvokeAsync()"
+                class="fixed left-4 top-20 z-50 flex h-12 w-12 items-center justify-center rounded-xl border-2 border-violet-300 bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white shadow-2xl transition-all hover:scale-110 hover:shadow-violet-500/50 active:scale-95 md:hidden"
+                title="打开工具箱">
+            <i class="fas fa-bars text-lg"></i>
+        </button>
+    }
 
-			<div class="mx-1 h-6 w-px bg-gradient-to-b from-transparent via-slate-300 to-transparent"></div>
+    @if (!RightPanelOpen)
+    {
+        <button @onclick="() => OnOpenRightPanel.InvokeAsync()"
+                class="fixed right-4 top-20 z-50 flex h-12 w-12 items-center justify-center rounded-xl border-2 border-fuchsia-300 bg-gradient-to-br from-fuchsia-500 to-pink-500 text-white shadow-2xl transition-all hover:scale-110 hover:shadow-fuchsia-500/50 active:scale-95 xl:hidden"
+                title="打开属性面板">
+            <i class="fas fa-sliders-h text-lg"></i>
+        </button>
+    }
 
-			<!-- 属性面板切换 -->
-			<button @onclick="() => OnToggleRightPanel.InvokeAsync()"
-					class="@GetToggleButtonClass(!RightPanelOpen, "fuchsia")"
-					title="属性面板">
-				<i class="fas fa-sliders-h text-xs"></i>
-			</button>
-		</div>
-	</div>
-
-	<!-- 画布 -->
-	<div id="canvas" class="relative flex-1 bg-gradient-to-br from-slate-50/50 via-white to-blue-50/30"></div>
-
-	<!-- 缩放显示浮动面板 -->
-	<div class="absolute bottom-4 right-4 flex flex-col overflow-hidden rounded-xl border border-indigo-200/80 bg-white/95 shadow-2xl backdrop-blur-md">
-		<button class="group flex h-8 w-8 items-center justify-center border-b border-indigo-200/60 text-indigo-600 transition-all hover:bg-gradient-to-br hover:from-indigo-50 hover:to-purple-50 active:scale-90"
-				@onclick="OnZoomIn">
-			<i class="fas fa-plus text-xs transition-transform group-hover:scale-125"></i>
-		</button>
-		<div class="flex h-9 w-8 items-center justify-center border-b border-indigo-200/60 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 text-[10px] font-bold text-indigo-700">
-			@((CurrentZoom * 100).ToString("0"))%
-		</div>
-		<button class="group flex h-8 w-8 items-center justify-center text-indigo-600 transition-all hover:bg-gradient-to-br hover:from-indigo-50 hover:to-purple-50 active:scale-90"
-				@onclick="OnZoomOut">
-			<i class="fas fa-minus text-xs transition-transform group-hover:scale-125"></i>
-		</button>
-	</div>
+    <!-- 缩放显示浮动面板 -->
+    <div class="fixed bottom-20 right-4 z-30 flex flex-col overflow-hidden rounded-xl border border-indigo-200/80 bg-white/95 shadow-2xl backdrop-blur-md">
+        <button class="group flex h-8 w-8 items-center justify-center border-b border-indigo-200/60 text-indigo-600 transition-all hover:bg-gradient-to-br hover:from-indigo-50 hover:to-purple-50 active:scale-90"
+                @onclick="OnZoomIn">
+            <i class="fas fa-plus text-xs transition-transform group-hover:scale-125"></i>
+        </button>
+        <div class="flex h-9 w-8 items-center justify-center border-b border-indigo-200/60 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 text-[10px] font-bold text-indigo-700">
+            @((CurrentZoom * 100).ToString("0"))%
+        </div>
+        <button class="group flex h-8 w-8 items-center justify-center text-indigo-600 transition-all hover:bg-gradient-to-br hover:from-indigo-50 hover:to-purple-50 active:scale-90"
+                @onclick="OnZoomOut">
+            <i class="fas fa-minus text-xs transition-transform group-hover:scale-125"></i>
+        </button>
+    </div>
 </div>
 
+<style>
+    /* 网格背景样式 */
+    .bpmn-canvas {
+        background-color: #fafafa;
+        background-image: linear-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px), linear-gradient(rgba(148, 163, 184, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(148, 163, 184, 0.04) 1px, transparent 1px);
+        background-size: 50px 50px, 50px 50px, 10px 10px, 10px 10px;
+        background-position: -1px -1px, -1px -1px, -1px -1px, -1px -1px;
+    }
+</style>
+
 @code {
-	[Parameter] public double CurrentZoom { get; set; } = 1.0;
-	[Parameter] public bool LeftPanelOpen { get; set; } = true;
-	[Parameter] public bool RightPanelOpen { get; set; } = true;
-	[Parameter] public EventCallback OnExportBpmn { get; set; }
-	[Parameter] public EventCallback OnImportBpmn { get; set; }
-	[Parameter] public EventCallback OnUndo { get; set; }
-	[Parameter] public EventCallback OnRedo { get; set; }
-	[Parameter] public EventCallback OnZoomIn { get; set; }
-	[Parameter] public EventCallback OnZoomOut { get; set; }
-	[Parameter] public EventCallback OnResetZoom { get; set; }
-	[Parameter] public EventCallback OnToggleLeftPanel { get; set; }
-	[Parameter] public EventCallback OnToggleRightPanel { get; set; }
+    [Parameter] public double CurrentZoom { get; set; } = 1.0;
+    [Parameter] public bool LeftPanelOpen { get; set; } = true;
+    [Parameter] public bool RightPanelOpen { get; set; } = true;
+    [Parameter] public EventCallback OnExportBpmn { get; set; }
+    [Parameter] public EventCallback OnImportBpmn { get; set; }
+    [Parameter] public EventCallback OnUndo { get; set; }
+    [Parameter] public EventCallback OnRedo { get; set; }
+    [Parameter] public EventCallback OnZoomIn { get; set; }
+    [Parameter] public EventCallback OnZoomOut { get; set; }
+    [Parameter] public EventCallback OnResetZoom { get; set; }
+    [Parameter] public EventCallback OnFitViewport { get; set; }
+    [Parameter] public EventCallback OnTogglePalette { get; set; }
+    [Parameter] public EventCallback OnOpenLeftPanel { get; set; }
+    [Parameter] public EventCallback OnOpenRightPanel { get; set; }
 
-	private string GetIconButtonClass(string color)
-	{
-		return $"group flex h-8 w-8 items-center justify-center rounded-lg border border-{color}-200 bg-gradient-to-br from-{color}-50 to-{color}-100/50 text-{color}-600 shadow-sm transition-all hover:scale-110 hover:border-{color}-300 hover:shadow-md active:scale-95";
-	}
-
-	private string GetToggleButtonClass(bool isActive, string color)
-	{
-		if (isActive)
-		{
-			return $"flex h-8 w-8 items-center justify-center rounded-lg border border-{color}-300 bg-gradient-to-br from-{color}-500 to-{color}-600 text-white shadow-md transition-all hover:scale-110 hover:shadow-lg active:scale-95";
-		}
-		return $"flex h-8 w-8 items-center justify-center rounded-lg border border-{color}-200 bg-gradient-to-br from-white to-{color}-50 text-{color}-600 shadow-sm transition-all hover:scale-110 hover:border-{color}-300 hover:shadow-md active:scale-95";
-	}
+    private string GetIconButtonClass(string color)
+    {
+        return $"group flex h-7 w-7 items-center justify-center rounded-lg border border-{color}-200 bg-gradient-to-br from-{color}-50 to-{color}-100/50 text-{color}-600 shadow-sm transition-all hover:scale-110 hover:border-{color}-300 hover:shadow-md active:scale-95";
+    }
 }
