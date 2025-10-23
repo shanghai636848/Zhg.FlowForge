@@ -1,39 +1,71 @@
-﻿<!-- 左侧工具面板 - 现代简洁风格 -->
-<div class="flex w-52 flex-col border-r border-slate-200/80 bg-white/95 shadow-sm backdrop-blur-sm">
+﻿<!-- 左侧工具面板 - 响应式支持 -->
+<div class="@GetPanelClass()">
     <!-- 面板头部 -->
-    <div class="flex items-center justify-between border-b border-slate-200/80 bg-gradient-to-r from-slate-50 to-blue-50/50 px-3.5 py-2.5">
-        <span class="text-xs font-semibold uppercase tracking-wider text-slate-700">工具箱</span>
-        <i class="fas fa-puzzle-piece text-xs text-slate-400"></i>
+    <div class="flex items-center justify-between border-b border-violet-200/80 bg-gradient-to-r from-violet-50 via-purple-50 to-fuchsia-50 px-3 py-2.5 shadow-sm">
+        <span class="text-xs font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-violet-600 to-fuchsia-600">工具箱</span>
+        <div class="flex items-center gap-2">
+            <div class="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-sm">
+                <i class="fas fa-puzzle-piece text-[10px] text-white"></i>
+            </div>
+            <button @onclick="Close" class="flex h-6 w-6 items-center justify-center rounded-md border border-violet-200 bg-white/80 text-violet-600 transition-all hover:scale-110 hover:border-violet-300 hover:bg-violet-50 hover:shadow-md active:scale-95 lg:hidden">
+                <i class="fas fa-times text-xs"></i>
+            </button>
+        </div>
     </div>
 
     <!-- 面板内容 -->
     <div class="flex flex-1 flex-col space-y-3 overflow-y-auto p-2.5">
         <!-- 流程控制 -->
-        <ToolCategory Title="流程控制" Icon="fa-sitemap">
-            <ToolItem Type="bpmn:StartEvent" Icon="fa-play-circle" Label="开始" />
-            <ToolItem Type="bpmn:EndEvent" Icon="fa-stop-circle" Label="结束" />
-            <ToolItem Type="bpmn:ExclusiveGateway" Icon="fa-code-branch" Label="排他" />
-            <ToolItem Type="bpmn:ParallelGateway" Icon="fa-plus-circle" Label="并行" />
-            <ToolItem Type="bpmn:InclusiveGateway" Icon="fa-circle" Label="包容" />
-            <ToolItem Type="bpmn:EventBasedGateway" Icon="fa-share-alt" Label="事件" />
+        <ToolCategory Title="流程控制" Icon="fa-sitemap" Color="emerald">
+            <ToolItem Type="bpmn:StartEvent" Icon="fa-play-circle" Label="开始" Color="emerald" />
+            <ToolItem Type="bpmn:EndEvent" Icon="fa-stop-circle" Label="结束" Color="rose" />
+            <ToolItem Type="bpmn:ExclusiveGateway" Icon="fa-code-branch" Label="排他" Color="amber" />
+            <ToolItem Type="bpmn:ParallelGateway" Icon="fa-plus-circle" Label="并行" Color="blue" />
+            <ToolItem Type="bpmn:InclusiveGateway" Icon="fa-circle" Label="包容" Color="indigo" />
+            <ToolItem Type="bpmn:EventBasedGateway" Icon="fa-share-alt" Label="事件" Color="purple" />
         </ToolCategory>
 
         <!-- 任务类型 -->
-        <ToolCategory Title="任务类型" Icon="fa-tasks">
-            <ToolItem Type="bpmn:Task" Icon="fa-square" Label="任务" />
-            <ToolItem Type="bpmn:UserTask" Icon="fa-user" Label="用户" />
-            <ToolItem Type="bpmn:ServiceTask" Icon="fa-cogs" Label="服务" />
-            <ToolItem Type="bpmn:ManualTask" Icon="fa-hand-paper" Label="手动" />
-            <ToolItem Type="bpmn:BusinessRuleTask" Icon="fa-gavel" Label="规则" />
-            <ToolItem Type="bpmn:ScriptTask" Icon="fa-code" Label="脚本" />
+        <ToolCategory Title="任务类型" Icon="fa-tasks" Color="sky">
+            <ToolItem Type="bpmn:Task" Icon="fa-square" Label="任务" Color="slate" />
+            <ToolItem Type="bpmn:UserTask" Icon="fa-user" Label="用户" Color="blue" />
+            <ToolItem Type="bpmn:ServiceTask" Icon="fa-cogs" Label="服务" Color="violet" />
+            <ToolItem Type="bpmn:ManualTask" Icon="fa-hand-paper" Label="手动" Color="orange" />
+            <ToolItem Type="bpmn:BusinessRuleTask" Icon="fa-gavel" Label="规则" Color="teal" />
+            <ToolItem Type="bpmn:ScriptTask" Icon="fa-code" Label="脚本" Color="fuchsia" />
         </ToolCategory>
 
         <!-- 其他元素 -->
-        <ToolCategory Title="其他元素" Icon="fa-shapes">
-            <ToolItem Type="bpmn:SubProcess" Icon="fa-th-large" Label="子流程" />
-            <ToolItem Type="bpmn:CallActivity" Icon="fa-phone-alt" Label="调用" />
-            <ToolItem Type="bpmn:DataObjectReference" Icon="fa-file-alt" Label="数据" />
-            <ToolItem Type="bpmn:DataStoreReference" Icon="fa-database" Label="存储" />
+        <ToolCategory Title="其他元素" Icon="fa-shapes" Color="cyan">
+            <ToolItem Type="bpmn:SubProcess" Icon="fa-th-large" Label="子流程" Color="indigo" />
+            <ToolItem Type="bpmn:CallActivity" Icon="fa-phone-alt" Label="调用" Color="pink" />
+            <ToolItem Type="bpmn:DataObjectReference" Icon="fa-file-alt" Label="数据" Color="yellow" />
+            <ToolItem Type="bpmn:DataStoreReference" Icon="fa-database" Label="存储" Color="green" />
         </ToolCategory>
     </div>
 </div>
+
+@code {
+    [Parameter] public bool IsOpen { get; set; } = true;
+    [Parameter] public EventCallback<bool> IsOpenChanged { get; set; }
+
+    private async Task Close()
+    {
+        IsOpen = false;
+        await IsOpenChanged.InvokeAsync(IsOpen);
+    }
+
+    private string GetPanelClass()
+    {
+        var baseClass = "flex flex-col border-r border-violet-200/60 bg-white/95 shadow-lg backdrop-blur-sm transition-all duration-300 ease-in-out";
+
+        if (IsOpen)
+        {
+            return $"{baseClass} w-52 translate-x-0 lg:relative lg:translate-x-0";
+        }
+        else
+        {
+            return $"{baseClass} w-0 -translate-x-full lg:w-0 lg:-translate-x-full overflow-hidden";
+        }
+    }
+}

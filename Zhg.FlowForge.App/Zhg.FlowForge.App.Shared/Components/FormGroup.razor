@@ -1,7 +1,7 @@
-﻿<!-- 表单组件 - 现代简洁风格 -->
+﻿<!-- 表单组件 - 丰富色彩版 -->
 <div class="flex flex-col space-y-1.5">
-    <label class="flex items-center gap-1.5 text-xs font-medium text-slate-700">
-        <i class="fas @Icon text-[10px] text-slate-500"></i>
+    <label class="flex items-center gap-1.5 text-xs font-semibold @GetTextColor()">
+        <i class="fas @Icon text-[10px] @GetIconColor()"></i>
         @Label
     </label>
     @ChildContent
@@ -10,5 +10,40 @@
 @code {
     [Parameter] public string Label { get; set; } = "";
     [Parameter] public string Icon { get; set; } = "";
+    [Parameter] public string Color { get; set; } = "slate";
     [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private string GetTextColor()
+    {
+        return Color switch
+        {
+            "violet" => "text-violet-700",
+            "cyan" => "text-cyan-700",
+            "indigo" => "text-indigo-700",
+            "amber" => "text-amber-700",
+            "emerald" => "text-emerald-700",
+            "purple" => "text-purple-700",
+            "rose" => "text-rose-700",
+            "blue" => "text-blue-700",
+            "fuchsia" => "text-fuchsia-700",
+            _ => "text-slate-700"
+        };
+    }
+
+    private string GetIconColor()
+    {
+        return Color switch
+        {
+            "violet" => "text-violet-500",
+            "cyan" => "text-cyan-500",
+            "indigo" => "text-indigo-500",
+            "amber" => "text-amber-500",
+            "emerald" => "text-emerald-500",
+            "purple" => "text-purple-500",
+            "rose" => "text-rose-500",
+            "blue" => "text-blue-500",
+            "fuchsia" => "text-fuchsia-500",
+            _ => "text-slate-500"
+        };
+    }
 }

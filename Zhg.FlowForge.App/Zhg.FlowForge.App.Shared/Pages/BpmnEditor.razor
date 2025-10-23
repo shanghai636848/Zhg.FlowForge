@@ -3,29 +3,34 @@
 @page "/"
 @implements IAsyncDisposable
 
-<!-- 美化的 BPMN 编辑器 - 现代简洁风格 -->
-<div class="flex h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/30">
-	<LeftPanel />
+<!-- 增强版 BPMN 编辑器 - 响应式 + 丰富色彩 + 流畅动画 -->
+<div class="flex h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-purple-50/20 to-pink-50/20">
+	<!-- 左侧工具面板 - 响应式 -->
+	<LeftPanel @bind-IsOpen="leftPanelOpen" />
 
-	<CenterPanel CurrentZoom="@(CurrentZoom)"
-				 OnSaveBpmn="SaveBpmn"
-				 OnLoadBpmn="LoadBpmn"
+	<!-- 中央画布 -->
+	<CenterPanel CurrentZoom="@CurrentZoom"
 				 OnExportBpmn="ExportBpmn"
 				 OnImportBpmn="ImportBpmn"
 				 OnUndo="Undo"
 				 OnRedo="Redo"
 				 OnZoomIn="ZoomIn"
 				 OnZoomOut="ZoomOut"
-				 OnFitViewport="FitViewport"
-				 OnResetZoom="ResetZoom" />
+				 OnResetZoom="ResetZoom"
+				 OnToggleLeftPanel="ToggleLeftPanel"
+				 OnToggleRightPanel="ToggleRightPanel"
+				 LeftPanelOpen="@leftPanelOpen"
+				 RightPanelOpen="@rightPanelOpen" />
 
-	<RightPanel SelectedElementId="@(SelectedElementId)"
-				SelectedElementType="@(SelectedElementType)"
-				SelectedElementName="@(SelectedElementName)"
-				IsSequenceFlowSelected="@(IsSequenceFlowSelected)"
-				IsTaskSelected="@(IsTaskSelected)"
-				InputParameters="@(InputParameters)"
-				OutputParameters="@(OutputParameters)"
+	<!-- 右侧属性面板 - 响应式 -->
+	<RightPanel @bind-IsOpen="rightPanelOpen"
+				SelectedElementId="@SelectedElementId"
+				SelectedElementType="@SelectedElementType"
+				SelectedElementName="@SelectedElementName"
+				IsSequenceFlowSelected="@IsSequenceFlowSelected"
+				IsTaskSelected="@IsTaskSelected"
+				InputParameters="@InputParameters"
+				OutputParameters="@OutputParameters"
 				OnUpdateProperty="HandleUpdateProperty"
 				OnUpdateDocumentation="HandleUpdateDocumentation"
 				OnUpdateServiceClass="HandleUpdateServiceClass"
@@ -44,6 +49,10 @@
 	private IJSObjectReference? _jsModule;
 	private DotNetObjectReference<BpmnEditor>? _dotnetHelper;
 
+	// 面板状态
+	private bool leftPanelOpen = true;
+	private bool rightPanelOpen = true;
+
 	// 状态变量
 	public int ElementCount { get; private set; } = 0;
 	public double CurrentZoom { get; private set; } = 1.0;
@@ -56,7 +65,6 @@
 	// 参数状态
 	public List<BpmnParameter> InputParameters { get; private set; } = new();
 	public List<BpmnParameter> OutputParameters { get; private set; } = new();
-
 
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
@@ -83,10 +91,6 @@
 			{
 				Console.WriteLine("BPMN.js initialized successfully");
 			}
-			else
-			{
-				Console.WriteLine("Failed to initialize BPMN.js");
-			}
 		}
 		catch (JSException ex)
 		{
@@ -94,11 +98,22 @@
 		}
 	}
 
+	// 面板切换
+	private void ToggleLeftPanel()
+	{
+		leftPanelOpen = !leftPanelOpen;
+		StateHasChanged();
+	}
+
+	private void ToggleRightPanel()
+	{
+		rightPanelOpen = !rightPanelOpen;
+		StateHasChanged();
+	}
+
 	[JSInvokable]
 	public async Task OnElementSelected(string elementId, string elementType, string elementName)
 	{
-		Console.WriteLine($"JS -> Blazor: OnElementSelected({elementId}, {elementType}, {elementName})");
-
 		await InvokeAsync(async () =>
 		{
 			SelectedElementId = elementId;
@@ -106,12 +121,7 @@
 			SelectedElementName = elementName ?? string.Empty;
 			IsSequenceFlowSelected = elementType == "bpmn:SequenceFlow";
 			IsTaskSelected = IsTaskType(elementType);
-
-			Console.WriteLine($"Blazor state updated - ID: {SelectedElementId}, Type: {SelectedElementType}, Name: {SelectedElementName}");
-
-			// 加载参数
 			await LoadParameters();
-
 			StateHasChanged();
 		});
 	}
@@ -119,8 +129,6 @@
 	[JSInvokable]
 	public async Task OnElementDeselected()
 	{
-		Console.WriteLine("JS -> Blazor: OnElementDeselected");
-
 		await InvokeAsync(() =>
 		{
 			SelectedElementId = null;
@@ -128,13 +136,8 @@
 			SelectedElementName = string.Empty;
 			IsSequenceFlowSelected = false;
 			IsTaskSelected = false;
-
-			// 清空参数
 			InputParameters.Clear();
 			OutputParameters.Clear();
-
-			Console.WriteLine("Blazor state cleared");
-
 			StateHasChanged();
 		});
 	}
@@ -142,13 +145,9 @@
 	[JSInvokable]
 	public async Task OnParametersUpdated()
 	{
-		Console.WriteLine("JS -> Blazor: OnParametersUpdated");
-
 		await InvokeAsync(async () =>
 		{
-			// 重新加载参数
 			await LoadParameters();
-
 			StateHasChanged();
 		});
 	}
@@ -173,12 +172,8 @@
 		});
 	}
 
-
 	[JSInvokable]
-	public async Task OnDiagramSaved()
-	{
-		Console.WriteLine("Diagram saved successfully");
-	}
+	public async Task OnDiagramSaved() => Console.WriteLine("Diagram saved successfully");
 
 	[JSInvokable]
 	public async Task OnDiagramLoaded()
@@ -208,7 +203,6 @@
 			   (type.Contains("Task") || type == "bpmn:SubProcess" || type == "bpmn:CallActivity");
 	}
 
-	// 属性更新方法
 	private async Task UpdateProperty(string key, string? value)
 	{
 		if (_jsModule is not null && !string.IsNullOrEmpty(value))
@@ -217,10 +211,7 @@
 		}
 	}
 
-	private async Task HandleUpdateProperty((string key, string? value) args)
-	{
-		await UpdateProperty(args.key, args.value);
-	}
+	private async Task HandleUpdateProperty((string key, string? value) args) => await UpdateProperty(args.key, args.value);
 
 	private async Task UpdateDocumentation(string? value)
 	{
@@ -230,10 +221,7 @@
 		}
 	}
 
-	private async Task HandleUpdateDocumentation(string? value)
-	{
-		await UpdateDocumentation(value);
-	}
+	private async Task HandleUpdateDocumentation(string? value) => await UpdateDocumentation(value);
 
 	private async Task UpdateServiceClass(string? value)
 	{
@@ -243,27 +231,7 @@
 		}
 	}
 
-	private async Task HandleUpdateServiceClass(string? value)
-	{
-		await UpdateServiceClass(value);
-	}
-
-	// 文件操作方法
-	public async Task SaveBpmn()
-	{
-		if (_jsModule is not null)
-		{
-			await _jsModule.InvokeVoidAsync("saveBpmn");
-		}
-	}
-
-	public async Task LoadBpmn()
-	{
-		if (_jsModule is not null)
-		{
-			await _jsModule.InvokeVoidAsync("loadBpmn");
-		}
-	}
+	private async Task HandleUpdateServiceClass(string? value) => await UpdateServiceClass(value);
 
 	public async Task ExportBpmn()
 	{
@@ -281,7 +249,6 @@
 		}
 	}
 
-	// 编辑操作
 	public async Task Undo()
 	{
 		if (_jsModule is not null)
@@ -298,7 +265,6 @@
 		}
 	}
 
-	// 视图控制
 	public async Task ZoomIn()
 	{
 		if (_jsModule is not null)
@@ -315,14 +281,6 @@
 		}
 	}
 
-	public async Task FitViewport()
-	{
-		if (_jsModule is not null)
-		{
-			await _jsModule.InvokeVoidAsync("fitViewport");
-		}
-	}
-
 	public async Task ResetZoom()
 	{
 		if (_jsModule is not null)
@@ -331,7 +289,6 @@
 		}
 	}
 
-	// 参数管理
 	public async Task AddInputParam()
 	{
 		if (_jsModule is not null)
@@ -363,11 +320,9 @@
 			await _jsModule.InvokeVoidAsync("disposeBpmnModeler");
 			await _jsModule.DisposeAsync();
 		}
-
 		_dotnetHelper?.Dispose();
 	}
 
-	// 加载参数
 	private async Task LoadParameters()
 	{
 		if (_jsModule is null || SelectedElementId is null) return;
@@ -375,14 +330,10 @@
 		try
 		{
 			await _jsModule.InvokeVoidAsync("setCurrentElement", SelectedElementId);
-
 			var inputParams = await _jsModule.InvokeAsync<object[]>("getInputParameters");
 			InputParameters = inputParams.Select(p => BpmnParameter.FromJsObject(p)).ToList();
-
 			var outputParams = await _jsModule.InvokeAsync<object[]>("getOutputParameters");
 			OutputParameters = outputParams.Select(p => BpmnParameter.FromJsObject(p)).ToList();
-
-			Console.WriteLine($"Loaded {InputParameters.Count} input parameters and {OutputParameters.Count} output parameters");
 		}
 		catch (Exception ex)
 		{
@@ -394,25 +345,10 @@
 	{
 		if (_jsModule is not null)
 		{
-			Console.WriteLine($"Removing input parameter: {parameter.Name}");
-
 			var index = await _jsModule.InvokeAsync<int>("getInputParameterIndexByName", parameter.Name);
-
 			if (index >= 0)
 			{
-				var success = await _jsModule.InvokeAsync<bool>("removeInputParameter", index);
-				if (success)
-				{
-					Console.WriteLine($"Successfully removed input parameter at index {index}");
-				}
-				else
-				{
-					Console.WriteLine($"Failed to remove input parameter at index {index}");
-				}
-			}
-			else
-			{
-				Console.WriteLine($"Input parameter '{parameter.Name}' not found");
+				await _jsModule.InvokeAsync<bool>("removeInputParameter", index);
 			}
 		}
 	}
@@ -421,25 +357,10 @@
 	{
 		if (_jsModule is not null)
 		{
-			Console.WriteLine($"Removing output parameter: {parameter.Name}");
-
 			var index = await _jsModule.InvokeAsync<int>("getOutputParameterIndexByName", parameter.Name);
-
 			if (index >= 0)
 			{
-				var success = await _jsModule.InvokeAsync<bool>("removeOutputParameter", index);
-				if (success)
-				{
-					Console.WriteLine($"Successfully removed output parameter at index {index}");
-				}
-				else
-				{
-					Console.WriteLine($"Failed to remove output parameter at index {index}");
-				}
-			}
-			else
-			{
-				Console.WriteLine($"Output parameter '{parameter.Name}' not found");
+				await _jsModule.InvokeAsync<bool>("removeOutputParameter", index);
 			}
 		}
 	}
@@ -448,25 +369,10 @@
 	{
 		if (_jsModule is not null)
 		{
-			Console.WriteLine($"Updating input parameter: {parameter.Name}");
-
 			var index = await _jsModule.InvokeAsync<int>("getInputParameterIndexByName", parameter.Name);
-
 			if (index >= 0)
 			{
-				var success = await _jsModule.InvokeAsync<bool>("updateInputParameter", index, parameter.Name, parameter.Type, parameter.Value);
-				if (success)
-				{
-					Console.WriteLine($"Successfully updated input parameter at index {index}");
-				}
-				else
-				{
-					Console.WriteLine($"Failed to update input parameter at index {index}");
-				}
-			}
-			else
-			{
-				Console.WriteLine($"Input parameter '{parameter.Name}' not found");
+				await _jsModule.InvokeAsync<bool>("updateInputParameter", index, parameter.Name, parameter.Type, parameter.Value);
 			}
 		}
 	}
@@ -475,25 +381,10 @@
 	{
 		if (_jsModule is not null)
 		{
-			Console.WriteLine($"Updating output parameter: {parameter.Name}");
-
 			var index = await _jsModule.InvokeAsync<int>("getOutputParameterIndexByName", parameter.Name);
-
 			if (index >= 0)
 			{
-				var success = await _jsModule.InvokeAsync<bool>("updateOutputParameter", index, parameter.Name, parameter.Type, parameter.Value);
-				if (success)
-				{
-					Console.WriteLine($"Successfully updated output parameter at index {index}");
-				}
-				else
-				{
-					Console.WriteLine($"Failed to update output parameter at index {index}");
-				}
-			}
-			else
-			{
-				Console.WriteLine($"Output parameter '{parameter.Name}' not found");
+				await _jsModule.InvokeAsync<bool>("updateOutputParameter", index, parameter.Name, parameter.Type, parameter.Value);
 			}
 		}
 	}
