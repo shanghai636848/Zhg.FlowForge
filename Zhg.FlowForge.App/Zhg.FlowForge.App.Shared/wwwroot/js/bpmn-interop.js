@@ -168,47 +168,122 @@ export function initBpmnModeler(dotnetRef, containerId) {
     }
 }
 
-function setupEventListeners() {
-    if (!bpmnModeler) return;
+//function setupEventListeners() {
+//    if (!bpmnModeler) return;
 
-    bpmnModeler.on('selection.changed', ({ newSelection }) => {
-        if (newSelection.length === 1) {
-            const element = newSelection[0];
+//    bpmnModeler.on('selection.changed', ({ newSelection }) => {
+//        if (newSelection.length === 1) {
+//            const element = newSelection[0];
+//            currentElement = element;
+//            if (dotnetHelper) {
+//                dotnetHelper.invokeMethodAsync('OnElementSelected',
+//                    element.id,
+//                    element.type,
+//                    element.businessObject.name || '');
+//            }
+//        } else {
+//            currentElement = null;
+//            if (dotnetHelper) {
+//                dotnetHelper.invokeMethodAsync('OnElementDeselected');
+//            }
+//        }
+//    });
+
+//    bpmnModeler.on('element.changed', (event) => {
+//        if (dotnetHelper) {
+//            dotnetHelper.invokeMethodAsync('OnElementChanged',
+//                event.element.id,
+//                event.element.type);
+//        }
+//    });
+
+//    bpmnModeler.on('canvas.viewbox.changed', ({ viewbox }) => {
+//        if (dotnetHelper) {
+//            dotnetHelper.invokeMethodAsync('OnZoomChanged', viewbox.scale);
+//        }
+//    });
+
+//    bpmnModeler.on('import.done', () => {
+//        console.log('BPMN diagram imported successfully');
+//    });
+
+//    bpmnModeler.on('saveXML.done', (event) => {
+//        console.log('BPMN XML saved successfully');
+//    });
+//}
+
+function setupEventListeners() {
+    // 监听元素选择变化
+    bpmnModeler.on('selection.changed', (event) => {
+        console.log('Selection changed:', event.newSelection);
+
+        if (event.newSelection && event.newSelection.length === 1) {
+            const element = event.newSelection[0];
             currentElement = element;
+
+            // 获取元素业务对象
+            const bo = element.businessObject;
+            const elementName = bo.name || '';
+            const elementType = element.type || '';
+            const elementId = element.id || '';
+
+            console.log('Selected element:', { id: elementId, type: elementType, name: elementName });
+
+            // 调用 Blazor 方法
             if (dotnetHelper) {
-                dotnetHelper.invokeMethodAsync('OnElementSelected',
-                    element.id,
-                    element.type,
-                    element.businessObject.name || '');
+                dotnetHelper.invokeMethodAsync('OnElementSelected', elementId, elementType, elementName)
+                    .catch(err => console.error('Failed to invoke OnElementSelected:', err));
             }
         } else {
             currentElement = null;
+            console.log('Selection cleared');
+
+            // 调用 Blazor 方法清除选择
             if (dotnetHelper) {
-                dotnetHelper.invokeMethodAsync('OnElementDeselected');
+                dotnetHelper.invokeMethodAsync('OnElementDeselected')
+                    .catch(err => console.error('Failed to invoke OnElementDeselected:', err));
             }
         }
     });
 
+    // 监听元素变化
     bpmnModeler.on('element.changed', (event) => {
-        if (dotnetHelper) {
-            dotnetHelper.invokeMethodAsync('OnElementChanged',
-                event.element.id,
-                event.element.type);
+        const element = event.element;
+        console.log('Element changed:', element.id, element.type);
+
+        if (dotnetHelper && element) {
+            dotnetHelper.invokeMethodAsync('OnElementChanged', element.id, element.type)
+                .catch(err => console.error('Failed to invoke OnElementChanged:', err));
         }
     });
 
-    bpmnModeler.on('canvas.viewbox.changed', ({ viewbox }) => {
-        if (dotnetHelper) {
-            dotnetHelper.invokeMethodAsync('OnZoomChanged', viewbox.scale);
+    // 监听画布视图变化
+    bpmnModeler.on('canvas.viewbox.changed', (event) => {
+        if (dotnetHelper && event.viewbox) {
+            dotnetHelper.invokeMethodAsync('OnZoomChanged', event.viewbox.scale)
+                .catch(err => console.error('Failed to invoke OnZoomChanged:', err));
         }
     });
 
-    bpmnModeler.on('import.done', () => {
-        console.log('BPMN diagram imported successfully');
+    // 监听元素点击事件（备用）
+    bpmnModeler.on('element.click', (event) => {
+        console.log('Element clicked:', event.element);
     });
+}
 
-    bpmnModeler.on('saveXML.done', (event) => {
-        console.log('BPMN XML saved successfully');
+function initToolboxDragAndDrop() {
+    document.addEventListener('mousedown', function (ev) {
+        const toolItem = ev.target.closest('.tool-item');
+        if (!toolItem) return;
+
+        const type = toolItem.dataset.type;
+        if (!type) return;
+
+        const elementFactory = bpmnModeler.get('elementFactory');
+        const create = bpmnModeler.get('create');
+        const shape = elementFactory.createShape({ type });
+
+        create.start(ev, shape);
     });
 }
 
@@ -527,55 +602,96 @@ export function updateServiceClass(className) {
 // 参数管理
 export function addInputParam() {
     if (!bpmnModeler || !currentElement) {
-        console.error('BPMN Modeler not initialized or no element selected');
+        console.error('Cannot add input parameter: BPMN Modeler not initialized or no element selected');
         return;
     }
 
-    const moddle = bpmnModeler.get('moddle');
-    const modeling = bpmnModeler.get('modeling');
-    const { extensionElements, inputOutput } = getInputOutputElement();
+    try {
+        const moddle = bpmnModeler.get('moddle');
+        const modeling = bpmnModeler.get('modeling');
+        const { extensionElements, inputOutput } = getInputOutputElement();
 
-    const param = moddle.create('zhg:inputParameter', {
-        name: 'newParam',
-        type: 'string',
-        $body: ''
-    });
+        const param = moddle.create('zhg:inputParameter', {
+            name: `param_${Date.now()}`,
+            type: 'string',
+            $body: ''
+        });
 
-    inputOutput.inputParameters.push(param);
+        inputOutput.inputParameters.push(param);
 
-    modeling.updateProperties(currentElement, {
-        extensionElements: extensionElements
-    });
+        modeling.updateProperties(currentElement, {
+            extensionElements: extensionElements
+        });
 
-    if (dotnetHelper) {
-        dotnetHelper.invokeMethodAsync('OnParametersUpdated');
+        console.log('Input parameter added successfully');
+
+        // 通知 Blazor 参数已更新
+        if (dotnetHelper) {
+            dotnetHelper.invokeMethodAsync('OnParametersUpdated')
+                .catch(err => console.error('Failed to invoke OnParametersUpdated:', err));
+        }
+    } catch (error) {
+        console.error('Error adding input parameter:', error);
     }
 }
 
 export function addOutputParam() {
     if (!bpmnModeler || !currentElement) {
-        console.error('BPMN Modeler not initialized or no element selected');
+        console.error('Cannot add output parameter: BPMN Modeler not initialized or no element selected');
         return;
     }
 
-    const moddle = bpmnModeler.get('moddle');
-    const modeling = bpmnModeler.get('modeling');
-    const { extensionElements, inputOutput } = getInputOutputElement();
+    try {
+        const moddle = bpmnModeler.get('moddle');
+        const modeling = bpmnModeler.get('modeling');
+        const { extensionElements, inputOutput } = getInputOutputElement();
 
-    const param = moddle.create('zhg:outputParameter', {
-        name: 'newParam',
-        type: 'string',
-        $body: ''
-    });
+        const param = moddle.create('zhg:outputParameter', {
+            name: `param_${Date.now()}`,
+            type: 'string',
+            $body: ''
+        });
 
-    inputOutput.outputParameters.push(param);
+        inputOutput.outputParameters.push(param);
 
-    modeling.updateProperties(currentElement, {
-        extensionElements: extensionElements
-    });
+        modeling.updateProperties(currentElement, {
+            extensionElements: extensionElements
+        });
 
-    if (dotnetHelper) {
-        dotnetHelper.invokeMethodAsync('OnParametersUpdated');
+        console.log('Output parameter added successfully');
+
+        // 通知 Blazor 参数已更新
+        if (dotnetHelper) {
+            dotnetHelper.invokeMethodAsync('OnParametersUpdated')
+                .catch(err => console.error('Failed to invoke OnParametersUpdated:', err));
+        }
+    } catch (error) {
+        console.error('Error adding output parameter:', error);
+    }
+}
+
+// 添加获取参数的方法
+export function getInputParameters() {
+    if (!bpmnModeler || !currentElement) return [];
+
+    try {
+        const { inputOutput } = getInputOutputElement();
+        return inputOutput.inputParameters || [];
+    } catch (error) {
+        console.error('Error getting input parameters:', error);
+        return [];
+    }
+}
+
+export function getOutputParameters() {
+    if (!bpmnModeler || !currentElement) return [];
+
+    try {
+        const { inputOutput } = getInputOutputElement();
+        return inputOutput.outputParameters || [];
+    } catch (error) {
+        console.error('Error getting output parameters:', error);
+        return [];
     }
 }
 
@@ -703,6 +819,193 @@ export function getAllTasks() {
     });
 
     return tasks;
+}
+
+// 删除输入参数
+export function removeInputParameter(index) {
+    if (!bpmnModeler || !currentElement) {
+        console.error('Cannot remove input parameter: BPMN Modeler not initialized or no element selected');
+        return false;
+    }
+
+    try {
+        const { extensionElements, inputOutput } = getInputOutputElement();
+
+        if (!inputOutput.inputParameters || index < 0 || index >= inputOutput.inputParameters.length) {
+            console.error(`Invalid input parameter index: ${index}`);
+            return false;
+        }
+
+        // 删除指定索引的参数
+        inputOutput.inputParameters.splice(index, 1);
+
+        const modeling = bpmnModeler.get('modeling');
+        modeling.updateProperties(currentElement, {
+            extensionElements: extensionElements
+        });
+
+        console.log(`Input parameter at index ${index} removed successfully`);
+
+        // 通知 Blazor 参数已更新
+        if (dotnetHelper) {
+            dotnetHelper.invokeMethodAsync('OnParametersUpdated')
+                .catch(err => console.error('Failed to invoke OnParametersUpdated:', err));
+        }
+
+        return true;
+    } catch (error) {
+        console.error('Error removing input parameter:', error);
+        return false;
+    }
+}
+
+// 删除输出参数
+export function removeOutputParameter(index) {
+    if (!bpmnModeler || !currentElement) {
+        console.error('Cannot remove output parameter: BPMN Modeler not initialized or no element selected');
+        return false;
+    }
+
+    try {
+        const { extensionElements, inputOutput } = getInputOutputElement();
+
+        if (!inputOutput.outputParameters || index < 0 || index >= inputOutput.outputParameters.length) {
+            console.error(`Invalid output parameter index: ${index}`);
+            return false;
+        }
+
+        // 删除指定索引的参数
+        inputOutput.outputParameters.splice(index, 1);
+
+        const modeling = bpmnModeler.get('modeling');
+        modeling.updateProperties(currentElement, {
+            extensionElements: extensionElements
+        });
+
+        console.log(`Output parameter at index ${index} removed successfully`);
+
+        // 通知 Blazor 参数已更新
+        if (dotnetHelper) {
+            dotnetHelper.invokeMethodAsync('OnParametersUpdated')
+                .catch(err => console.error('Failed to invoke OnParametersUpdated:', err));
+        }
+
+        return true;
+    } catch (error) {
+        console.error('Error removing output parameter:', error);
+        return false;
+    }
+}
+
+// 更新输入参数
+export function updateInputParameter(index, name, type, value) {
+    if (!bpmnModeler || !currentElement) {
+        console.error('Cannot update input parameter: BPMN Modeler not initialized or no element selected');
+        return false;
+    }
+
+    try {
+        const { extensionElements, inputOutput } = getInputOutputElement();
+
+        if (!inputOutput.inputParameters || index < 0 || index >= inputOutput.inputParameters.length) {
+            console.error(`Invalid input parameter index: ${index}`);
+            return false;
+        }
+
+        // 更新参数
+        const param = inputOutput.inputParameters[index];
+        param.name = name;
+        param.type = type;
+        param.$body = value;
+
+        const modeling = bpmnModeler.get('modeling');
+        modeling.updateProperties(currentElement, {
+            extensionElements: extensionElements
+        });
+
+        console.log(`Input parameter at index ${index} updated successfully: ${name}, ${type}, ${value}`);
+
+        // 通知 Blazor 参数已更新
+        if (dotnetHelper) {
+            dotnetHelper.invokeMethodAsync('OnParametersUpdated')
+                .catch(err => console.error('Failed to invoke OnParametersUpdated:', err));
+        }
+
+        return true;
+    } catch (error) {
+        console.error('Error updating input parameter:', error);
+        return false;
+    }
+}
+
+// 更新输出参数
+export function updateOutputParameter(index, name, type, value) {
+    if (!bpmnModeler || !currentElement) {
+        console.error('Cannot update output parameter: BPMN Modeler not initialized or no element selected');
+        return false;
+    }
+
+    try {
+        const { extensionElements, inputOutput } = getInputOutputElement();
+
+        if (!inputOutput.outputParameters || index < 0 || index >= inputOutput.outputParameters.length) {
+            console.error(`Invalid output parameter index: ${index}`);
+            return false;
+        }
+
+        // 更新参数
+        const param = inputOutput.outputParameters[index];
+        param.name = name;
+        param.type = type;
+        param.$body = value;
+
+        const modeling = bpmnModeler.get('modeling');
+        modeling.updateProperties(currentElement, {
+            extensionElements: extensionElements
+        });
+
+        console.log(`Output parameter at index ${index} updated successfully: ${name}, ${type}, ${value}`);
+
+        // 通知 Blazor 参数已更新
+        if (dotnetHelper) {
+            dotnetHelper.invokeMethodAsync('OnParametersUpdated')
+                .catch(err => console.error('Failed to invoke OnParametersUpdated:', err));
+        }
+
+        return true;
+    } catch (error) {
+        console.error('Error updating output parameter:', error);
+        return false;
+    }
+}
+
+// 获取参数索引的方法
+export function getInputParameterIndexByName(name) {
+    if (!bpmnModeler || !currentElement) return -1;
+
+    try {
+        const { inputOutput } = getInputOutputElement();
+        if (!inputOutput.inputParameters) return -1;
+
+        return inputOutput.inputParameters.findIndex(p => p.name === name);
+    } catch (error) {
+        console.error('Error getting input parameter index:', error);
+        return -1;
+    }
+}
+
+export function getOutputParameterIndexByName(name) {
+    if (!bpmnModeler || !currentElement) return -1;
+
+    try {
+        const { inputOutput } = getInputOutputElement();
+        if (!inputOutput.outputParameters) return -1;
+
+        return inputOutput.outputParameters.findIndex(p => p.name === name);
+    } catch (error) {
+        console.error('Error getting output parameter index:', error);
+        return -1;
+    }
 }
 
 // 默认导出
