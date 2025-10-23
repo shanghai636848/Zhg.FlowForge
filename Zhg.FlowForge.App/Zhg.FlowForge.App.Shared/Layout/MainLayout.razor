@@ -1,34 +1,22 @@
-﻿@inherits LayoutComponentBase
+﻿<!-- MainLayout.razor.cs -->
+@inherits LayoutComponentBase
 
 <div class="flex min-h-screen flex-col bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-    <Header />
-    
-    <main class="container mx-auto flex-1 px-4 py-6">
-        <div class="animate-fade-in">
-            @Body
-        </div>
+    <Header CurrentLanguage="CurrentLanguage" OnLanguageChanged="HandleLanguageChanged" />
+
+    <main class="flex-1">
+        @Body
     </main>
-    
-    <Footer />
+
+    <Footer CurrentLanguage="CurrentLanguage" />
 </div>
 
-<style>
-    @@keyframes fade-in {
-        from {
-            opacity: 0;
-            transform: translateY(10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-    
-    .animate-fade-in {
-        animation: fade-in 0.5s ease-out;
-    }
-</style>
-
 @code {
-    // 主布局逻辑
+    private Zhg.FlowForge.App.Shared.Layout.LanguageSwitcher.LanguageData CurrentLanguage { get; set; } = Zhg.FlowForge.App.Shared.Layout.LanguageSwitcher.LanguageData.English;
+
+    private void HandleLanguageChanged(Zhg.FlowForge.App.Shared.Layout.LanguageSwitcher.LanguageData newLanguage)
+    {
+        CurrentLanguage = newLanguage;
+        StateHasChanged();
+    }
 }

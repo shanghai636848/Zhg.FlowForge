@@ -1,40 +1,33 @@
-﻿<div @ref="dropdownRef">
-    <button 
-        @onclick="ToggleDropdown" 
-        class="group flex items-center space-x-1.5 rounded-md border border-gray-200 bg-white/50 py-1.5 ps-7 pe-5 text-xs backdrop-blur-sm transition-all duration-200 hover:bg-white hover:shadow-md"
-    >
-@*         <span class="text-base">@GetCurrentFlag()</span>
- *@        <span class="text-xs font-medium text-gray-700 group-hover:text-blue-600">@GetCurrentLanguageCode()</span>
-        <svg 
-            class="h-3 w-3 text-gray-500 transition-transform duration-200 group-hover:text-blue-600 @(isOpen ? "rotate-180" : "")" 
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24"
-        >
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+﻿<!-- LanguageSwitcher.razor.cs 更新 -->
+<div @ref="dropdownRef" class="relative">
+    <button @onclick="ToggleDropdown"
+            class="group flex items-center space-x-1 rounded border border-gray-200 bg-white/50 px-2 py-1 text-xs backdrop-blur-sm transition-all duration-200 hover:bg-white hover:shadow-sm">
+        <span class="text-xs font-medium text-gray-700 group-hover:text-blue-600">@GetCurrentLanguageCode()</span>
+        <svg class="h-2.5 w-2.5 text-gray-500 transition-transform duration-200 group-hover:text-blue-600 @(isOpen ? "rotate-180" : "")"
+             fill="none"
+             stroke="currentColor"
+             viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
         </svg>
     </button>
 
-    
+
     @if (isOpen)
     {
-        <div class="animate-dropdown absolute top-8 z-50 mt-2 w-56 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-2xl">
-            <div class="py-2">
+        <div class="animate-dropdown absolute top-7 right-0 z-50 mt-1 w-48 overflow-hidden rounded-lg border border-gray-100 bg-white shadow-lg">
+            <div class="py-1">
                 @foreach (var lang in languages)
                 {
-                    <button 
-                        @onclick="() => SelectLanguage(lang.Key)" 
-                        class="w-full flex items-center space-x-3 px-4 py-1.5 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-200 group @(lang.Key == currentLangKey ? "bg-blue-50" : "")"
-                    >
+                    <button @onclick="() => SelectLanguage(lang.Key)"
+                            class="w-full flex items-center space-x-2 px-3 py-1.5 hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50 transition-all duration-200 group @(lang.Key == currentLangKey ? "bg-blue-50" : "")">
                         <span class="text-sm">@lang.Value.Flag</span>
                         <div class="flex-1 text-left">
                             <div class="text-xs font-medium text-gray-900 group-hover:text-blue-600">@lang.Value.Name</div>
-                            <div class="text-xs text-gray-500">@lang.Value.NativeName</div>
                         </div>
                         @if (lang.Key == currentLangKey)
                         {
-                            <svg class="h-5 w-5 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                            <svg class="h-4 w-4 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z" />
                             </svg>
                         }
                     </button>
@@ -48,263 +41,178 @@
     @@keyframes dropdown {
         from {
             opacity: 0;
-            transform: translateY(-10px);
+            transform: translateY(-6px);
         }
+
         to {
             opacity: 1;
             transform: translateY(0);
         }
     }
-    
+
     .animate-dropdown {
-        animation: dropdown 0.2s ease-out;
+        animation: dropdown 0.15s ease-out;
     }
 </style>
 
-            @code {
-             private bool isOpen = false;
-            private ElementReference dropdownRef;
-            private string currentLangKey = "en";
+@code {
+    private bool isOpen = false;
+    private ElementReference dropdownRef;
+    private string currentLangKey = "en";
 
-            [Parameter]
-            public LanguageData CurrentLanguage { get; set; } = LanguageData.English;
+    [Parameter]
+    public LanguageData CurrentLanguage { get; set; } = LanguageData.English;
 
-            [Parameter]
-            public EventCallback<LanguageData> CurrentLanguageChanged { get; set; }
+    [Parameter]
+    public EventCallback<LanguageData> OnLanguageChanged { get; set; }
 
-            private Dictionary<string, LanguageInfo> languages = new()
-            {
-                { "en", new LanguageInfo { Flag = "🇺🇸", Name = "English", NativeName = "English", Code = "EN" } },
-                { "zh", new LanguageInfo { Flag = "🇨🇳", Name = "Chinese", NativeName = "中文", Code = "中文" } },
-                { "es", new LanguageInfo { Flag = "🇪🇸", Name = "Spanish", NativeName = "Español", Code = "ES" } },
-                { "fr", new LanguageInfo { Flag = "🇫🇷", Name = "French", NativeName = "Français", Code = "FR" } },
-                { "de", new LanguageInfo { Flag = "🇩🇪", Name = "German", NativeName = "Deutsch", Code = "DE" } },
-                { "ja", new LanguageInfo { Flag = "🇯🇵", Name = "Japanese", NativeName = "日本語", Code = "日本語" } }
-            };
+    private Dictionary<string, LanguageInfo> languages = new()
+    {
+        { "en", new LanguageInfo { Flag = "🇺🇸", Name = "English", NativeName = "English", Code = "EN" } },
+        { "zh", new LanguageInfo { Flag = "🇨🇳", Name = "Chinese", NativeName = "中文", Code = "中文" } },
+        { "es", new LanguageInfo { Flag = "🇪🇸", Name = "Spanish", NativeName = "Español", Code = "ES" } },
+        { "fr", new LanguageInfo { Flag = "🇫🇷", Name = "French", NativeName = "Français", Code = "FR" } },
+        { "de", new LanguageInfo { Flag = "🇩🇪", Name = "German", NativeName = "Deutsch", Code = "DE" } },
+        { "ja", new LanguageInfo { Flag = "🇯🇵", Name = "Japanese", NativeName = "日本語", Code = "日本語" } }
+    };
 
-            private void ToggleDropdown()
-            {
-                isOpen = !isOpen;
-            }
+    protected override void OnInitialized()
+    {
+        currentLangKey = CurrentLanguage switch
+        {
+            LanguageData chinese when chinese.Home == "首页" => "zh",
+            LanguageData spanish when spanish.Home == "Inicio" => "es",
+            LanguageData french when french.Home == "Accueil" => "fr",
+            LanguageData german when german.Home == "Startseite" => "de",
+            LanguageData japanese when japanese.Home == "ホーム" => "ja",
+            _ => "en"
+        };
+    }
 
-            private async Task SelectLanguage(string langKey)
-            {
-                currentLangKey = langKey;
-                isOpen = false;
+    private void ToggleDropdown()
+    {
+        isOpen = !isOpen;
+    }
 
-                // 根据选择的语言更新 CurrentLanguage
-                CurrentLanguage = langKey switch
-                {
-                    "zh" => LanguageData.Chinese,
-                    "es" => LanguageData.Spanish,
-                    "fr" => LanguageData.French,
-                    "de" => LanguageData.German,
-                    "ja" => LanguageData.Japanese,
-                    _ => LanguageData.English
-                };
+    private async Task SelectLanguage(string langKey)
+    {
+        currentLangKey = langKey;
+        isOpen = false;
 
-                await CurrentLanguageChanged.InvokeAsync(CurrentLanguage);
-            }
+        var newLanguage = langKey switch
+        {
+            "zh" => LanguageData.Chinese,
+            "es" => LanguageData.Spanish,
+            "fr" => LanguageData.French,
+            "de" => LanguageData.German,
+            "ja" => LanguageData.Japanese,
+            _ => LanguageData.English
+        };
 
-            private string GetCurrentFlag()
-            {
-                return languages[currentLangKey].Flag;
-            }
+        await OnLanguageChanged.InvokeAsync(newLanguage);
+    }
 
-            private string GetCurrentLanguageCode()
-            {
-                return languages[currentLangKey].Code;
-            }
+    private string GetCurrentLanguageCode()
+    {
+        return languages[currentLangKey].Code;
+    }
 
-            // 语言信息类
-            private class LanguageInfo
-            {
-                public string Flag { get; set; } = string.Empty;
-                public string Name { get; set; } = string.Empty;
-                public string NativeName { get; set; } = string.Empty;
-                public string Code { get; set; } = string.Empty;
-            }
+    private class LanguageInfo
+    {
+        public string Flag { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public string NativeName { get; set; } = string.Empty;
+        public string Code { get; set; } = string.Empty;
+    }
 
+    public class LanguageData
+    {
+        public string Home { get; set; } = string.Empty;
+        public string Features { get; set; } = string.Empty;
+        public string About { get; set; } = string.Empty;
+        public string Contact { get; set; } = string.Empty;
+        public string Login { get; set; } = string.Empty;
+        public string AllRightsReserved { get; set; } = string.Empty;
+        public string Privacy { get; set; } = string.Empty;
+        public string Terms { get; set; } = string.Empty;
+        public string Cookies { get; set; } = string.Empty;
 
-            // 语言数据类
-            public class LanguageData
-            {
-                public string Home { get; set; } = string.Empty;
-                public string Features { get; set; } = string.Empty;
-                public string About { get; set; } = string.Empty;
-                public string Contact { get; set; } = string.Empty;
-                public string Login { get; set; } = string.Empty;
-                public string FooterDescription { get; set; } = string.Empty;
-                public string QuickLinks { get; set; } = string.Empty;
-                public string Resources { get; set; } = string.Empty;
-                public string Documentation { get; set; } = string.Empty;
-                public string Blog { get; set; } = string.Empty;
-                public string Support { get; set; } = string.Empty;
-                public string FAQ { get; set; } = string.Empty;
-                public string Newsletter { get; set; } = string.Empty;
-                public string NewsletterDescription { get; set; } = string.Empty;
-                public string EmailPlaceholder { get; set; } = string.Empty;
-                public string Subscribe { get; set; } = string.Empty;
-                public string SubscribeSuccess { get; set; } = string.Empty;
-                public string AllRightsReserved { get; set; } = string.Empty;
-                public string Privacy { get; set; } = string.Empty;
-                public string Terms { get; set; } = string.Empty;
-                public string Cookies { get; set; } = string.Empty;
-          
-            // 英文
-            public static LanguageData English => new()
-            {
-                Home = "Home",
-                Features = "Features",
-                About = "About",
-                Contact = "Contact",
-                Login = "Login",
-                FooterDescription = "Building innovative solutions for a better tomorrow. Join us on our journey to transform the digital landscape.",
-                QuickLinks = "Quick Links",
-                Resources = "Resources",
-                Documentation = "Documentation",
-                Blog = "Blog",
-                Support = "Support",
-                FAQ = "FAQ",
-                Newsletter = "Newsletter",
-                NewsletterDescription = "Subscribe to get the latest updates and news.",
-                EmailPlaceholder = "Enter your email",
-                Subscribe = "Subscribe",
-                SubscribeSuccess = "✓ Successfully subscribed!",
-                AllRightsReserved = "All rights reserved.",
-                Privacy = "Privacy Policy",
-                Terms = "Terms of Service",
-                Cookies = "Cookie Policy"
-            };
-    
-            // 中文
-            public static LanguageData Chinese => new()
-            {
-                Home = "首页",
-                Features = "功能特性",
-                About = "关于我们",
-                Contact = "联系我们",
-                Login = "登录",
-                FooterDescription = "为更美好的明天打造创新解决方案。加入我们，共同改变数字化格局。",
-                QuickLinks = "快速链接",
-                Resources = "资源中心",
-                Documentation = "开发文档",
-                Blog = "博客",
-                Support = "技术支持",
-                FAQ = "常见问题",
-                Newsletter = "订阅资讯",
-                NewsletterDescription = "订阅以获取最新动态和资讯。",
-                EmailPlaceholder = "输入您的邮箱",
-                Subscribe = "订阅",
-                SubscribeSuccess = "✓ 订阅成功！",
-                AllRightsReserved = "版权所有。",
-                Privacy = "隐私政策",
-                Terms = "服务条款",
-                Cookies = "Cookie 政策"
-            };
-    
-            // 西班牙语
-            public static LanguageData Spanish => new()
-            {
-                Home = "Inicio",
-                Features = "Características",
-                About = "Acerca de",
-                Contact = "Contacto",
-                Login = "Iniciar sesión",
-                FooterDescription = "Construyendo soluciones innovadoras para un mañana mejor. Únete a nuestro viaje para transformar el panorama digital.",
-                QuickLinks = "Enlaces rápidos",
-                Resources = "Recursos",
-                Documentation = "Documentación",
-                Blog = "Blog",
-                Support = "Soporte",
-                FAQ = "Preguntas frecuentes",
-                Newsletter = "Boletín",
-                NewsletterDescription = "Suscríbete para recibir las últimas actualizaciones y noticias.",
-                EmailPlaceholder = "Ingresa tu correo",
-                Subscribe = "Suscribirse",
-                SubscribeSuccess = "✓ ¡Suscripción exitosa!",
-                AllRightsReserved = "Todos los derechos reservados.",
-                Privacy = "Política de privacidad",
-                Terms = "Términos de servicio",
-                Cookies = "Política de cookies"
-            };
-    
-            // 法语
-            public static LanguageData French => new()
-            {
-                Home = "Accueil",
-                Features = "Fonctionnalités",
-                About = "À propos",
-                Contact = "Contact",
-                Login = "Connexion",
-                FooterDescription = "Créer des solutions innovantes pour un avenir meilleur. Rejoignez-nous dans notre voyage pour transformer le paysage numérique.",
-                QuickLinks = "Liens rapides",
-                Resources = "Ressources",
-                Documentation = "Documentation",
-                Blog = "Blog",
-                Support = "Support",
-                FAQ = "FAQ",
-                Newsletter = "Newsletter",
-                NewsletterDescription = "Abonnez-vous pour recevoir les dernières mises à jour et actualités.",
-                EmailPlaceholder = "Entrez votre email",
-                Subscribe = "S'abonner",
-                SubscribeSuccess = "✓ Abonnement réussi!",
-                AllRightsReserved = "Tous droits réservés.",
-                Privacy = "Politique de confidentialité",
-                Terms = "Conditions d'utilisation",
-                Cookies = "Politique de cookies"
-            };
-    
-            // 德语
-            public static LanguageData German => new()
-            {
-                Home = "Startseite",
-                Features = "Funktionen",
-                About = "Über uns",
-                Contact = "Kontakt",
-                Login = "Anmelden",
-                FooterDescription = "Innovative Lösungen für ein besseres Morgen entwickeln. Begleiten Sie uns auf unserer Reise zur Transformation der digitalen Landschaft.",
-                QuickLinks = "Schnelllinks",
-                Resources = "Ressourcen",
-                Documentation = "Dokumentation",
-                Blog = "Blog",
-                Support = "Support",
-                FAQ = "FAQ",
-                Newsletter = "Newsletter",
-                NewsletterDescription = "Abonnieren Sie, um die neuesten Updates und Nachrichten zu erhalten.",
-                EmailPlaceholder = "Geben Sie Ihre E-Mail ein",
-                Subscribe = "Abonnieren",
-                SubscribeSuccess = "✓ Erfolgreich abonniert!",
-                AllRightsReserved = "Alle Rechte vorbehalten.",
-                Privacy = "Datenschutz",
-                Terms = "Nutzungsbedingungen",
-                Cookies = "Cookie-Richtlinie"
-            };
-    
-            // 日语
-            public static LanguageData Japanese => new()
-            {
-                Home = "ホーム",
-                Features = "機能",
-                About = "会社概要",
-                Contact = "お問い合わせ",
-                Login = "ログイン",
-                FooterDescription = "より良い明日のための革新的なソリューションを構築しています。デジタル環境を変革する旅にご参加ください。",
-                QuickLinks = "クイックリンク",
-                Resources = "リソース",
-                Documentation = "ドキュメント",
-                Blog = "ブログ",
-                Support = "サポート",
-                FAQ = "よくある質問",
-                Newsletter = "ニュースレター",
-                NewsletterDescription = "最新情報やニュースを受け取るために購読してください。",
-                EmailPlaceholder = "メールアドレスを入力",
-                Subscribe = "購読する",
-                SubscribeSuccess = "✓ 購読成功！",
-                AllRightsReserved = "無断転載を禁じます。",
-                Privacy = "プライバシーポリシー",
-                Terms = "利用規約",
-                Cookies = "クッキーポリシー"
-            };
-     }
+        public static LanguageData English => new()
+        {
+            Home = "Home",
+            Features = "Features",
+            About = "About",
+            Contact = "Contact",
+            Login = "Login",
+            AllRightsReserved = "All rights reserved.",
+            Privacy = "Privacy Policy",
+            Terms = "Terms of Service",
+            Cookies = "Cookie Policy"
+        };
+
+        public static LanguageData Chinese => new()
+        {
+            Home = "首页",
+            Features = "功能特性",
+            About = "关于我们",
+            Contact = "联系我们",
+            Login = "登录",
+            AllRightsReserved = "版权所有。",
+            Privacy = "隐私政策",
+            Terms = "服务条款",
+            Cookies = "Cookie 政策"
+        };
+
+        public static LanguageData Spanish => new()
+        {
+            Home = "Inicio",
+            Features = "Características",
+            About = "Acerca de",
+            Contact = "Contacto",
+            Login = "Iniciar sesión",
+            AllRightsReserved = "Todos los derechos reservados.",
+            Privacy = "Política de privacidad",
+            Terms = "Términos de servicio",
+            Cookies = "Política de cookies"
+        };
+
+        public static LanguageData French => new()
+        {
+            Home = "Accueil",
+            Features = "Fonctionnalités",
+            About = "À propos",
+            Contact = "Contact",
+            Login = "Connexion",
+            AllRightsReserved = "Tous droits réservés.",
+            Privacy = "Politique de confidentialité",
+            Terms = "Conditions d'utilisation",
+            Cookies = "Politique de cookies"
+        };
+
+        public static LanguageData German => new()
+        {
+            Home = "Startseite",
+            Features = "Funktionen",
+            About = "Über uns",
+            Contact = "Kontakt",
+            Login = "Anmelden",
+            AllRightsReserved = "Alle Rechte vorbehalten.",
+            Privacy = "Datenschutz",
+            Terms = "Nutzungsbedingungen",
+            Cookies = "Cookie-Richtlinie"
+        };
+
+        public static LanguageData Japanese => new()
+        {
+            Home = "ホーム",
+            Features = "機能",
+            About = "会社概要",
+            Contact = "お問い合わせ",
+            Login = "ログイン",
+            AllRightsReserved = "無断転載を禁じます。",
+            Privacy = "プライバシーポリシー",
+            Terms = "利用規約",
+            Cookies = "クッキーポリシー"
+        };
+    }
 }
