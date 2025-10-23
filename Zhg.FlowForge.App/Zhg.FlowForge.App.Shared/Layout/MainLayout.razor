@@ -1,35 +1,30 @@
-﻿@using Zhg.FlowForge.App.Shared.Services
-@using Zhg.FlowForge.App.Shared.VM
-
+﻿<!-- Shared/MainLayout.razor -->
+@using Zhg.FlowForge.App.Shared.Interfaces
+@using Zhg.FlowForge.App.Shared.Services
 @inherits LayoutComponentBase
 @inject NavigationManager NavigationManager
 @inject ILocalizationService LocalizationService
 
 <div class="container-full-xl">
-	<div class="flex min-h-screen flex-col">
-		<header id="main-header"
-				class="sticky-top bg-gray-800">
-            <NavBar  />
-
+    <div class="flex min-h-screen flex-col">
+        <header id="main-header" class="sticky-top bg-gray-800">
+            <NavBar />
         </header>
 
-		<main class="flex flex-1 flex-col p-4">
-			@Body
-		</main>
+        <main class="flex flex-1 flex-col p-4">
+            @Body
+        </main>
 
-		<footer class="bg-gray-800 p-4 text-white">Footer</footer>
-	</div>
+        <footer class="bg-gray-800 p-4 text-center text-white">
+            @LocalizationService.GetString("footer.copyright")
+        </footer>
+    </div>
 </div>
 
 @code {
-	// [Inject]
-	// private ScrollService ScrollService { get; set; } = default!;
-
-	// protected override async Task OnAfterRenderAsync(bool firstRender)
-	// {
-	// 	if (firstRender)
-	// 	{
-	// 		await ScrollService.InitializeAsync();
-	// 	}
-	// }
+    protected override async Task OnInitializedAsync()
+    {
+        // 确保本地化服务已初始化
+        await LocalizationService.InitializeAsync();
+    }
 }

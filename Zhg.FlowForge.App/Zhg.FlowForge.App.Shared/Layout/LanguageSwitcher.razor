@@ -1,21 +1,28 @@
-﻿@using Zhg.FlowForge.App.Shared.Services
+﻿@using Zhg.FlowForge.App.Shared.Interfaces
+@using Zhg.FlowForge.App.Shared.Services
+@inject ILocalizationService LocalizationService
 
 <div class="relative">
     <button @onclick="ToggleLanguageDropdown"
-            class="flex items-center gap-1 rounded border border-gray-600 px-3 py-1 transition-colors hover:bg-gray-700">
+            class="flex items-center gap-1 rounded border border-gray-600 px-3 py-1 transition-colors hover:bg-gray-700"
+            title="@LocalizationService["menu.toggle"]">
         <span>🌐</span>
         <span class="text-sm">@GetCurrentLanguageName()</span>
-        <span class="text-xs">▼</span>
+        <span class="text-xs transition-transform @(showLanguageDropdown ? "rotate-180" : "")">▼</span>
     </button>
 
     @if (showLanguageDropdown)
     {
-        <div class="absolute right-0 z-50 mt-1 w-32 rounded border border-gray-600 bg-gray-800 shadow-lg">
-            @foreach (var lang in AvailableLanguages)
+        <div class="absolute right-0 z-50 mt-1 max-h-60 w-40 overflow-y-auto rounded border border-gray-600 bg-gray-800 shadow-lg">
+            @foreach (var lang in availableLanguages)
             {
-                <button @onclick="() => ChangeLanguage(lang.Culture)"
-                        class="w-full text-left px-3 py-2 hover:bg-gray-700 transition-colors @(lang.Culture == LocalizationService.CurrentCulture.Name ? "bg-blue-600" : "")">
-                    @lang.DisplayName
+                <button @onclick="() => ChangeLanguage(lang)"
+                        class="w-full text-left px-3 py-2 hover:bg-gray-700 transition-colors flex items-center justify-between @(lang == LocalizationService.CurrentCultureName ? "bg-blue-600" : "")">
+                    <span>@GetLanguageDisplayName(lang)</span>
+                    @if (lang == LocalizationService.CurrentCultureName)
+                    {
+                        <span class="text-xs">✓</span>
+                    }
                 </button>
             }
         </div>
@@ -23,29 +30,43 @@
 </div>
 
 @code {
-    [Inject] private ILocalizationService LocalizationService { get; set; } = null!;
-
     private bool showLanguageDropdown = false;
+    private List<string> availableLanguages = new();
+    private bool initialized = false;
 
-    private List<LanguageOption> AvailableLanguages { get; } = new()
-    {
-        new LanguageOption { Culture = "en", DisplayName = "English" },
-        new LanguageOption { Culture = "zh-CN", DisplayName = "中文" }
-    };
-
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         LocalizationService.OnLanguageChanged += OnLanguageChanged;
+        await LoadAvailableLanguages();
+        initialized = true;
+    }
+
+    private async Task LoadAvailableLanguages()
+    {
+        availableLanguages = await LocalizationService.GetAvailableCulturesAsync();
+        StateHasChanged();
     }
 
     private void OnLanguageChanged()
     {
-        InvokeAsync(StateHasChanged);
+        if (initialized)
+            InvokeAsync(StateHasChanged);
     }
 
     private string GetCurrentLanguageName()
     {
-        return AvailableLanguages.FirstOrDefault(x => x.Culture == LocalizationService.CurrentCulture.Name)?.DisplayName ?? "EN";
+        var cultureCode = LocalizationService.CurrentCultureName.Split('-')[0].ToLower();
+        var key = $"language.{cultureCode}";
+        var displayName = LocalizationService[key];
+        return displayName != $"[{key}]" ? displayName : LocalizationService.CurrentCulture.NativeName;
+    }
+
+    private string GetLanguageDisplayName(string culture)
+    {
+        var cultureCode = culture.Split('-')[0].ToLower();
+        var key = $"language.{cultureCode}";
+        var displayName = LocalizationService[key];
+        return displayName != $"[{key}]" ? displayName : culture;
     }
 
     private void ToggleLanguageDropdown()
@@ -55,7 +76,7 @@
 
     private async Task ChangeLanguage(string culture)
     {
-        await LocalizationService.LoadLanguageAsync(culture);
+        await LocalizationService.SetLanguageAsync(culture);
         showLanguageDropdown = false;
         StateHasChanged();
     }
@@ -63,11 +84,5 @@
     public void Dispose()
     {
         LocalizationService.OnLanguageChanged -= OnLanguageChanged;
-    }
-
-    private class LanguageOption
-    {
-        public string Culture { get; set; } = string.Empty;
-        public string DisplayName { get; set; } = string.Empty;
     }
 }

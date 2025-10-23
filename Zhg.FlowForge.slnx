@@ -6,7 +6,11 @@
   <Project Path="Zhg.FlowForge.App/Zhg.FlowForge.App/Zhg.FlowForge.App.csproj">
     <Deploy Solution="Debug|*" />
   </Project>
+  <Project Path="Zhg.FlowForge.Application.Contract/Zhg.FlowForge.Application.Contract.csproj" Id="aadd2b7e-0e6c-4d90-b903-3f0bdb9b16e6" />
+  <Project Path="Zhg.FlowForge.Application/Zhg.FlowForge.Application.csproj" Id="c24d939e-05f7-470d-8cd6-4dbbfa25eb28" />
   <Project Path="Zhg.FlowForge.ConsoleApp/Zhg.FlowForge.ConsoleApp.csproj" />
   <Project Path="Zhg.FlowForge.Core/Zhg.FlowForge.Core.csproj" />
+  <Project Path="Zhg.FlowForge.Domain.Shared/Zhg.FlowForge.Domain.Shared.csproj" Id="49bfead6-aba7-44e4-a68e-a8ecce3b4dbf" />
+  <Project Path="Zhg.FlowForge.Domain/Zhg.FlowForge.Domain.csproj" Id="86551f2a-fd3a-49c7-ba4f-f8b8083fcf22" />
   <Project Path="Zhg.FlowForge/Zhg.FlowForge.csproj" />
 </Solution>

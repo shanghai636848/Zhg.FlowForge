@@ -17,6 +17,19 @@
     <Routes @rendermode="InteractiveAuto" />
     <ReconnectModal />
     <script src="@Assets["_framework/blazor.web.js"]"></script>
+    <script>
+        // 确保 localStorage 函数存在
+        if (typeof localStorage === 'undefined') {
+            // 简单的内存后备（仅用于开发）
+            window.localStorage = {
+                _data: {},
+                setItem: function(id, val) { return this._data[id] = String(val); },
+                getItem: function(id) { return this._data.hasOwnProperty(id) ? this._data[id] : null; },
+                removeItem: function(id) { return delete this._data[id]; },
+                clear: function() { return this._data = {}; }
+            };
+        }
+    </script>
 </body>
 
 </html>

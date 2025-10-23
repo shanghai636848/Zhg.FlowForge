@@ -1,4 +1,6 @@
 ﻿@using Zhg.FlowForge.App.Shared.Services
+
+
 <div class="flex flex-1 flex-row items-center justify-between bg-gray-800 p-2 text-sm text-white">
     <!-- 左侧 Logo -->
     <aside class="basis-1/5">
@@ -77,15 +79,20 @@
     [Inject] private NavigationManager NavigationManager { get; set; } = null!;
 
     private bool isMenuOpen = false;
+    private bool initialized = false;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        // 确保本地化服务已初始化
+        await LocalizationService.InitializeAsync();
         LocalizationService.OnLanguageChanged += OnLanguageChanged;
+        initialized = true;
     }
 
     private void OnLanguageChanged()
     {
-        InvokeAsync(StateHasChanged);
+        if (initialized)
+            InvokeAsync(StateHasChanged);
     }
 
     private List<NavItem> GetLocalizedNavItems()
