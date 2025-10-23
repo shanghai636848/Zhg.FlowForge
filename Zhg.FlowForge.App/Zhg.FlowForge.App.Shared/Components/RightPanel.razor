@@ -2,181 +2,231 @@
 @using Zhg.FlowForge.App.Shared.Models
 @implements IDisposable
 
-<!-- 右侧属性面板 - 响应式完整版 -->
+<!-- 右侧属性面板 - 优化版 -->
 <div class="@GetPanelClass()">
-    <!-- 面板头部 - 统一样式 -->
-    <div class="flex h-11 items-center justify-between border-b border-fuchsia-200/60 bg-gradient-to-r from-fuchsia-50 via-pink-50 to-rose-50 px-3 py-2 shadow-sm backdrop-blur-md">
-        <span class="text-xs font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-600 to-pink-600">属性面板</span>
+    <!-- 面板头部 -->
+    <div class="flex h-12 items-center justify-between border-b border-fuchsia-200/60 bg-gradient-to-r from-fuchsia-50 via-pink-50 to-rose-50 px-4 shadow-sm backdrop-blur-md">
+        <span class="text-sm font-semibold tracking-wide text-fuchsia-700">属性面板</span>
         <div class="flex items-center gap-2">
-            <div class="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-fuchsia-500 to-pink-500 shadow-sm">
-                <i class="fas fa-sliders-h text-[10px] text-white"></i>
+            <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-fuchsia-500 to-pink-500 shadow-sm">
+                <i class="fas fa-sliders-h text-xs text-white"></i>
             </div>
             <button @onclick="Close"
-                    class="flex h-6 w-6 items-center justify-center rounded-md border border-fuchsia-200 bg-white/80 text-fuchsia-600 transition-all hover:scale-110 hover:border-fuchsia-300 hover:bg-fuchsia-50 hover:shadow-md active:scale-95 xl:hidden">
-                <i class="fas fa-times text-xs"></i>
+                    class="flex h-7 w-7 items-center justify-center rounded-lg border border-fuchsia-200 bg-white/90 text-fuchsia-600 transition-all hover:scale-105 hover:border-fuchsia-300 hover:bg-fuchsia-50 hover:shadow-md active:scale-95 xl:hidden">
+                <i class="fas fa-times text-sm"></i>
             </button>
         </div>
     </div>
 
-    <!-- 面板内容 -->
-    <div id="property-content" class="flex flex-1 flex-col space-y-3 overflow-y-auto p-3">
+    <!-- 面板内容 - 添加滚动条 -->
+    <div class="flex-1 overflow-y-auto p-3" style="max-height: calc(100vh - 8rem);">
         @if (string.IsNullOrEmpty(SelectedElementId))
         {
             <!-- 空状态 -->
-            <div class="flex h-full flex-col items-center justify-center py-12 text-center">
-                <div class="mb-3 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-100 via-fuchsia-100 to-pink-100 shadow-lg">
-                    <i class="fas fa-mouse-pointer text-2xl text-transparent bg-clip-text bg-gradient-to-br from-violet-500 to-fuchsia-500"></i>
+            <div class="flex h-full flex-col items-center justify-center py-16 text-center">
+                <div class="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-100 via-fuchsia-100 to-pink-100 shadow-lg">
+                    <i class="fas fa-mouse-pointer text-2xl text-violet-500"></i>
                 </div>
                 <p class="text-sm font-semibold text-slate-700">未选中元素</p>
-                <p class="mt-1.5 text-xs text-slate-500">点击画布元素查看属性</p>
+                <p class="mt-2 text-xs text-slate-500">点击画布元素查看属性</p>
             </div>
         }
         else
         {
-            <!-- 基本属性部分 -->
-            <PropertySection Title="基本属性" Icon="fa-cog" IsVisible="true" Color="blue">
-                <div class="flex flex-col space-y-2.5">
-                    <FormGroup Label="元素类型" Icon="fa-shapes" Color="violet">
-                        <input type="text"
-                               class="w-full rounded-lg border border-violet-200 bg-gradient-to-r from-violet-50 to-purple-50 px-2.5 py-1.5 text-xs text-violet-700 font-medium transition-all focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100"
-                               value="@SelectedElementType" disabled />
-                    </FormGroup>
+            <div class="flex flex-col space-y-3">
+                <!-- 基本属性 -->
+                <PropertySection Title="基本属性" Icon="fa-cog" IsVisible="true" Color="blue">
+                    <div class="flex flex-col space-y-3">
+                        <FormGroup Label="元素类型" Icon="fa-shapes" Color="violet">
+                            <input type="text"
+                                   class="w-full rounded-lg border border-violet-200 bg-gradient-to-r from-violet-50 to-purple-50 px-3 py-2 text-sm text-violet-700 font-medium transition-all focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-100"
+                                   value="@SelectedElementType" disabled />
+                        </FormGroup>
 
-                    <FormGroup Label="ID" Icon="fa-id-card" Color="cyan">
-                        <input type="text"
-                               class="w-full rounded-lg border border-cyan-200 bg-white px-2.5 py-1.5 text-xs text-slate-700 transition-all focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-100 hover:border-cyan-300"
-                               value="@SelectedElementId"
-                               @oninput="@(async (e) => await OnUpdateProperty.InvokeAsync(("id", e.Value?.ToString())))" />
-                    </FormGroup>
+                        <FormGroup Label="ID" Icon="fa-id-card" Color="cyan">
+                            <input type="text"
+                                   class="w-full rounded-lg border border-cyan-200 bg-white px-3 py-2 text-sm text-slate-700 transition-all focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-100 hover:border-cyan-300"
+                                   value="@SelectedElementId"
+                                   @oninput="@(async (e) => await OnUpdateProperty.InvokeAsync(("id", e.Value?.ToString())))" />
+                        </FormGroup>
 
-                    <FormGroup Label="名称" Icon="fa-font" Color="indigo">
-                        <input type="text"
-                               class="w-full rounded-lg border border-indigo-200 bg-white px-2.5 py-1.5 text-xs text-slate-700 transition-all focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 hover:border-indigo-300"
-                               value="@SelectedElementName"
-                               @oninput="@(async (e) => await OnUpdateProperty.InvokeAsync(("name", e.Value?.ToString())))" />
-                    </FormGroup>
+                        <FormGroup Label="名称" Icon="fa-font" Color="indigo">
+                            <input type="text"
+                                   class="w-full rounded-lg border border-indigo-200 bg-white px-3 py-2 text-sm text-slate-700 transition-all focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-100 hover:border-indigo-300"
+                                   value="@SelectedElementName"
+                                   @oninput="@(async (e) => await OnUpdateProperty.InvokeAsync(("name", e.Value?.ToString())))" />
+                        </FormGroup>
 
-                    <FormGroup Label="文档说明" Icon="fa-file-alt" Color="amber">
-                        <textarea class="h-20 w-full resize-y rounded-lg border border-amber-200 bg-white px-2.5 py-1.5 font-mono text-xs text-slate-700 transition-all focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100 hover:border-amber-300"
-                                  @oninput="@(async (e) => await OnUpdateDocumentation.InvokeAsync(e.Value?.ToString()))"></textarea>
-                    </FormGroup>
-                </div>
-            </PropertySection>
-
-            <!-- 连线属性部分 -->
-            <PropertySection Title="连线属性" Icon="fa-link" IsVisible="IsSequenceFlowSelected" Color="emerald">
-                <div class="flex flex-col space-y-2.5">
-                    <FormGroup Label="条件表达式" Icon="fa-code" Color="emerald">
-                        <button class="group w-full rounded-lg border border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50 px-2.5 py-1.5 text-xs font-medium text-emerald-700 transition-all hover:scale-[1.02] hover:border-emerald-300 hover:from-emerald-100 hover:to-teal-100 hover:shadow-md active:scale-95"
-                                @onclick="async () => await OnOpenConditionBuilder.InvokeAsync()">
-                            <i class="fas fa-edit mr-1.5 transition-transform group-hover:rotate-12"></i>编辑条件
-                        </button>
-                    </FormGroup>
-                </div>
-            </PropertySection>
-
-            <!-- 任务配置部分 -->
-            <PropertySection Title="任务配置" Icon="fa-cogs" IsVisible="IsTaskSelected" Color="purple">
-                <div class="flex flex-col space-y-3">
-                    <FormGroup Label="处理类" Icon="fa-code" Color="purple">
-                        <input type="text"
-                               class="w-full rounded-lg border border-purple-200 bg-white px-2.5 py-1.5 text-xs text-slate-700 transition-all focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100 hover:border-purple-300"
-                               placeholder="com.example.Handler"
-                               @oninput="async (e) => await OnUpdateServiceClass.InvokeAsync(e.Value?.ToString())" />
-                    </FormGroup>
-
-                    <!-- 输入参数 -->
-                    <div class="flex flex-col space-y-2">
-                        <label class="flex items-center gap-1.5 text-xs font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-600">
-                            <i class="fas fa-sign-in-alt text-[10px] text-blue-500"></i> 输入参数
-                        </label>
-                        <div class="flex flex-col space-y-2" id="input-params">
-                            @foreach (var param in InputParameters)
-                            {
-                                <div class="group rounded-lg border border-blue-200 bg-gradient-to-br from-blue-50 via-cyan-50/50 to-sky-50 p-2.5 shadow-sm transition-all hover:border-blue-300 hover:shadow-md">
-                                    <div class="mb-2 flex gap-1.5">
-                                        <input type="text"
-                                               class="flex-1 rounded-md border border-blue-200 bg-white px-2 py-1 text-xs transition-all focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
-                                               placeholder="参数名"
-                                               value="@param.Name"
-                                               @onchange="@(async (e) => await UpdateInputParamField(param, "name", e.Value?.ToString()))" />
-                                        <select class="rounded-md border border-blue-200 bg-white px-2 py-1 text-xs transition-all focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
-                                                value="@param.Type"
-                                                @onchange="@(async (e) => await UpdateInputParamField(param, "type", e.Value?.ToString()))">
-                                            <option value="string">string</option>
-                                            <option value="long">long</option>
-                                            <option value="boolean">boolean</option>
-                                            <option value="json">json</option>
-                                        </select>
-                                        <button class="flex h-7 w-7 items-center justify-center rounded-md border border-rose-200 bg-white text-rose-500 transition-all hover:scale-110 hover:border-rose-300 hover:bg-rose-50 hover:shadow-md active:scale-90"
-                                                @onclick="async () => await OnRemoveInputParam.InvokeAsync(param)">
-                                            <i class="fas fa-times text-xs"></i>
-                                        </button>
-                                    </div>
-                                    <div class="flex gap-1.5">
-                                        <input type="text"
-                                               class="flex-1 rounded-md border border-blue-200 bg-white px-2 py-1 text-xs transition-all focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
-                                               placeholder="值或表达式"
-                                               value="@param.Value"
-                                               @onchange="@(async (e) => await UpdateInputParamField(param, "value", e.Value?.ToString()))" />
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                        <button class="group flex w-full items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-blue-300 bg-gradient-to-r from-blue-50/50 to-cyan-50/50 px-2.5 py-2 text-xs font-medium text-blue-600 transition-all hover:scale-[1.02] hover:border-blue-400 hover:from-blue-100 hover:to-cyan-100 hover:shadow-md active:scale-95"
-                                @onclick="@(async () => await OnAddInputParam.InvokeAsync())">
-                            <i class="fas fa-plus text-[10px] transition-transform group-hover:rotate-90"></i> 添加输入参数
-                        </button>
+                        <FormGroup Label="文档说明" Icon="fa-file-alt" Color="amber">
+                            <textarea class="min-h-[80px] w-full resize-y rounded-lg border border-amber-200 bg-white px-3 py-2 text-sm text-slate-700 transition-all focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-100 hover:border-amber-300"
+                                      @oninput="@(async (e) => await OnUpdateDocumentation.InvokeAsync(e.Value?.ToString()))"></textarea>
+                        </FormGroup>
                     </div>
+                </PropertySection>
 
-                    <!-- 输出参数 -->
-                    <div class="flex flex-col space-y-2">
-                        <label class="flex items-center gap-1.5 text-xs font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-600">
-                            <i class="fas fa-sign-out-alt text-[10px] text-emerald-500"></i> 输出参数
-                        </label>
-                        <div class="flex flex-col space-y-2" id="output-params">
-                            @foreach (var param in OutputParameters)
-                            {
-                                <div class="group rounded-lg border border-emerald-200 bg-gradient-to-br from-emerald-50 via-teal-50/50 to-green-50 p-2.5 shadow-sm transition-all hover:border-emerald-300 hover:shadow-md">
-                                    <div class="mb-2 flex gap-1.5">
-                                        <input type="text"
-                                               class="flex-1 rounded-md border border-emerald-200 bg-white px-2 py-1 text-xs transition-all focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
-                                               placeholder="参数名"
-                                               value="@param.Name"
-                                               @onchange="@(async (e) => await UpdateOutputParamField(param, "name", e.Value?.ToString()))" />
-                                        <select class="rounded-md border border-emerald-200 bg-white px-2 py-1 text-xs transition-all focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
-                                                value="@param.Type"
-                                                @onchange="@(async (e) => await UpdateOutputParamField(param, "type", e.Value?.ToString()))">
-                                            <option value="string">string</option>
-                                            <option value="long">long</option>
-                                            <option value="boolean">boolean</option>
-                                            <option value="json">json</option>
-                                        </select>
-                                        <button class="flex h-7 w-7 items-center justify-center rounded-md border border-rose-200 bg-white text-rose-500 transition-all hover:scale-110 hover:border-rose-300 hover:bg-rose-50 hover:shadow-md active:scale-90"
-                                                @onclick="async () => await OnRemoveOutputParam.InvokeAsync(param)">
-                                            <i class="fas fa-times text-xs"></i>
-                                        </button>
-                                    </div>
-                                    <div class="flex gap-1.5">
-                                        <input type="text"
-                                               class="flex-1 rounded-md border border-emerald-200 bg-white px-2 py-1 text-xs transition-all focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
-                                               placeholder="值或表达式"
-                                               value="@param.Value"
-                                               @onchange="@(async (e) => await UpdateOutputParamField(param, "value", e.Value?.ToString()))" />
-                                    </div>
-                                </div>
-                            }
+                <!-- 连线属性 - 仅在选中连线时显示 -->
+                @if (IsSequenceFlowSelected)
+                {
+                    <PropertySection Title="连线属性" Icon="fa-link" IsVisible="true" Color="emerald">
+                        <div class="flex flex-col space-y-3">
+                            <FormGroup Label="条件表达式" Icon="fa-code" Color="emerald">
+                                <button class="group w-full rounded-lg border border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50 px-3 py-2.5 text-sm font-medium text-emerald-700 transition-all hover:scale-[1.02] hover:border-emerald-300 hover:from-emerald-100 hover:to-teal-100 hover:shadow-md active:scale-98"
+                                        @onclick="async () => await OnOpenConditionBuilder.InvokeAsync()">
+                                    <i class="fas fa-edit mr-2 transition-transform group-hover:rotate-12"></i>编辑条件
+                                </button>
+                            </FormGroup>
                         </div>
-                        <button class="group flex w-full items-center justify-center gap-1.5 rounded-lg border-2 border-dashed border-emerald-300 bg-gradient-to-r from-emerald-50/50 to-teal-50/50 px-2.5 py-2 text-xs font-medium text-emerald-600 transition-all hover:scale-[1.02] hover:border-emerald-400 hover:from-emerald-100 hover:to-teal-100 hover:shadow-md active:scale-95"
-                                @onclick="async () => await OnAddOutputParam.InvokeAsync()">
-                            <i class="fas fa-plus text-[10px] transition-transform group-hover:rotate-90"></i> 添加输出参数
-                        </button>
-                    </div>
-                </div>
-            </PropertySection>
+                    </PropertySection>
+                }
+
+                <!-- 任务配置 - 仅在选中任务时显示 -->
+                @if (IsTaskSelected)
+                {
+                    <PropertySection Title="任务配置" Icon="fa-cogs" IsVisible="true" Color="purple">
+                        <div class="flex flex-col space-y-3">
+                            <FormGroup Label="处理类" Icon="fa-code" Color="purple">
+                                <input type="text"
+                                       class="w-full rounded-lg border border-purple-200 bg-white px-3 py-2 text-sm text-slate-700 transition-all focus:border-purple-400 focus:outline-none focus:ring-2 focus:ring-purple-100 hover:border-purple-300"
+                                       placeholder="com.example.Handler"
+                                       @oninput="async (e) => await OnUpdateServiceClass.InvokeAsync(e.Value?.ToString())" />
+                            </FormGroup>
+
+                            <!-- 输入参数 -->
+                            <div class="flex flex-col space-y-2">
+                                <label class="flex items-center gap-2 text-sm font-semibold text-blue-700">
+                                    <i class="fas fa-sign-in-alt text-xs text-blue-500"></i> 输入参数
+                                </label>
+                                <div class="flex flex-col space-y-2">
+                                    @foreach (var param in InputParameters)
+                                    {
+                                        <div class="rounded-lg border border-blue-200 bg-gradient-to-br from-blue-50/50 to-cyan-50/50 p-3 shadow-sm">
+                                            <div class="mb-2 flex gap-2">
+                                                <input type="text"
+                                                       class="flex-1 min-w-0 rounded-lg border border-blue-200 bg-white px-2.5 py-1.5 text-sm transition-all focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                                                       placeholder="参数名"
+                                                       value="@param.Name"
+                                                       @onchange="@(async (e) => await UpdateInputParamField(param, "name", e.Value?.ToString()))" />
+                                                <select class="w-24 flex-shrink-0 rounded-lg border border-blue-200 bg-white px-2 py-1.5 text-sm transition-all focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                                                        value="@param.Type"
+                                                        @onchange="@(async (e) => await UpdateInputParamField(param, "type", e.Value?.ToString()))">
+                                                    <option value="string">string</option>
+                                                    <option value="long">long</option>
+                                                    <option value="boolean">boolean</option>
+                                                    <option value="json">json</option>
+                                                </select>
+                                                <button class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-rose-200 bg-white text-rose-500 transition-all hover:scale-105 hover:border-rose-300 hover:bg-rose-50 hover:shadow-md active:scale-95"
+                                                        @onclick="async () => await OnRemoveInputParam.InvokeAsync(param)">
+                                                    <i class="fas fa-times text-sm"></i>
+                                                </button>
+                                            </div>
+                                            <div class="relative">
+                                                <input type="text"
+                                                       class="w-full rounded-lg border border-blue-200 bg-white px-2.5 py-1.5 text-sm transition-all focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-100"
+                                                       placeholder="值或表达式 (如: ${variable})"
+                                                       value="@param.Value"
+                                                       list="@($"input-suggestions-{param.Name}")"
+                                                       @onchange="@(async (e) => await UpdateInputParamField(param, "value", e.Value?.ToString()))" />
+                                                <datalist id="@($"input-suggestions-{param.Name}")">
+                                                    <option value="string">string</option>
+                                                    <option value="long">long</option>
+                                                    <option value="boolean">boolean</option>
+                                                    <option value="json">json</option>
+                                                </datalist>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                                <button class="group flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-blue-300 bg-gradient-to-r from-blue-50/50 to-cyan-50/50 px-3 py-2.5 text-sm font-medium text-blue-600 transition-all hover:scale-[1.02] hover:border-blue-400 hover:from-blue-100 hover:to-cyan-100 hover:shadow-md active:scale-98"
+                                        @onclick="@(async () => await OnAddInputParam.InvokeAsync())">
+                                    <i class="fas fa-plus text-xs transition-transform group-hover:rotate-90"></i> 添加输入参数
+                                </button>
+                            </div>
+
+                            <!-- 输出参数 -->
+                            <div class="flex flex-col space-y-2">
+                                <label class="flex items-center gap-2 text-sm font-semibold text-emerald-700">
+                                    <i class="fas fa-sign-out-alt text-xs text-emerald-500"></i> 输出参数
+                                </label>
+                                <div class="flex flex-col space-y-2">
+                                    @foreach (var param in OutputParameters)
+                                    {
+                                        <div class="rounded-lg border border-emerald-200 bg-gradient-to-br from-emerald-50/50 to-teal-50/50 p-3 shadow-sm">
+                                            <div class="mb-2 flex gap-2">
+                                                <input type="text"
+                                                       class="flex-1 min-w-0 rounded-lg border border-emerald-200 bg-white px-2.5 py-1.5 text-sm transition-all focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+                                                       placeholder="参数名"
+                                                       value="@param.Name"
+                                                       @onchange="@(async (e) => await UpdateOutputParamField(param, "name", e.Value?.ToString()))" />
+                                                <select class="w-24 flex-shrink-0 rounded-lg border border-emerald-200 bg-white px-2 py-1.5 text-sm transition-all focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+                                                        value="@param.Type"
+                                                        @onchange="@(async (e) => await UpdateOutputParamField(param, "type", e.Value?.ToString()))">
+                                                    <option value="string">string</option>
+                                                    <option value="long">long</option>
+                                                    <option value="boolean">boolean</option>
+                                                    <option value="json">json</option>
+                                                </select>
+                                                <button class="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg border border-rose-200 bg-white text-rose-500 transition-all hover:scale-105 hover:border-rose-300 hover:bg-rose-50 hover:shadow-md active:scale-95"
+                                                        @onclick="async () => await OnRemoveOutputParam.InvokeAsync(param)">
+                                                    <i class="fas fa-times text-sm"></i>
+                                                </button>
+                                            </div>
+                                            <div class="relative">
+                                                <input type="text"
+                                                       class="w-full rounded-lg border border-emerald-200 bg-white px-2.5 py-1.5 text-sm transition-all focus:border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-100"
+                                                       placeholder="值或表达式 (如: ${result})"
+                                                       value="@param.Value"
+                                                       list="@($"output-suggestions-{param.Name}")"
+                                                       @onchange="@(async (e) => await UpdateOutputParamField(param, "value", e.Value?.ToString()))" />
+                                                <datalist id="@($"output-suggestions-{param.Name}")">
+                                                    <option value="string">string</option>
+                                                    <option value="long">long</option>
+                                                    <option value="boolean">boolean</option>
+                                                    <option value="json">json</option>
+                                                </datalist>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                                <button class="group flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-emerald-300 bg-gradient-to-r from-emerald-50/50 to-teal-50/50 px-3 py-2.5 text-sm font-medium text-emerald-600 transition-all hover:scale-[1.02] hover:border-emerald-400 hover:from-emerald-100 hover:to-teal-100 hover:shadow-md active:scale-98"
+                                        @onclick="async () => await OnAddOutputParam.InvokeAsync()">
+                                    <i class="fas fa-plus text-xs transition-transform group-hover:rotate-90"></i> 添加输出参数
+                                </button>
+                            </div>
+                        </div>
+                    </PropertySection>
+                }
+            </div>
         }
     </div>
 </div>
+
+<!-- 模态遮罩 - 仅手机/平板端显示 -->
+@if (IsOpen)
+{
+    <div class="fixed inset-0 z-30 bg-black/30 backdrop-blur-sm transition-opacity xl:hidden"
+         @onclick="Close"></div>
+}
+
+<style>
+    /* 自定义滚动条样式 */
+    .overflow-y-auto::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .overflow-y-auto::-webkit-scrollbar-track {
+        background: #fdf2f8;
+        border-radius: 3px;
+    }
+
+    .overflow-y-auto::-webkit-scrollbar-thumb {
+        background: linear-gradient(to bottom, #fbcfe8, #f9a8d4);
+        border-radius: 3px;
+    }
+
+    .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(to bottom, #f9a8d4, #f472b6);
+    }
+</style>
 
 @code {
     [Parameter] public bool IsOpen { get; set; } = true;
@@ -210,18 +260,15 @@
 
     private string GetPanelClass()
     {
-        var baseClass = "flex flex-col border-l border-fuchsia-200/60 bg-white/95 shadow-lg backdrop-blur-sm transition-all duration-300 ease-in-out";
+        var baseClass = "flex flex-col border-l border-fuchsia-200/60 bg-white/95 shadow-xl backdrop-blur-sm transition-all duration-300 ease-in-out";
 
-        // 桌面 (≥1280px): 始终显示
-        // 平板 (768px-1279px): 隐藏
-        // 手机 (<768px): 固定定位悬浮
         if (IsOpen)
         {
-            return $"{baseClass} fixed right-0 top-14 bottom-0 z-40 w-72 translate-x-0 xl:relative xl:top-0";
+            return $"{baseClass} fixed right-0 top-14 bottom-0 z-40 w-80 translate-x-0 xl:relative xl:top-0";
         }
         else
         {
-            return $"{baseClass} fixed right-0 top-14 bottom-0 z-40 w-72 translate-x-full xl:w-0 xl:overflow-hidden";
+            return $"{baseClass} fixed right-0 top-14 bottom-0 z-40 w-80 translate-x-full xl:w-0 xl:overflow-hidden";
         }
     }
 

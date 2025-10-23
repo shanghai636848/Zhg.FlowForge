@@ -1,11 +1,7 @@
-﻿<!-- ============================================ -->
-<!-- FormGroup.razor - 表单组件 -->
-<!-- ============================================ -->
-@* @page "/components/form-group" *@
-
-<div class="flex flex-col space-y-1.5">
-    <label class="flex items-center gap-1.5 text-xs font-semibold @GetTextColor()">
-        <i class="fas @Icon text-[10px] @GetIconColor()"></i>
+﻿<!-- FormGroup.razor - 优化版表单组件 -->
+<div class="flex flex-col space-y-2">
+    <label class="flex items-center gap-2 text-sm font-semibold @GetTextColor()">
+        <i class="fas @Icon text-xs @GetIconColor()"></i>
         @Label
     </label>
     @ChildContent
