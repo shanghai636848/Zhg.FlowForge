@@ -15,7 +15,7 @@ public class AppSettings
 public class ResourceLoadResult
 {
     public bool Success { get; set; }
-    public Dictionary<string, string> Resources { get; set; } = new();
+    public Dictionary<string, string> Resources { get; set; } = [];
     public string ErrorMessage { get; set; } = string.Empty;
     public string Source { get; set; } = "BuiltIn"; // BuiltIn, JSON, SQLite
 }

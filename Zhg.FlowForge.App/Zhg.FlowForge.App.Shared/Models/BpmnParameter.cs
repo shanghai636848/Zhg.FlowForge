@@ -67,9 +67,9 @@
         {
             return new BpmnParameter
             {
-                Name = dict.ContainsKey("name") ? dict["name"]?.ToString() ?? "" : "",
-                Type = dict.ContainsKey("type") ? dict["type"]?.ToString() ?? "string" : "string",
-                Value = dict.ContainsKey("value") ? dict["value"]?.ToString() ?? "" : ""
+                Name = dict.TryGetValue("name", out object? value) ? value?.ToString() ?? "" : "",
+                Type = dict.TryGetValue("type", out object? value1) ? value1?.ToString() ?? "string" : "string",
+                Value = dict.TryGetValue("value", out object? value2) ? value2?.ToString() ?? "" : ""
             };
         }
 
