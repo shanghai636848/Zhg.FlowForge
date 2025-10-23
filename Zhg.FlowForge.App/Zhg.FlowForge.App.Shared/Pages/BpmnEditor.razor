@@ -3,10 +3,11 @@
 @page "/"
 @implements IAsyncDisposable
 
-<!-- BPMN 编辑器 - 最终完整版 -->
+<!-- BPMN 编辑器 - 修复版 -->
 <div class="flex h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-purple-50/20 to-pink-50/20">
-	<!-- 左侧工具面板 - 响应式 -->
-	<LeftPanel @bind-IsOpen="leftPanelOpen"
+	<!-- 左侧工具面板 -->
+	<LeftPanel IsOpen="@leftPanelOpen"
+			   IsOpenChanged="@((bool value) => { leftPanelOpen = value; StateHasChanged(); })"
 			   OnClose="HandleLeftPanelClose" />
 
 	<!-- 中央画布 -->
@@ -25,8 +26,9 @@
 				 OnOpenLeftPanel="OpenLeftPanel"
 				 OnOpenRightPanel="OpenRightPanel" />
 
-	<!-- 右侧属性面板 - 响应式 -->
-	<RightPanel @bind-IsOpen="rightPanelOpen"
+	<!-- 右侧属性面板 -->
+	<RightPanel IsOpen="@rightPanelOpen"
+				IsOpenChanged="@((bool value) => { rightPanelOpen = value; StateHasChanged(); })"
 				OnClose="HandleRightPanelClose"
 				SelectedElementId="@SelectedElementId"
 				SelectedElementType="@SelectedElementType"
@@ -53,7 +55,7 @@
 	private IJSObjectReference? _jsModule;
 	private DotNetObjectReference<BpmnEditor>? _dotnetHelper;
 
-	// 面板状态 - 互斥逻辑
+	// 面板状态 - 独立控制
 	private bool leftPanelOpen = true;
 	private bool rightPanelOpen = true;
 
@@ -102,18 +104,16 @@
 		}
 	}
 
-	// 面板切换 - 互斥逻辑
+	// 面板切换 - 独立控制
 	private void OpenLeftPanel()
 	{
 		leftPanelOpen = true;
-		rightPanelOpen = false; // 互斥：打开左侧时关闭右侧
 		StateHasChanged();
 	}
 
 	private void OpenRightPanel()
 	{
 		rightPanelOpen = true;
-		leftPanelOpen = false; // 互斥：打开右侧时关闭左侧
 		StateHasChanged();
 	}
 
@@ -233,7 +233,7 @@
 	{
 		if (_jsModule is not null && !string.IsNullOrEmpty(value))
 		{
-			await _jsModule.InvokeVoidAsync("updateProp", key, value);
+			await _jsModule.InvokeVoidAsync("updateProperty", key, value);
 		}
 	}
 
@@ -241,9 +241,9 @@
 
 	private async Task UpdateDocumentation(string? value)
 	{
-		if (_jsModule is not null)
+		if (_jsModule is not null && SelectedElementId is not null)
 		{
-			await _jsModule.InvokeVoidAsync("updateDocumentation", value ?? "");
+			await _jsModule.InvokeVoidAsync("updateDocumentation", SelectedElementId, value ?? "");
 		}
 	}
 
@@ -251,9 +251,9 @@
 
 	private async Task UpdateServiceClass(string? value)
 	{
-		if (_jsModule is not null)
+		if (_jsModule is not null && SelectedElementId is not null)
 		{
-			await _jsModule.InvokeVoidAsync("updateServiceClass", value ?? "");
+			await _jsModule.InvokeVoidAsync("updateServiceClass", SelectedElementId, value ?? "");
 		}
 	}
 
@@ -325,17 +325,19 @@
 
 	public async Task AddInputParam()
 	{
-		if (_jsModule is not null)
+		if (_jsModule is not null && SelectedElementId is not null)
 		{
-			await _jsModule.InvokeVoidAsync("addInputParam");
+			await _jsModule.InvokeVoidAsync("addInputParameter", SelectedElementId);
+			await LoadParameters();
 		}
 	}
 
 	public async Task AddOutputParam()
 	{
-		if (_jsModule is not null)
+		if (_jsModule is not null && SelectedElementId is not null)
 		{
-			await _jsModule.InvokeVoidAsync("addOutputParam");
+			await _jsModule.InvokeVoidAsync("addOutputParameter", SelectedElementId);
+			await LoadParameters();
 		}
 	}
 
@@ -363,11 +365,21 @@
 
 		try
 		{
-			await _jsModule.InvokeVoidAsync("setCurrentElement", SelectedElementId);
-			var inputParams = await _jsModule.InvokeAsync<object[]>("getInputParameters");
-			InputParameters = inputParams.Select(p => BpmnParameter.FromJsObject(p)).ToList();
-			var outputParams = await _jsModule.InvokeAsync<object[]>("getOutputParameters");
-			OutputParameters = outputParams.Select(p => BpmnParameter.FromJsObject(p)).ToList();
+			var inputParams = await _jsModule.InvokeAsync<List<Dictionary<string, object>>>("getInputParameters", SelectedElementId);
+			InputParameters = inputParams.Select(p => new BpmnParameter
+			{
+				Name = p.ContainsKey("name") ? p["name"]?.ToString() ?? "" : "",
+				Type = p.ContainsKey("type") ? p["type"]?.ToString() ?? "string" : "string",
+				Value = p.ContainsKey("value") ? p["value"]?.ToString() ?? "" : ""
+			}).ToList();
+
+			var outputParams = await _jsModule.InvokeAsync<List<Dictionary<string, object>>>("getOutputParameters", SelectedElementId);
+			OutputParameters = outputParams.Select(p => new BpmnParameter
+			{
+				Name = p.ContainsKey("name") ? p["name"]?.ToString() ?? "" : "",
+				Type = p.ContainsKey("type") ? p["type"]?.ToString() ?? "string" : "string",
+				Value = p.ContainsKey("value") ? p["value"]?.ToString() ?? "" : ""
+			}).ToList();
 		}
 		catch (Exception ex)
 		{
@@ -377,48 +389,50 @@
 
 	public async Task RemoveInputParam(BpmnParameter parameter)
 	{
-		if (_jsModule is not null)
+		if (_jsModule is not null && SelectedElementId is not null)
 		{
-			var index = await _jsModule.InvokeAsync<int>("getInputParameterIndexByName", parameter.Name);
+			var index = InputParameters.IndexOf(parameter);
 			if (index >= 0)
 			{
-				await _jsModule.InvokeAsync<bool>("removeInputParameter", index);
+				await _jsModule.InvokeVoidAsync("removeInputParameter", SelectedElementId, index);
+				await LoadParameters();
 			}
 		}
 	}
 
 	public async Task RemoveOutputParam(BpmnParameter parameter)
 	{
-		if (_jsModule is not null)
+		if (_jsModule is not null && SelectedElementId is not null)
 		{
-			var index = await _jsModule.InvokeAsync<int>("getOutputParameterIndexByName", parameter.Name);
+			var index = OutputParameters.IndexOf(parameter);
 			if (index >= 0)
 			{
-				await _jsModule.InvokeAsync<bool>("removeOutputParameter", index);
+				await _jsModule.InvokeVoidAsync("removeOutputParameter", SelectedElementId, index);
+				await LoadParameters();
 			}
 		}
 	}
 
 	public async Task UpdateInputParam(BpmnParameter parameter)
 	{
-		if (_jsModule is not null)
+		if (_jsModule is not null && SelectedElementId is not null)
 		{
-			var index = await _jsModule.InvokeAsync<int>("getInputParameterIndexByName", parameter.Name);
+			var index = InputParameters.IndexOf(parameter);
 			if (index >= 0)
 			{
-				await _jsModule.InvokeAsync<bool>("updateInputParameter", index, parameter.Name, parameter.Type, parameter.Value);
+				await _jsModule.InvokeVoidAsync("updateInputParameter", SelectedElementId, index, parameter.Name, parameter.Type, parameter.Value);
 			}
 		}
 	}
 
 	public async Task UpdateOutputParam(BpmnParameter parameter)
 	{
-		if (_jsModule is not null)
+		if (_jsModule is not null && SelectedElementId is not null)
 		{
-			var index = await _jsModule.InvokeAsync<int>("getOutputParameterIndexByName", parameter.Name);
+			var index = OutputParameters.IndexOf(parameter);
 			if (index >= 0)
 			{
-				await _jsModule.InvokeAsync<bool>("updateOutputParameter", index, parameter.Name, parameter.Type, parameter.Value);
+				await _jsModule.InvokeVoidAsync("updateOutputParameter", SelectedElementId, index, parameter.Name, parameter.Type, parameter.Value);
 			}
 		}
 	}

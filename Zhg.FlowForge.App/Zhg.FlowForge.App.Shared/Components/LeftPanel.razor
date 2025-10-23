@@ -1,21 +1,21 @@
 ﻿<!-- 左侧工具面板 - 优化版 -->
 <div class="@GetPanelClass()">
     <!-- 面板头部 -->
-    <div class="flex h-12 items-center justify-between border-b border-violet-200/60 bg-gradient-to-r from-violet-50 via-purple-50 to-fuchsia-50 px-4 shadow-sm backdrop-blur-md">
-        <span class="text-sm font-semibold tracking-wide text-violet-700">工具箱</span>
-        <div class="flex items-center gap-2">
-            <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-sm">
-                <i class="fas fa-puzzle-piece text-xs text-white"></i>
+    <div class="flex h-10 items-center justify-between border-b border-violet-200/60 bg-gradient-to-r from-violet-50 via-purple-50 to-fuchsia-50 px-3 shadow-sm backdrop-blur-md">
+        <span class="text-xs font-semibold tracking-wide text-violet-700">工具箱</span>
+        <div class="flex items-center gap-1.5">
+            <div class="flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br from-violet-500 to-fuchsia-500 shadow-sm">
+                <i class="fas fa-puzzle-piece text-[10px] text-white"></i>
             </div>
             <button @onclick="Close"
-                    class="flex h-7 w-7 items-center justify-center rounded-lg border border-violet-200 bg-white/90 text-violet-600 transition-all hover:scale-105 hover:border-violet-300 hover:bg-violet-50 hover:shadow-md active:scale-95 md:hidden">
-                <i class="fas fa-times text-sm"></i>
+                    class="flex h-6 w-6 items-center justify-center rounded-md border border-violet-200 bg-white/90 text-violet-600 transition-all hover:scale-105 hover:border-violet-300 hover:bg-violet-50 active:scale-95 md:hidden">
+                <i class="fas fa-times text-xs"></i>
             </button>
         </div>
     </div>
 
     <!-- 面板内容 - 添加滚动条 -->
-    <div class="flex-1 overflow-y-auto p-3" style="max-height: calc(100vh - 8rem);">
+    <div class="flex-1 overflow-y-auto p-2.5" style="max-height: calc(100vh - 6.5rem);">
         <div class="flex flex-col space-y-3">
             <!-- 流程控制 -->
             <ToolCategory Title="流程控制" Icon="fa-sitemap" Color="emerald">
@@ -58,22 +58,31 @@
 <style>
     /* 自定义滚动条样式 */
     .overflow-y-auto::-webkit-scrollbar {
-        width: 6px;
+        width: 5px;
     }
 
     .overflow-y-auto::-webkit-scrollbar-track {
         background: #f1f5f9;
-        border-radius: 3px;
+        border-radius: 2.5px;
     }
 
     .overflow-y-auto::-webkit-scrollbar-thumb {
         background: linear-gradient(to bottom, #c7d2fe, #a5b4fc);
-        border-radius: 3px;
+        border-radius: 2.5px;
     }
 
         .overflow-y-auto::-webkit-scrollbar-thumb:hover {
             background: linear-gradient(to bottom, #a5b4fc, #818cf8);
         }
+
+    ::-webkit-scrollbar-thumb {
+        background: linear-gradient(to bottom, #c7d2fe, #a5b4fc);
+        border-radius: 3px;
+    }
+
+    .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(to bottom, #a5b4fc, #818cf8);
+    }
 </style>
 
 @code {
@@ -94,11 +103,11 @@
 
         if (IsOpen)
         {
-            return $"{baseClass} fixed left-0 top-14 bottom-0 z-40 w-56 translate-x-0 md:relative md:top-0";
+            return $"{baseClass} fixed left-0 top-14 bottom-0 z-40 w-52 translate-x-0 md:relative md:top-0 md:w-52";
         }
         else
         {
-            return $"{baseClass} fixed left-0 top-14 bottom-0 z-40 w-56 -translate-x-full md:w-0 md:overflow-hidden";
+            return $"{baseClass} fixed left-0 top-14 bottom-0 z-40 w-52 -translate-x-full md:w-0 md:overflow-hidden";
         }
     }
 }

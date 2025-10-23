@@ -1,12 +1,12 @@
-﻿<!-- PropertySection.razor - 优化版属性区块组件 -->
-<div class="group overflow-hidden rounded-xl border @GetBorderColor() bg-white shadow-sm transition-all hover:shadow-md">
-    <div class="flex cursor-pointer select-none items-center justify-between border-b @GetBorderColor() bg-gradient-to-r @GetGradient() px-4 py-2.5 transition-all hover:@GetHoverGradient()"
+﻿<!-- PropertySection.razor - 紧凑版属性区块组件 -->
+<div class="group overflow-hidden rounded-lg border @GetBorderColor() bg-white shadow-sm transition-all hover:shadow-md">
+    <div class="flex cursor-pointer select-none items-center justify-between border-b @GetBorderColor() bg-gradient-to-r @GetGradient() px-3 py-2 transition-all hover:@GetHoverGradient()"
          @onclick="ToggleSection">
-        <span class="flex items-center gap-2 text-sm font-semibold @GetTextColor()">
-            <i class="fas @Icon text-xs @GetIconColor() transition-transform group-hover:rotate-12"></i>
+        <span class="flex items-center gap-1.5 text-xs font-semibold @GetTextColor()">
+            <i class="fas @Icon text-[10px] @GetIconColor() transition-transform group-hover:rotate-12"></i>
             @Title
         </span>
-        <span class="text-xs @GetIconColor() transition-all duration-300 @(IsCollapsed ? "-rotate-90" : "rotate-0")">
+        <span class="text-[10px] @GetIconColor() transition-all duration-300 @(IsCollapsed ? "-rotate-90" : "rotate-0")">
             <i class="fas fa-chevron-down"></i>
         </span>
     </div>
@@ -41,8 +41,8 @@
     private string GetSectionContentClass()
     {
         return IsCollapsed
-            ? "max-h-0 overflow-hidden transition-all duration-300 ease-in-out px-4 py-0"
-            : "max-h-[2000px] overflow-hidden transition-all duration-300 ease-in-out px-4 py-3";
+            ? "max-h-0 overflow-hidden transition-all duration-300 ease-in-out px-3 py-0"
+            : "max-h-[2000px] overflow-hidden transition-all duration-300 ease-in-out px-3 py-2";
     }
 
     private string GetBorderColor() => Color switch
