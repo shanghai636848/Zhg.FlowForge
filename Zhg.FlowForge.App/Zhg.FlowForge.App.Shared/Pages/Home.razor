@@ -2,14 +2,16 @@
 
 
 
-<div class="grid grid-cols-[1fr_3fr_1fr] flex-1">
-	<aside class="">Sidebar</aside>
-	<main class="">Main Content</main>
-	<aside class="">Aside</aside>
+<div class="flex flex-1 flex-row flex-wrap">
+	<aside class="basis-1/5">
+		Sidebar
+	</aside>
+	<main class="flex-1 flex-shrink-3 whitespace-nowrap">
+		Main Content
+	</main>
+
+	<aside class="basis-1/5">
+		Aside
+	</aside>
 </div>
 
-<div class="flex-1 flex">
-	<aside class="w-1/5">Sidebar</aside>
-	<main class="flex-1">Main Content</main>
-	<aside class="w-1/5">Aside</aside>
-</div>

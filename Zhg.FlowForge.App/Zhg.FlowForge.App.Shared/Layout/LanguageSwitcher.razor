@@ -1,0 +1,73 @@
+﻿@using Zhg.FlowForge.App.Shared.Services
+
+<div class="relative">
+    <button @onclick="ToggleLanguageDropdown"
+            class="flex items-center gap-1 rounded border border-gray-600 px-3 py-1 transition-colors hover:bg-gray-700">
+        <span>🌐</span>
+        <span class="text-sm">@GetCurrentLanguageName()</span>
+        <span class="text-xs">▼</span>
+    </button>
+
+    @if (showLanguageDropdown)
+    {
+        <div class="absolute right-0 z-50 mt-1 w-32 rounded border border-gray-600 bg-gray-800 shadow-lg">
+            @foreach (var lang in AvailableLanguages)
+            {
+                <button @onclick="() => ChangeLanguage(lang.Culture)"
+                        class="w-full text-left px-3 py-2 hover:bg-gray-700 transition-colors @(lang.Culture == LocalizationService.CurrentCulture.Name ? "bg-blue-600" : "")">
+                    @lang.DisplayName
+                </button>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Inject] private ILocalizationService LocalizationService { get; set; } = null!;
+
+    private bool showLanguageDropdown = false;
+
+    private List<LanguageOption> AvailableLanguages { get; } = new()
+    {
+        new LanguageOption { Culture = "en", DisplayName = "English" },
+        new LanguageOption { Culture = "zh-CN", DisplayName = "中文" }
+    };
+
+    protected override void OnInitialized()
+    {
+        LocalizationService.OnLanguageChanged += OnLanguageChanged;
+    }
+
+    private void OnLanguageChanged()
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private string GetCurrentLanguageName()
+    {
+        return AvailableLanguages.FirstOrDefault(x => x.Culture == LocalizationService.CurrentCulture.Name)?.DisplayName ?? "EN";
+    }
+
+    private void ToggleLanguageDropdown()
+    {
+        showLanguageDropdown = !showLanguageDropdown;
+    }
+
+    private async Task ChangeLanguage(string culture)
+    {
+        await LocalizationService.LoadLanguageAsync(culture);
+        showLanguageDropdown = false;
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        LocalizationService.OnLanguageChanged -= OnLanguageChanged;
+    }
+
+    private class LanguageOption
+    {
+        public string Culture { get; set; } = string.Empty;
+        public string DisplayName { get; set; } = string.Empty;
+    }
+}

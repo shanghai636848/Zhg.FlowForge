@@ -1,14 +1,11 @@
-<Project Sdk="Microsoft.NET.Sdk.Razor">
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
 	<PropertyGroup>
 		<TargetFramework>net10.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
+		<NoWarn>CSS001</NoWarn>
 	</PropertyGroup>
-
-	<ItemGroup>
-	  <Content Remove="uno - 复制.config" />
-	</ItemGroup>
 
 	<ItemGroup>
 		<SupportedPlatform Include="browser" />
@@ -16,7 +13,9 @@
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.0-rc.2.25502.107" />
+		<PackageReference Include="Microsoft.Extensions.Localization" Version="10.0.0-rc.2.25502.107" />
 	</ItemGroup>
+
 
 	<Target Name="PreBuild" BeforeTargets="PreBuildEvent">
 		<Exec Command="npm run build:css" />

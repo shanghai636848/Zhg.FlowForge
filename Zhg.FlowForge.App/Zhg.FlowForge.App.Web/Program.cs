@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Localization;
+using System.Globalization;
 using Zhg.FlowForge.App.Shared.Services;
 using Zhg.FlowForge.App.Web.Components;
 
@@ -9,8 +11,13 @@ builder.Services.AddRazorComponents()
     .AddInteractiveWebAssemblyComponents();
 
 builder.Services.AddScoped<ScrollService>();
+builder.Services.AddSingleton<ILocalizationService, LocalizationService>();
+
 
 var app = builder.Build();
+
+// 使用本地化中间件
+app.UseRequestLocalization();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

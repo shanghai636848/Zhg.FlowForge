@@ -1,9 +1,966 @@
+﻿/* ========== Tailwind CSS 4 核心导入 ========== */
+@import "tailwindcss";
 
-@unocss preflights;
-@unocss default;
+/* ========== 字体：引入 Inter 字体（支持 300~700 字重） ========== */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-/*
-  Fallback layer. It's always recommended to include.
-  Only unused layers will be injected here.
-*/
-@unocss;
+/* ========== 盒模型：统一使用 border-box ========== */
+*,
+::before,
+::after {
+    box-sizing: border-box; /* 所有元素和伪元素使用 border-box 盒模型 */
+}
+
+/* ========== 响应式根字体：使用 CSS 变量和 clamp() 实现流畅缩放 ========== */
+:root {
+    --font-size-base: clamp(14px, 0.875rem + 0.25vw, 18px); /* 基础字体大小动态调整 */
+}
+
+html {
+    font-size: var(--font-size-base); /* 应用动态字体大小 */
+    scroll-behavior: smooth; /* 启用平滑滚动 */
+}
+
+/* ========== 全局页面样式 ========== */
+html {
+    line-height: 1.6; /* 基础行高设置 */
+    color: #171717; /* 主文本颜色 */
+    background-color: #fafafa; /* 背景颜色 */
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; /* 字体栈 */
+}
+
+body {
+    line-height: inherit; /* 继承 html 的行高 */
+    color: inherit; /* 继承 html 的文本颜色 */
+    background-color: inherit; /* 继承 html 的背景色 */
+    font-family: inherit; /* 继承 html 的字体 */
+}
+
+/* ========== 自定义主题配置 ========== */
+@theme {
+    /* 扩展断点系统 - 支持超宽屏设备 */
+    --breakpoint-3xl: 120rem; /* 1920px 断点 */
+    --breakpoint-4xl: 128rem; /* 2048px 断点 */
+    --breakpoint-5xl: 160rem; /* 2560px 断点 */
+    --breakpoint-6xl: 180rem; /* 2880px 断点 */
+    --breakpoint-7xl: 215rem; /* 3440px 断点 */
+    --breakpoint-8xl: 240rem; /* 3840px 断点 */
+    --breakpoint-9xl: 256rem; /* 4096px 断点 */
+    /* 容器查询尺寸 - 用于容器查询布局 */
+    --container-8xl: 240rem; /* 3840px 容器尺寸 */
+    --container-9xl: 256rem; /* 4096px 容器尺寸 */
+}
+
+/* ========== 组件样式系统 ========== */
+@layer components {
+
+    /* ========== 按钮组件系统 ========== */
+    .btn {
+        @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border-none px-6 py-3 font-medium transition-all duration-200 ease-in-out; /* 基础按钮样式 */
+    }
+
+        .btn:focus-visible {
+            @apply outline-2 outline-offset-2 outline-blue-500; /* 焦点可见样式 */
+        }
+
+        .btn:disabled {
+            @apply cursor-not-allowed opacity-60; /* 禁用状态样式 */
+        }
+
+    .btn-primary {
+        @apply bg-blue-600 text-white hover:bg-blue-700; /* 主要按钮样式 */
+    }
+
+    .btn-secondary {
+        @apply bg-gray-600 text-white hover:bg-gray-700; /* 次要按钮样式 */
+    }
+
+    .btn-ghost {
+        @apply bg-transparent text-gray-700 hover:bg-gray-100; /* 幽灵按钮样式 */
+    }
+
+    .btn-outline {
+        @apply border border-blue-600 bg-transparent text-blue-600 hover:bg-blue-50; /* 轮廓按钮样式 */
+    }
+
+    .btn-sm {
+        @apply px-4 py-2 text-sm; /* 小尺寸按钮 */
+    }
+
+    .btn-lg {
+        @apply px-8 py-4 text-lg; /* 大尺寸按钮 */
+    }
+
+    /* ========== 卡片组件系统 ========== */
+    .card {
+        @apply rounded-xl border border-gray-100 bg-white p-6 shadow-sm; /* 标准卡片样式 */
+    }
+
+    .card-sm {
+        @apply rounded-lg border border-gray-100 bg-white p-4 shadow-sm; /* 小尺寸卡片 */
+    }
+
+    .card-hover {
+        @apply rounded-xl border border-gray-100 bg-white p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md; /* 悬停效果卡片 */
+    }
+
+    .card-glass {
+        @apply rounded-xl border border-white/20 bg-white/80 p-6 backdrop-blur-sm; /* 毛玻璃效果卡片 */
+    }
+
+    /* ========== 表单组件系统 ========== */
+    .form-input {
+        @apply w-full rounded-lg border border-gray-300 px-3 py-2 transition-colors focus:border-transparent focus:ring-2 focus:ring-blue-500 focus:outline-none; /* 输入框样式 */
+    }
+
+    .form-label {
+        @apply mb-2 block text-sm font-medium text-gray-700; /* 标签样式 */
+    }
+
+    .form-group {
+        @apply mb-4; /* 表单组间距 */
+    }
+
+    .form-error {
+        @apply mt-1 text-sm text-red-600; /* 错误消息样式 */
+    }
+
+    .form-select {
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e"); /* 选择框箭头图标 */
+        @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors pr-10 bg-no-repeat bg-right; /* 选择框样式 */
+        background-position: right 0.5rem center;
+        background-size: 1.5em 1.5em;
+    }
+
+    /* ========== 导航组件系统 ========== */
+    .nav-item {
+        @apply px-4 py-2 text-gray-700 transition-colors hover:text-blue-600; /* 导航项样式 */
+    }
+
+    .nav-item-active {
+        @apply px-4 py-2 font-medium text-blue-600 transition-colors hover:text-blue-600; /* 激活导航项样式 */
+    }
+
+    .nav-dropdown {
+        @apply absolute top-full left-0 z-50 mt-2 w-48 rounded-lg border border-gray-200 bg-white py-2 shadow-lg; /* 下拉导航样式 */
+    }
+
+    .nav-dropdown-item {
+        @apply block px-4 py-2 text-gray-700 hover:bg-gray-50 hover:text-blue-600; /* 下拉项样式 */
+    }
+
+    /* ========== 徽章组件系统 ========== */
+    .badge {
+        @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium; /* 基础徽章样式 */
+    }
+
+    .badge-primary {
+        @apply inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800; /* 主要徽章 */
+    }
+
+    .badge-success {
+        @apply inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800; /* 成功徽章 */
+    }
+
+    .badge-warning {
+        @apply inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800; /* 警告徽章 */
+    }
+
+    .badge-error {
+        @apply inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800; /* 错误徽章 */
+    }
+
+    .badge-gray {
+        @apply inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800; /* 灰色徽章 */
+    }
+
+    /* ========== 警告框组件系统 ========== */
+    .alert {
+        @apply rounded-lg border p-4; /* 基础警告框样式 */
+    }
+
+    .alert-info {
+        @apply rounded-lg border border-blue-200 bg-blue-50 p-4 text-blue-800; /* 信息警告框 */
+    }
+
+    .alert-success {
+        @apply rounded-lg border border-green-200 bg-green-50 p-4 text-green-800; /* 成功警告框 */
+    }
+
+    .alert-warning {
+        @apply rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-yellow-800; /* 警告框 */
+    }
+
+    .alert-error {
+        @apply rounded-lg border border-red-200 bg-red-50 p-4 text-red-800; /* 错误警告框 */
+    }
+
+    /* ========== 加载组件系统 ========== */
+    .spinner {
+        @apply inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent; /* 旋转加载器 */
+    }
+
+    .spinner-lg {
+        @apply inline-block h-6 w-6 animate-spin rounded-full border-2 border-current border-t-transparent; /* 大尺寸加载器 */
+    }
+
+    .spinner-sm {
+        @apply inline-block h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent; /* 小尺寸加载器 */
+    }
+
+    .skeleton {
+        @apply animate-pulse rounded bg-gray-200; /* 骨架屏样式 */
+    }
+
+    .skeleton-text {
+        @apply h-4 animate-pulse rounded bg-gray-200; /* 文本骨架屏 */
+    }
+
+    .skeleton-circle {
+        @apply animate-pulse rounded-full bg-gray-200; /* 圆形骨架屏 */
+    }
+
+    /* ========== 模态框组件系统 ========== */
+    .modal-overlay {
+        @apply fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm; /* 模态框遮罩 */
+    }
+
+    .modal-content {
+        @apply mx-auto w-full max-w-md rounded-2xl bg-white shadow-xl; /* 模态框内容 */
+    }
+
+    .modal-header {
+        @apply flex items-center justify-between border-b border-gray-200 p-6; /* 模态框头部 */
+    }
+
+    .modal-body {
+        @apply p-6; /* 模态框主体 */
+    }
+
+    .modal-footer {
+        @apply flex items-center justify-end gap-3 border-t border-gray-200 p-6; /* 模态框底部 */
+    }
+
+    .modal-close {
+        @apply rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600; /* 关闭按钮 */
+    }
+
+    /* ========== 工具提示组件系统 ========== */
+    .tooltip {
+        @apply absolute z-50 rounded-lg bg-gray-900 px-3 py-2 text-sm whitespace-nowrap text-white shadow-sm; /* 工具提示基础 */
+    }
+
+    .tooltip-arrow {
+        @apply absolute h-2 w-2 rotate-45 transform bg-gray-900; /* 工具提示箭头 */
+    }
+
+    /* ========== 标签页组件系统 ========== */
+    .tabs {
+        @apply flex border-b border-gray-200; /* 标签页容器 */
+    }
+
+    .tab {
+        @apply border-b-2 border-transparent px-4 py-2 text-gray-600 transition-colors hover:border-gray-300 hover:text-gray-900; /* 标签项 */
+    }
+
+    .tab-active {
+        @apply border-b-2 border-blue-600 px-4 py-2 text-blue-600 transition-colors hover:border-blue-600 hover:text-blue-600; /* 激活标签 */
+    }
+
+    .tab-content {
+        @apply py-4; /* 标签内容 */
+    }
+}
+
+/* ========== 工具类系统 ========== */
+@layer utilities {
+
+    /* ========== Flex 布局工具 ========== */
+    .flex-center {
+        @apply flex items-center justify-center;
+    }
+    /* 完全居中 */
+    .flex-h-center {
+        @apply flex justify-center;
+    }
+    /* 水平居中 */
+    .flex-v-center {
+        @apply flex items-center;
+    }
+    /* 垂直居中 */
+    .flex-between {
+        @apply flex items-center justify-between;
+    }
+    /* 两端对齐 */
+    .flex-around {
+        @apply flex items-center justify-around;
+    }
+    /* 周围分布 */
+    .flex-evenly {
+        @apply flex items-center justify-evenly;
+    }
+    /* 均匀分布 */
+    .flex-col-center {
+        @apply flex flex-col items-center justify-center;
+    }
+    /* 列方向居中 */
+    .flex-col-top-center {
+        @apply flex flex-col items-center;
+    }
+    /* 列方向顶部居中 */
+    .flex-wrap {
+        @apply flex flex-wrap;
+    }
+    /* 允许换行 */
+    .flex-wrap-reverse {
+        @apply flex flex-wrap-reverse;
+    }
+    /* 反向换行 */
+
+    /* ========== Grid 布局工具 ========== */
+    .grid-2 {
+        @apply grid grid-cols-2 gap-4;
+    }
+    /* 2列网格 */
+    .grid-3 {
+        @apply grid grid-cols-3 gap-4;
+    }
+    /* 3列网格 */
+    .grid-4 {
+        @apply grid grid-cols-4 gap-4;
+    }
+    /* 4列网格 */
+    .grid-auto-fit {
+        @apply grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-4;
+    }
+    /* 自动适应列 */
+    .grid-auto-fill {
+        @apply grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4;
+    }
+    /* 自动填充列 */
+    .grid-center {
+        @apply grid place-items-center;
+    }
+    /* 网格内完全居中 */
+    .grid-content-center {
+        @apply grid place-content-center;
+    }
+    /* 网格内容居中 */
+
+    /* ========== 容器布局工具 ========== */
+    .container-full {
+        @apply mx-auto w-full;
+    }
+    /* 全宽容器 */
+    .container-full-sm {
+        @apply mx-auto w-full max-w-screen-sm;
+    }
+    /* sm 容器 */
+    .container-full-md {
+        @apply mx-auto w-full max-w-screen-md;
+    }
+    /* md 容器 */
+    .container-full-lg {
+        @apply mx-auto w-full max-w-screen-lg;
+    }
+    /* lg 容器 */
+    .container-full-xl {
+        @apply mx-auto w-full max-w-screen-xl;
+    }
+    /* xl 容器 */
+    .container-full-2xl {
+        @apply mx-auto w-full max-w-screen-2xl;
+    }
+    /* 2xl 容器 */
+    .container-full-3xl {
+        @apply mx-auto w-full max-w-[120rem];
+    }
+    /* 3xl 容器 */
+    .container-full-4xl {
+        @apply mx-auto w-full max-w-[128rem];
+    }
+    /* 4xl 容器 */
+    .container-full-5xl {
+        @apply mx-auto w-full max-w-[160rem];
+    }
+    /* 5xl 容器 */
+    .container-full-6xl {
+        @apply mx-auto w-full max-w-[180rem];
+    }
+    /* 6xl 容器 */
+    .container-full-7xl {
+        @apply mx-auto w-full max-w-[215rem];
+    }
+    /* 7xl 容器 */
+    .container-full-8xl {
+        @apply mx-auto w-full max-w-[240rem];
+    }
+    /* 8xl 容器 */
+    .container-full-9xl {
+        @apply mx-auto w-full max-w-[256rem];
+    }
+    /* 9xl 容器 */
+
+    /* ========== 间距工具 ========== */
+    .section-gap {
+        @apply py-12;
+    }
+    /* 标准区块间距 */
+    .section-gap-sm {
+        @apply py-8;
+    }
+    /* 小号区块间距 */
+    .section-gap-lg {
+        @apply py-20;
+    }
+    /* 大号区块间距 */
+    .section-gap-xl {
+        @apply py-24;
+    }
+    /* 特大区块间距 */
+    .content-gap {
+        @apply space-y-6;
+    }
+    /* 内容间距 */
+    .content-gap-sm {
+        @apply space-y-4;
+    }
+    /* 小号内容间距 */
+    .content-gap-lg {
+        @apply space-y-8;
+    }
+    /* 大号内容间距 */
+
+    /* ========== 定位工具 ========== */
+    .fixed-cover {
+        @apply fixed inset-0;
+    }
+    /* 全屏覆盖定位 */
+    .fixed-top {
+        @apply fixed top-0 right-0 left-0 z-50;
+    }
+    /* 顶部固定定位 */
+    .fixed-bottom {
+        @apply fixed right-0 bottom-0 left-0 z-50;
+    }
+    /* 底部固定定位 */
+    .sticky-top {
+        @apply sticky top-0 z-40;
+    }
+    /* 顶部粘性定位 */
+    .sticky-offset {
+        @apply sticky top-16 z-30;
+    }
+    /* 偏移粘性定位 */
+    .absolute-center {
+        @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transform;
+    }
+    /* 绝对居中 */
+    .absolute-h-center {
+        @apply absolute left-1/2 -translate-x-1/2 transform;
+    }
+    /* 水平绝对居中 */
+    .absolute-v-center {
+        @apply absolute top-1/2 -translate-y-1/2 transform;
+    }
+    /* 垂直绝对居中 */
+
+    /* ========== 显示控制工具 ========== */
+    .hidden-xs {
+        @apply hidden sm:block;
+    }
+    /* 小屏隐藏 */
+    .visible-xs {
+        @apply block sm:hidden;
+    }
+    /* 小屏显示 */
+    .sr-only {
+        @apply absolute -m-px h-px w-px overflow-hidden border-0 p-0 whitespace-nowrap;
+    }
+    /* 屏幕阅读器专用 */
+    .visually-hidden {
+        @apply sr-only;
+    }
+    /* 视觉隐藏 */
+
+    /* ========== 响应式网格工具 ========== */
+    .grid-responsive-2 {
+        @apply grid grid-cols-1 gap-4 sm:grid-cols-2;
+    }
+    /* 2列响应式网格 */
+    .grid-responsive-3 {
+        @apply grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3;
+    }
+    /* 3列响应式网格 */
+    .grid-responsive-4 {
+        @apply grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4;
+    }
+    /* 4列响应式网格 */
+
+    /* ========== 过渡动画工具 ========== */
+    .transition-smooth {
+        @apply transition-colors duration-300 ease-in-out;
+    }
+    /* 平滑颜色过渡 */
+    .transition-fast {
+        @apply transition-all duration-150 ease-in;
+    }
+    /* 快速过渡 */
+    .transition-slow {
+        @apply transition-all duration-500 ease-out;
+    }
+    /* 慢速过渡 */
+    .hover-scale {
+        @apply transition-transform duration-200 ease-out hover:scale-[1.02];
+    }
+    /* 悬停缩放 */
+    .hover-lift {
+        @apply transition-shadow duration-200 hover:shadow-md;
+    }
+    /* 悬停提升 */
+    .press-scale {
+        @apply transition-transform active:scale-95;
+    }
+    /* 按压缩放 */
+
+    /* ========== 文本样式工具 ========== */
+    .text-h1 {
+        @apply text-4xl font-bold tracking-tight;
+    }
+    /* 一级标题 */
+    .text-h2 {
+        @apply text-3xl font-semibold;
+    }
+    /* 二级标题 */
+    .text-h3 {
+        @apply text-2xl font-medium;
+    }
+    /* 三级标题 */
+    .text-h4 {
+        @apply text-xl font-medium;
+    }
+    /* 四级标题 */
+    .text-body {
+        @apply text-base leading-relaxed;
+    }
+    /* 正文文本 */
+    .text-body-sm {
+        @apply text-sm leading-relaxed;
+    }
+    /* 小号正文 */
+    .text-body-lg {
+        @apply text-lg leading-relaxed;
+    }
+    /* 大号正文 */
+    .link-primary {
+        @apply text-blue-600 underline transition-colors hover:text-blue-800;
+    }
+    /* 主要链接 */
+    .link-secondary {
+        @apply text-gray-600 underline transition-colors hover:text-gray-800;
+    }
+    /* 次要链接 */
+    .text-ellipsis {
+        @apply truncate;
+    }
+    /* 单行省略 */
+    .text-ellipsis-2 {
+        @apply overflow-hidden;
+        display: -webkit-box; /* Webkit 多行省略 */
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+
+    .text-ellipsis-3 {
+        @apply overflow-hidden;
+        display: -webkit-box; /* Webkit 三行省略 */
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+    }
+
+    /* ========== 背景与边框工具 ========== */
+    .bg-gradient-primary {
+        @apply bg-gradient-to-r from-blue-600 to-purple-600;
+    }
+    /* 主要渐变 */
+    .bg-gradient-secondary {
+        @apply bg-gradient-to-r from-gray-600 to-gray-700;
+    }
+    /* 次要渐变 */
+    .bg-gradient-success {
+        @apply bg-gradient-to-r from-green-500 to-emerald-600;
+    }
+    /* 成功渐变 */
+    .border-light {
+        @apply border border-gray-200;
+    }
+    /* 浅色边框 */
+    .border-medium {
+        @apply border border-gray-300;
+    }
+    /* 中等边框 */
+    .border-heavy {
+        @apply border-2 border-gray-400;
+    }
+    /* 粗边框 */
+    .border-dashed-light {
+        @apply border border-dashed border-gray-300;
+    }
+    /* 虚线边框 */
+
+    /* ========== 卡片工具类 ========== */
+    .p-card {
+        @apply rounded-xl bg-white p-6 shadow-sm;
+    }
+    /* 标准卡片样式 */
+    .p-card-sm {
+        @apply rounded-lg bg-white p-4 shadow;
+    }
+    /* 小号卡片样式 */
+
+    /* ========== 现代布局工具 ========== */
+    .aspect-video {
+        @apply aspect-video;
+    }
+    /* 视频比例 */
+    .aspect-square {
+        @apply aspect-square;
+    }
+    /* 正方形比例 */
+    .full-viewport {
+        @apply h-screen w-screen;
+    }
+    /* 全视口尺寸 */
+    .min-h-screen-dynamic {
+        @apply min-h-screen;
+    }
+    /* 动态最小高度 */
+
+    /* ========== 滚动行为工具 ========== */
+    .scroll-smooth {
+        @apply scroll-smooth;
+    }
+    /* 平滑滚动 */
+    .scroll-hidden {
+        -ms-overflow-style: none; /* IE 隐藏滚动条 */
+        scrollbar-width: none; /* Firefox 隐藏滚动条 */
+    }
+
+        .scroll-hidden::-webkit-scrollbar {
+            display: none; /* Webkit 隐藏滚动条 */
+        }
+
+    .scroll-thin {
+        scrollbar-width: thin; /* 细滚动条 */
+        scrollbar-color: theme(colors.gray.300) transparent; /* 滚动条颜色 */
+    }
+
+    /* ========== 交互状态工具 ========== */
+    .group-hover-scale-105 {
+        @apply transition-transform duration-200 group-hover:scale-105;
+    }
+    /* 组悬停缩放 */
+    .peer-valid-border-green {
+        @apply peer-valid:border-green-500;
+    }
+    /* 对等验证边框 */
+    .focus-ring {
+        @apply focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none;
+    }
+    /* 焦点环 */
+    .focus-ring-inset {
+        @apply focus:ring-2 focus:ring-blue-500 focus:outline-none focus:ring-inset;
+    }
+    /* 内嵌焦点环 */
+
+    /* ========== 变换工具 ========== */
+    .rotate-45 {
+        @apply rotate-45;
+    }
+    /* 45度旋转 */
+    .rotate-90 {
+        @apply rotate-90;
+    }
+    /* 90度旋转 */
+    .rotate-180 {
+        @apply rotate-180;
+    }
+    /* 180度旋转 */
+    .scale-105 {
+        @apply scale-105;
+    }
+    /* 105% 缩放 */
+    .scale-95 {
+        @apply scale-95;
+    }
+    /* 95% 缩放 */
+    .translate-x-full {
+        @apply translate-x-full;
+    }
+    /* 水平完全移动 */
+    .translate-y-full {
+        @apply translate-y-full;
+    }
+    /* 垂直完全移动 */
+
+    /* ========== 滤镜效果工具 ========== */
+    .backdrop-blur-light {
+        @apply backdrop-blur-sm;
+    }
+    /* 轻度背景模糊 */
+    .backdrop-blur-medium {
+        @apply backdrop-blur-md;
+    }
+    /* 中度背景模糊 */
+    .backdrop-blur-heavy {
+        @apply backdrop-blur-lg;
+    }
+    /* 重度背景模糊 */
+    .blur-extra-light {
+        @apply blur-sm;
+    }
+    /* 轻度模糊 */
+    .blur-light {
+        @apply blur;
+    }
+    /* 标准模糊 */
+    .grayscale {
+        @apply grayscale;
+    }
+    /* 灰度效果 */
+    .grayscale-hover {
+        @apply grayscale transition-all hover:grayscale-0;
+    }
+    /* 悬停取消灰度 */
+
+    /* ========== 打印优化工具 ========== */
+    .print-hidden {
+        @apply print:hidden;
+    }
+    /* 打印时隐藏 */
+    .print-visible {
+        @apply hidden print:block;
+    }
+    /* 仅打印时显示 */
+    .print-break-before {
+        @apply print:break-before-page;
+    }
+    /* 打印前分页 */
+    .print-break-after {
+        @apply print:break-after-page;
+    }
+    /* 打印后分页 */
+    .print-break-inside-avoid {
+        @apply print:break-inside-avoid;
+    }
+    /* 避免内容分页 */
+}
+
+/* ========== 深色模式样式 ========== */
+@layer utilities {
+    @media (prefers-color-scheme: dark) {
+        .dark-card {
+            @apply border-gray-700 bg-gray-800 text-white;
+        }
+        /* 深色卡片 */
+        .dark-text {
+            @apply text-gray-100;
+        }
+        /* 深色文本 */
+        .dark-bg {
+            @apply bg-gray-900;
+        }
+        /* 深色背景 */
+    }
+}
+
+/* ========== 减少动画支持 ========== */
+@layer utilities {
+    @media (prefers-reduced-motion: reduce) {
+        .motion-safe {
+            @apply animate-none transition-none; /* 无动画安全模式 */
+        }
+    }
+}
+
+/* ========== 高对比度支持 ========== */
+@layer utilities {
+    @media (prefers-contrast: high) {
+        .high-contrast {
+            @apply border-2 border-current; /* 高对比度边框 */
+        }
+    }
+}
+
+/* ========== 毛玻璃效果支持 ========== */
+@layer utilities {
+    @supports (backdrop-filter: blur(1px)) {
+        .backdrop-glass {
+            @apply bg-white/80 backdrop-blur-lg; /* 毛玻璃效果 */
+        }
+    }
+}
+
+/* ========== 网格布局支持 ========== */
+@layer utilities {
+    @supports (display: grid) {
+        .grid-fallback {
+            @apply grid; /* 网格布局回退 */
+        }
+    }
+}
+
+/* ========== 悬停效果变体 ========== */
+@layer utilities {
+    .hover-glow:hover {
+        @apply shadow-lg shadow-blue-500/25; /* 悬停发光效果 */
+    }
+
+    .hover-shake:hover {
+        animation: shake 0.5s ease-in-out; /* 悬停抖动效果 */
+    }
+}
+
+/* ========== 焦点状态变体 ========== */
+@layer utilities {
+    .focus-slide:focus {
+        @apply translate-x-2; /* 焦点滑动效果 */
+    }
+}
+
+/* ========== 动画关键帧 ========== */
+@layer utilities {
+    @keyframes shake {
+        0%, 100% {
+            transform: translateX(0);
+        }
+        /* 抖动动画关键帧 */
+        25% {
+            transform: translateX(-5px);
+        }
+
+        75% {
+            transform: translateX(5px);
+        }
+    }
+
+    @keyframes fade-in {
+        from {
+            opacity: 0;
+        }
+        /* 淡入动画 */
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes slide-up {
+        from {
+            opacity: 0; /* 上滑动画 */
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes slide-down {
+        from {
+            opacity: 0; /* 下滑动画 */
+            transform: translateY(-20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes bounce-soft {
+        0%, 100% {
+            transform: translateY(0); /* 柔和弹跳 */
+        }
+
+        50% {
+            transform: translateY(-10px);
+        }
+    }
+
+    .animate-shake {
+        animation: shake 0.5s ease-in-out;
+    }
+    /* 抖动动画类 */
+    .animate-fade-in {
+        animation: fade-in 0.3s ease-out;
+    }
+    /* 淡入动画类 */
+    .animate-slide-up {
+        animation: slide-up 0.4s ease-out;
+    }
+    /* 上滑动画类 */
+    .animate-slide-down {
+        animation: slide-down 0.4s ease-out;
+    }
+    /* 下滑动画类 */
+    .animate-bounce-soft {
+        animation: bounce-soft 2s infinite;
+    }
+    /* 柔和弹跳类 */
+}
+
+/* ========== 打印样式优化 ========== */
+@media print {
+    .print-break-after {
+        page-break-after: always;
+    }
+    /* 打印分页 */
+    .print-break-before {
+        page-break-before: always;
+    }
+    /* 打印前分页 */
+    .print-break-inside-avoid {
+        page-break-inside: avoid;
+    }
+    /* 避免内容分割 */
+    .no-print {
+        display: none !important;
+    }
+    /* 不打印元素 */
+
+    /* 打印颜色调整 */
+    * {
+        -webkit-print-color-adjust: exact !important; /* Webkit 打印颜色精确 */
+        color-adjust: exact !important; /* 标准打印颜色精确 */
+    }
+
+    /* 打印链接显示URL */
+    a[href]::after {
+        content: " (" attr(href) ")"; /* 打印时显示链接地址 */
+    }
+
+    /* 打印背景保持 */
+    .bg-print-safe {
+        -webkit-print-color-adjust: exact;
+        color-adjust: exact;
+    }
+}
+
+/* ========== 辅助功能优化 ========== */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important; /* 减少动画持续时间 */
+        animation-iteration-count: 1 !important; /* 减少动画迭代次数 */
+        transition-duration: 0.01ms !important; /* 减少过渡持续时间 */
+    }
+}
+
+/* ========== 选择文本样式 ========== */
+::selection {
+    @apply bg-blue-200 text-blue-900; /* 文本选择背景和颜色 */
+}
+
+::-moz-selection {
+    @apply bg-blue-200 text-blue-900; /* Firefox 文本选择 */
+}
