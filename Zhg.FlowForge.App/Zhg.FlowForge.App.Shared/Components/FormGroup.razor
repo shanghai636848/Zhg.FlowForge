@@ -1,0 +1,12 @@
+﻿<div class="flex flex-col space-y-2">
+    <label class="flex items-center text-sm font-medium text-gray-700">
+        <i class="fas @Icon mr-2"></i> @Label
+    </label>
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public string Label { get; set; } = "";
+    [Parameter] public string Icon { get; set; } = "";
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

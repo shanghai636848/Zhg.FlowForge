@@ -1,0 +1,39 @@
+﻿
+<div class="flex w-56 flex-col overflow-hidden border-r border-gray-200 bg-white">
+    <!-- 面板头部 -->
+    <div class="flex items-center justify-between border-b border-gray-200 bg-gray-50 px-4 py-3">
+        <span class="text-sm font-semibold tracking-wide text-gray-700 uppercase">工具箱</span>
+        <i class="fas fa-puzzle-piece text-sm text-gray-500"></i>
+    </div>
+
+    <!-- 面板内容 -->
+    <div class="flex flex-1 flex-col space-y-4 overflow-y-auto p-3">
+        <!-- 流程控制 -->
+        <ToolCategory Title="流程控制" Icon="fa-sitemap">
+            <ToolItem Type="bpmn:StartEvent" Icon="fa-play-circle" Label="开始" />
+            <ToolItem Type="bpmn:EndEvent" Icon="fa-stop-circle" Label="结束" />
+            <ToolItem Type="bpmn:ExclusiveGateway" Icon="fa-code-branch" Label="排他" />
+            <ToolItem Type="bpmn:ParallelGateway" Icon="fa-plus-circle" Label="并行" />
+            <ToolItem Type="bpmn:InclusiveGateway" Icon="fa-circle" Label="包容" />
+            <ToolItem Type="bpmn:EventBasedGateway" Icon="fa-share-alt" Label="事件" />
+        </ToolCategory>
+
+        <!-- 任务类型 -->
+        <ToolCategory Title="任务类型" Icon="fa-tasks">
+            <ToolItem Type="bpmn:Task" Icon="fa-square" Label="任务" />
+            <ToolItem Type="bpmn:UserTask" Icon="fa-user" Label="用户" />
+            <ToolItem Type="bpmn:ServiceTask" Icon="fa-cogs" Label="服务" />
+            <ToolItem Type="bpmn:ManualTask" Icon="fa-hand-paper" Label="手动" />
+            <ToolItem Type="bpmn:BusinessRuleTask" Icon="fa-gavel" Label="规则" />
+            <ToolItem Type="bpmn:ScriptTask" Icon="fa-code" Label="脚本" />
+        </ToolCategory>
+
+        <!-- 其他元素 -->
+        <ToolCategory Title="其他元素" Icon="fa-shapes">
+            <ToolItem Type="bpmn:SubProcess" Icon="fa-th-large" Label="子流程" />
+            <ToolItem Type="bpmn:CallActivity" Icon="fa-phone-alt" Label="调用" />
+            <ToolItem Type="bpmn:DataObjectReference" Icon="fa-file-alt" Label="数据" />
+            <ToolItem Type="bpmn:DataStoreReference" Icon="fa-database" Label="存储" />
+        </ToolCategory>
+    </div>
+</div>

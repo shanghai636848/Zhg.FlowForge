@@ -1,0 +1,36 @@
+﻿
+<div class="tool-category">
+    <div class="flex cursor-pointer items-center justify-between rounded px-3 py-2 font-semibold text-gray-700 transition-colors select-none hover:bg-gray-50"
+         @onclick="ToggleCategory">
+        <span class="text-sm">
+            <i class="fas @Icon mr-2"></i> @Title
+        </span>
+        <span class="text-xs transition-transform duration-200 @(IsCollapsed ? "-rotate-90" : "")">
+            <i class="fas fa-chevron-down"></i>
+        </span>
+    </div>
+
+    <div class="@GetCategoryItemsClass()">
+        @ChildContent
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string Icon { get; set; } = "";
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private bool IsCollapsed { get; set; } = false;
+
+    private void ToggleCategory()
+    {
+        IsCollapsed = !IsCollapsed;
+    }
+
+    private string GetCategoryItemsClass()
+    {
+        return IsCollapsed
+            ? "grid grid-cols-3 gap-2 p-2 max-h-0 overflow-hidden transition-all duration-300"
+            : "grid grid-cols-3 gap-2 p-2 max-h-[500px] overflow-hidden transition-all duration-300";
+    }
+}

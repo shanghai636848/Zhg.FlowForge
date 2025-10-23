@@ -1,1 +1,330 @@
-﻿
+﻿@using Zhg.FlowForge.App.Shared.Components
+@page "/"
+@implements IAsyncDisposable
+
+<div class="flex flex-1 overflow-hidden bg-gray-100">
+    <LeftPanel />
+    
+    <CenterPanel 
+        CurrentZoom="CurrentZoom"
+        OnSaveBpmn="SaveBpmn"
+        OnLoadBpmn="LoadBpmn"
+        OnExportBpmn="ExportBpmn"
+        OnImportBpmn="ImportBpmn"
+        OnUndo="Undo"
+        OnRedo="Redo"
+        OnZoomIn="ZoomIn"
+        OnZoomOut="ZoomOut"
+        OnFitViewport="FitViewport"
+        OnResetZoom="ResetZoom" />
+        
+    <RightPanel 
+        SelectedElementId="SelectedElementId"
+        SelectedElementType="SelectedElementType"
+        SelectedElementName="SelectedElementName"
+        IsSequenceFlowSelected="IsSequenceFlowSelected"
+        IsTaskSelected="IsTaskSelected"
+        OnUpdateProperty="HandleUpdateProperty"
+        OnUpdateDocumentation="HandleUpdateDocumentation"
+        OnUpdateServiceClass="HandleUpdateServiceClass"
+        OnAddInputParam="AddInputParam"
+        OnAddOutputParam="AddOutputParam"
+        OnOpenConditionBuilder="OpenConditionBuilder" />
+</div>
+
+@code {
+    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
+    
+    private IJSObjectReference? _jsModule;
+    private DotNetObjectReference<BpmnEditor>? _dotnetHelper;
+    
+    // 状态变量
+    public int ElementCount { get; private set; } = 0;
+    public double CurrentZoom { get; private set; } = 1.0;
+    public string? SelectedElementId { get; private set; }
+    public string SelectedElementType { get; private set; } = string.Empty;
+    public string SelectedElementName { get; private set; } = string.Empty;
+    public bool IsSequenceFlowSelected { get; private set; } = false;
+    public bool IsTaskSelected { get; private set; } = false;
+
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await InitializeBpmnJs();
+        }
+    }
+
+    private async Task InitializeBpmnJs()
+    {
+        if (_jsModule is not null) return;
+
+        try
+        {
+            _jsModule = await JSRuntime.InvokeAsync<IJSObjectReference>(
+                "import", "./_content/Zhg.FlowForge.App.Shared/js/bpmn-interop.js");
+            _dotnetHelper = DotNetObjectReference.Create(this);
+            
+            var success = await _jsModule.InvokeAsync<bool>(
+                "initBpmnModeler", _dotnetHelper, "canvas");
+            
+            if (success)
+            {
+                Console.WriteLine("BPMN.js initialized successfully");
+            }
+            else
+            {
+                Console.WriteLine("Failed to initialize BPMN.js");
+            }
+        }
+        catch (JSException ex)
+        {
+            Console.WriteLine($"BPMN.js init failed: {ex.Message}");
+        }
+    }
+
+    [JSInvokable]
+    public async Task OnElementSelected(string elementId, string elementType, string elementName)
+    {
+        SelectedElementId = elementId;
+        SelectedElementType = elementType;
+        SelectedElementName = elementName;
+        IsSequenceFlowSelected = elementType == "bpmn:SequenceFlow";
+        IsTaskSelected = IsTaskType(elementType);
+
+        if (_jsModule is not null)
+        {
+            await _jsModule.InvokeVoidAsync("setCurrentElement", elementId);
+        }
+
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public async Task OnElementDeselected()
+    {
+        SelectedElementId = null;
+        SelectedElementType = string.Empty;
+        SelectedElementName = string.Empty;
+        IsSequenceFlowSelected = false;
+        IsTaskSelected = false;
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public async Task OnElementChanged(string elementId, string elementType)
+    {
+        await UpdateElementCount();
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public async Task OnZoomChanged(double zoomLevel)
+    {
+        CurrentZoom = zoomLevel;
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public async Task OnParametersUpdated()
+    {
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public async Task OnDiagramSaved()
+    {
+        Console.WriteLine("Diagram saved successfully");
+    }
+
+    [JSInvokable]
+    public async Task OnDiagramLoaded()
+    {
+        await UpdateElementCount();
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public async Task OnDiagramImported()
+    {
+        await UpdateElementCount();
+        StateHasChanged();
+    }
+
+    private async Task UpdateElementCount()
+    {
+        if (_jsModule is not null)
+        {
+            ElementCount = await _jsModule.InvokeAsync<int>("getElementCount");
+        }
+    }
+
+    private bool IsTaskType(string type)
+    {
+        return !string.IsNullOrEmpty(type) && 
+               (type.Contains("Task") || type == "bpmn:SubProcess" || type == "bpmn:CallActivity");
+    }
+
+    // 属性更新方法 - 修复方法签名
+    private async Task UpdateProperty(string key, string? value)
+    {
+        if (_jsModule is not null && !string.IsNullOrEmpty(value))
+        {
+            await _jsModule.InvokeVoidAsync("updateProp", key, value);
+        }
+    }
+
+    // 适配器方法用于 EventCallback
+    private async Task HandleUpdateProperty((string key, string? value) args)
+    {
+        await UpdateProperty(args.key, args.value);
+    }
+
+    private async Task UpdateDocumentation(string? value)
+    {
+        if (_jsModule is not null)
+        {
+            await _jsModule.InvokeVoidAsync("updateDocumentation", value ?? "");
+        }
+    }
+
+    // 适配器方法用于 EventCallback
+    private async Task HandleUpdateDocumentation(string? value)
+    {
+        await UpdateDocumentation(value);
+    }
+
+    private async Task UpdateServiceClass(string? value)
+    {
+        if (_jsModule is not null)
+        {
+            await _jsModule.InvokeVoidAsync("updateServiceClass", value ?? "");
+        }
+    }
+
+    // 适配器方法用于 EventCallback
+    private async Task HandleUpdateServiceClass(string? value)
+    {
+        await UpdateServiceClass(value);
+    }
+
+    // 文件操作方法
+    public async Task SaveBpmn()
+    {
+        if (_jsModule is not null)
+        {
+            await _jsModule.InvokeVoidAsync("saveBpmn");
+        }
+    }
+
+    public async Task LoadBpmn()
+    {
+        if (_jsModule is not null)
+        {
+            await _jsModule.InvokeVoidAsync("loadBpmn");
+        }
+    }
+
+    public async Task ExportBpmn()
+    {
+        if (_jsModule is not null)
+        {
+            await _jsModule.InvokeVoidAsync("exportBpmn");
+        }
+    }
+
+    public async Task ImportBpmn()
+    {
+        if (_jsModule is not null)
+        {
+            await _jsModule.InvokeVoidAsync("importBpmn");
+        }
+    }
+
+    // 编辑操作
+    public async Task Undo()
+    {
+        if (_jsModule is not null)
+        {
+            await _jsModule.InvokeVoidAsync("undo");
+        }
+    }
+
+    public async Task Redo()
+    {
+        if (_jsModule is not null)
+        {
+            await _jsModule.InvokeVoidAsync("redo");
+        }
+    }
+
+    // 视图控制
+    public async Task ZoomIn()
+    {
+        if (_jsModule is not null)
+        {
+            await _jsModule.InvokeVoidAsync("zoomIn");
+        }
+    }
+
+    public async Task ZoomOut()
+    {
+        if (_jsModule is not null)
+        {
+            await _jsModule.InvokeVoidAsync("zoomOut");
+        }
+    }
+
+    public async Task FitViewport()
+    {
+        if (_jsModule is not null)
+        {
+            await _jsModule.InvokeVoidAsync("fitViewport");
+        }
+    }
+
+    public async Task ResetZoom()
+    {
+        if (_jsModule is not null)
+        {
+            await _jsModule.InvokeVoidAsync("resetZoom");
+        }
+    }
+
+    // 参数管理
+    public async Task AddInputParam()
+    {
+        if (_jsModule is not null)
+        {
+            await _jsModule.InvokeVoidAsync("addInputParam");
+        }
+    }
+
+    public async Task AddOutputParam()
+    {
+        if (_jsModule is not null)
+        {
+            await _jsModule.InvokeVoidAsync("addOutputParam");
+        }
+    }
+
+    public async Task OpenConditionBuilder()
+    {
+        if (_jsModule is not null)
+        {
+            await _jsModule.InvokeVoidAsync("openConditionBuilder");
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_jsModule is not null)
+        {
+            await _jsModule.InvokeVoidAsync("disposeBpmnModeler");
+            await _jsModule.DisposeAsync();
+        }
+        
+        _dotnetHelper?.Dispose();
+    }
+}

@@ -1,1 +1,35 @@
 ﻿
+<div class="mx-auto flex h-14 w-14 cursor-grab flex-col items-center justify-center rounded border border-gray-200 bg-gray-50 text-center transition-all duration-200 hover:-translate-y-px hover:border-blue-500 hover:bg-white hover:shadow-sm active:cursor-grabbing"
+     @onmousedown="OnMouseDown">
+    <div class="flex items-center justify-center text-lg text-blue-500">
+        <i class="fas @Icon"></i>
+    </div>
+    <div class="text-xs leading-tight font-medium text-gray-700">@Label</div>
+</div>
+
+@code {
+    [Parameter] public string Type { get; set; } = "";
+    [Parameter] public string Icon { get; set; } = "";
+    [Parameter] public string Label { get; set; } = "";
+
+    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
+
+    private async Task OnMouseDown(MouseEventArgs e)
+    {
+        try
+        {
+            // 直接调用全局函数
+            await JSRuntime.InvokeVoidAsync("createBpmnElement", Type, new
+            {
+                clientX = e.ClientX,
+                clientY = e.ClientY,
+                pageX = e.PageX,
+                pageY = e.PageY
+            });
+        }
+        catch (JSException ex)
+        {
+            Console.WriteLine($"Error creating BPMN element: {ex.Message}");
+        }
+    }
+}

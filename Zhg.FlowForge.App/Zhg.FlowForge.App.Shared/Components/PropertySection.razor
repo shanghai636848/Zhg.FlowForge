@@ -1,0 +1,44 @@
+﻿<div class="overflow-hidden rounded bg-gray-50">
+    <div class="flex cursor-pointer items-center justify-between border-b border-gray-100 bg-white px-4 py-3 font-semibold text-gray-700 select-none hover:bg-gray-50"
+         @onclick="ToggleSection">
+        <span class="text-sm">
+            <i class="fas @Icon mr-2"></i> @Title
+        </span>
+        <span class="text-xs transition-transform duration-200 @(IsCollapsed ? "-rotate-90" : "")">
+            <i class="fas fa-chevron-down"></i>
+        </span>
+    </div>
+
+    <div class="@GetSectionContentClass()">
+        @ChildContent
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string Icon { get; set; } = "";
+    [Parameter] public bool IsVisible { get; set; } = true;
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private bool IsCollapsed { get; set; } = false;
+
+    protected override void OnParametersSet()
+    {
+        if (!IsVisible)
+        {
+            IsCollapsed = true;
+        }
+    }
+
+    private void ToggleSection()
+    {
+        IsCollapsed = !IsCollapsed;
+    }
+
+    private string GetSectionContentClass()
+    {
+        return IsCollapsed
+            ? "flex flex-col max-h-0 overflow-hidden transition-all duration-300 px-4 py-3 space-y-3"
+            : "flex flex-col max-h-[2000px] overflow-hidden transition-all duration-300 px-4 py-3 space-y-3";
+    }
+}
