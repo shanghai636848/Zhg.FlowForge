@@ -1,0 +1,93 @@
+﻿@using static Zhg.FlowForge.App.Shared.Layout.LanguageSwitcher
+<footer class="mt-auto bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 text-white">
+    <div class="container mx-auto">      
+       <div class="flex flex-col items-center justify-between space-y-2 p-4 md:flex-row md:space-y-0">
+                <p class="text-xs text-gray-400">
+                    © @DateTime.Now.Year AppName. @CurrentLanguage.AllRightsReserved
+                </p>
+                <div class="flex space-x-4 text-xs">
+                    <a href="/privacy" class="footer-link">@CurrentLanguage.Privacy</a>
+                    <a href="/terms" class="footer-link">@CurrentLanguage.Terms</a>
+                    <a href="/cookies" class="footer-link">@CurrentLanguage.Cookies</a>
+                </div>
+            </div>
+    </div>
+</footer>
+
+<style>
+    .social-icon {
+        width: 2rem;
+        height: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 0.375rem;
+        transition: all 0.3s;
+        backdrop-filter: blur(10px);
+    }
+    
+    .social-icon:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    .social-icon svg {
+        width: 0.875rem;
+        height: 0.875rem;
+    }
+    
+    .footer-link {
+        color: #d1d5db;
+        font-size: 0.75rem;
+        transition: all 0.2s;
+    }
+    
+    .footer-link:hover {
+        color: #60a5fa;
+        padding-left: 0.125rem;
+    }
+    
+    @@keyframes fade-in {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+    
+    .animate-fade-in {
+        animation: fade-in 0.5s ease-out;
+    }
+</style>
+
+@code {
+    private string email = string.Empty;
+    private string subscribeMessage = string.Empty;
+    
+    [Parameter]
+    public LanguageData CurrentLanguage { get; set; } = LanguageData.English;
+    
+    private void HandleSocialClick(string platform)
+    {
+        // 处理社交媒体点击
+        Console.WriteLine($"Navigating to {platform}");
+    }
+    
+    private async Task SubscribeNewsletter()
+    {
+        if (!string.IsNullOrWhiteSpace(email))
+        {
+            // 这里添加订阅逻辑
+            subscribeMessage = CurrentLanguage.SubscribeSuccess;
+            email = string.Empty;
+            
+            // 3秒后清除消息
+            await Task.Delay(3000);
+            subscribeMessage = string.Empty;
+            StateHasChanged();
+        }
+    }
+}

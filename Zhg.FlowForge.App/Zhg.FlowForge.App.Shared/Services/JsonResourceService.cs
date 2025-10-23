@@ -95,7 +95,7 @@ public class JsonResourceService : IJsonResourceService
                 ["nav.contact"] = "联系我们",
                 ["action.login"] = "登录",
                 ["action.register"] = "注册",
-                ["logo.text"] = "流程锻造",
+                ["logo.text"] = "",
                 ["language.english"] = "English",
                 ["language.chinese"] = "中文",
                 ["language.spanish"] = "Español",
@@ -105,7 +105,7 @@ public class JsonResourceService : IJsonResourceService
             ["en"] = new Dictionary<string, string>
             {
                 ["nav.home"] = "Home",
-                ["nav.products"] = "Products",
+                ["nav.products"] = "",
                 ["nav.about"] = "About Us",
                 ["nav.contact"] = "Contact",
                 ["action.login"] = "Login",

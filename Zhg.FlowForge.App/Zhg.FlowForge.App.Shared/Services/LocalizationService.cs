@@ -155,7 +155,7 @@ public class LocalizationService : ILocalizationService
         return await _jsonService.GetAvailableCulturesAsync();
     }
 
-    public async Task<bool> AddOrUpdateResourceAsync(string key, string value, string culture = null)
+    public async Task<bool> AddOrUpdateResourceAsync(string key, string value, string culture = "")
     {
         culture ??= _currentCulture.Name;
 

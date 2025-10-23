@@ -1,7 +1,7 @@
-﻿@using Zhg.FlowForge.App.Shared.Services
+﻿@using Zhg.FlowForge.App.Shared.Interfaces
+@using Zhg.FlowForge.App.Shared.Services
 
-
-<div class="flex flex-1 flex-row items-center justify-between bg-gray-800 p-2 text-sm text-white">
+<div class="flex flex-1 flex-row items-center justify-between p-2 text-xs">
     <!-- 左侧 Logo -->
     <aside class="basis-1/5">
         @LocalizationService.GetString("logo.text")
@@ -111,7 +111,7 @@
         return new List<ActionButton>
         {
             new() { Text = LocalizationService.GetString("action.login"), Url = "/login", IsPrimary = false },
-            new() { Text = LocalizationService.GetString("action.register"), Url = "/register", IsPrimary = true }
+            new() { Text = LocalizationService.GetString("action.register"), Url = "/register", IsPrimary = false }
         };
     }
 
