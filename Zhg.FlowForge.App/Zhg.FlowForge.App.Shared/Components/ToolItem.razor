@@ -1,10 +1,12 @@
-﻿
-<div class="mx-auto flex h-14 w-14 cursor-grab flex-col items-center justify-center rounded border border-gray-200 bg-gray-50 text-center transition-all duration-200 hover:-translate-y-px hover:border-blue-500 hover:bg-white hover:shadow-sm active:cursor-grabbing"
+﻿<!-- 工具项组件 - 现代简洁风格 -->
+<div class="group flex h-12 w-full cursor-grab flex-col items-center justify-center rounded-md border border-slate-200 bg-gradient-to-br from-white to-slate-50/50 shadow-sm transition-all hover:scale-105 hover:border-blue-300 hover:bg-white hover:shadow-md active:cursor-grabbing active:scale-95"
      @onmousedown="OnMouseDown">
-    <div class="flex items-center justify-center text-lg text-blue-500">
+    <div class="flex items-center justify-center text-sm text-blue-500 transition-colors group-hover:text-blue-600">
         <i class="fas @Icon"></i>
     </div>
-    <div class="text-xs leading-tight font-medium text-gray-700">@Label</div>
+    <div class="mt-0.5 text-[10px] font-medium leading-tight text-slate-600 transition-colors group-hover:text-slate-900">
+        @Label
+    </div>
 </div>
 
 @code {
@@ -18,7 +20,6 @@
     {
         try
         {
-            // 直接调用全局函数
             await JSRuntime.InvokeVoidAsync("createBpmnElement", Type, new
             {
                 clientX = e.ClientX,

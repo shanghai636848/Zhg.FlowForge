@@ -8,8 +8,8 @@ namespace BpmnEditor.Models
         public string Type { get; set; }
         public string Name { get; set; }
         public string ServiceClass { get; set; }
-        public List<BpmnParameter> InputParameters { get; set; } = new List<BpmnParameter>();
-        public List<BpmnParameter> OutputParameters { get; set; } = new List<BpmnParameter>();
+        public List<BpmnParameter> InputParameters { get; set; } = [];
+        public List<BpmnParameter> OutputParameters { get; set; } = [];
     }
 
     public class BpmnParameter

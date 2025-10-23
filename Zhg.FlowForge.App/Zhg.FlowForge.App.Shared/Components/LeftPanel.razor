@@ -1,13 +1,13 @@
-﻿
-<div class="flex w-56 flex-col overflow-hidden border-r border-gray-200 bg-white">
+﻿<!-- 左侧工具面板 - 现代简洁风格 -->
+<div class="flex w-52 flex-col border-r border-slate-200/80 bg-white/95 shadow-sm backdrop-blur-sm">
     <!-- 面板头部 -->
-    <div class="flex items-center justify-between border-b border-gray-200 bg-gray-50 px-4 py-3">
-        <span class="text-sm font-semibold tracking-wide text-gray-700 uppercase">工具箱</span>
-        <i class="fas fa-puzzle-piece text-sm text-gray-500"></i>
+    <div class="flex items-center justify-between border-b border-slate-200/80 bg-gradient-to-r from-slate-50 to-blue-50/50 px-3.5 py-2.5">
+        <span class="text-xs font-semibold uppercase tracking-wider text-slate-700">工具箱</span>
+        <i class="fas fa-puzzle-piece text-xs text-slate-400"></i>
     </div>
 
     <!-- 面板内容 -->
-    <div class="flex flex-1 flex-col space-y-4 overflow-y-auto p-3">
+    <div class="flex flex-1 flex-col space-y-3 overflow-y-auto p-2.5">
         <!-- 流程控制 -->
         <ToolCategory Title="流程控制" Icon="fa-sitemap">
             <ToolItem Type="bpmn:StartEvent" Icon="fa-play-circle" Label="开始" />

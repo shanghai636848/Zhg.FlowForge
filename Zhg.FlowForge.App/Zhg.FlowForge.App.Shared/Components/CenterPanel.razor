@@ -1,77 +1,85 @@
-﻿
-<div class="relative flex min-w-0 flex-1 flex-col bg-white">
+﻿<!-- 中央画布面板 - 现代简洁风格 -->
+<div class="relative flex min-w-0 flex-1 flex-col bg-white/95 backdrop-blur-sm">
     <!-- 画布工具栏 -->
-    <div class="flex h-14 items-center border-b border-gray-200 bg-white px-4 py-3">
-        <button class="inline-flex cursor-pointer items-center rounded border-none bg-blue-500 px-4 py-2 text-sm font-medium text-white transition-all duration-200 hover:-translate-y-px hover:bg-blue-600 hover:shadow active:translate-y-0"
+    <div class="flex h-12 items-center gap-1.5 border-b border-slate-200/80 bg-gradient-to-r from-white via-slate-50/50 to-white px-3 py-2 shadow-sm">
+        <!-- 主要操作 -->
+        <button class="inline-flex items-center gap-1.5 rounded-md bg-gradient-to-r from-blue-600 to-blue-700 px-3 py-1.5 text-xs font-medium text-white shadow-sm transition-all hover:from-blue-700 hover:to-blue-800 hover:shadow active:scale-95"
                 @onclick="OnSaveBpmn">
-            <i class="fas fa-save mr-2"></i> 保存
+            <i class="fas fa-save text-xs"></i>
+            <span>保存</span>
         </button>
 
-        <button class="ml-2 inline-flex cursor-pointer items-center rounded border border-none border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-all duration-200 hover:-translate-y-px hover:border-gray-300 hover:bg-gray-50 hover:shadow active:translate-y-0"
+        <button class="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 hover:shadow active:scale-95"
                 @onclick="OnLoadBpmn">
-            <i class="fas fa-folder-open mr-2"></i> 加载
+            <i class="fas fa-folder-open text-xs"></i>
+            <span>加载</span>
         </button>
 
-        <button class="ml-2 inline-flex cursor-pointer items-center rounded border border-none border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-all duration-200 hover:-translate-y-px hover:border-gray-300 hover:bg-gray-50 hover:shadow active:translate-y-0"
+        <button class="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 hover:shadow active:scale-95"
                 @onclick="OnExportBpmn">
-            <i class="fas fa-download mr-2"></i> 导出
+            <i class="fas fa-download text-xs"></i>
+            <span>导出</span>
         </button>
 
-        <button class="ml-2 inline-flex cursor-pointer items-center rounded border border-none border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-all duration-200 hover:-translate-y-px hover:border-gray-300 hover:bg-gray-50 hover:shadow active:translate-y-0"
+        <button class="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 hover:shadow active:scale-95"
                 @onclick="OnImportBpmn">
-            <i class="fas fa-upload mr-2"></i> 导入
+            <i class="fas fa-upload text-xs"></i>
+            <span>导入</span>
+        </button>
+
+        <!-- 分隔符 -->
+        <div class="mx-1 h-6 w-px bg-slate-200"></div>
+
+        <!-- 编辑操作 -->
+        <button class="flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 hover:shadow active:scale-95"
+                @onclick="OnUndo" title="撤销 (Ctrl+Z)">
+            <i class="fas fa-undo text-xs"></i>
+        </button>
+
+        <button class="flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 hover:shadow active:scale-95"
+                @onclick="OnRedo" title="重做 (Ctrl+Y)">
+            <i class="fas fa-redo text-xs"></i>
         </button>
 
         <div class="flex-grow"></div>
 
-        <!-- 编辑操作 -->
-        <button class="ml-2 inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded border border-none border-gray-200 bg-white font-medium text-gray-700 transition-all duration-200 hover:-translate-y-px hover:border-gray-300 hover:bg-gray-50 hover:shadow active:translate-y-0"
-                @onclick="OnUndo" title="撤销">
-            <i class="fas fa-undo"></i>
+        <!-- 视图控制 -->
+        <button class="flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 hover:shadow active:scale-95"
+                @onclick="OnZoomIn" title="放大 (Ctrl++)">
+            <i class="fas fa-search-plus text-xs"></i>
         </button>
 
-        <button class="ml-2 inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded border border-none border-gray-200 bg-white font-medium text-gray-700 transition-all duration-200 hover:-translate-y-px hover:border-gray-300 hover:bg-gray-50 hover:shadow active:translate-y-0"
-                @onclick="OnRedo" title="重做">
-            <i class="fas fa-redo"></i>
+        <button class="flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 hover:shadow active:scale-95"
+                @onclick="OnZoomOut" title="缩小 (Ctrl+-)">
+            <i class="fas fa-search-minus text-xs"></i>
         </button>
 
-        <!-- 缩放控制 -->
-        <button class="ml-2 inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded border border-none border-gray-200 bg-white font-medium text-gray-700 transition-all duration-200 hover:-translate-y-px hover:border-gray-300 hover:bg-gray-50 hover:shadow active:translate-y-0"
-                @onclick="OnZoomIn" title="放大">
-            <i class="fas fa-plus"></i>
+        <button class="flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 hover:shadow active:scale-95"
+                @onclick="OnFitViewport" title="适应画布">
+            <i class="fas fa-compress-arrows-alt text-xs"></i>
         </button>
 
-        <button class="ml-2 inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded border border-none border-gray-200 bg-white font-medium text-gray-700 transition-all duration-200 hover:-translate-y-px hover:border-gray-300 hover:bg-gray-50 hover:shadow active:translate-y-0"
-                @onclick="OnZoomOut" title="缩小">
-            <i class="fas fa-minus"></i>
-        </button>
-
-        <button class="ml-2 inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded border border-none border-gray-200 bg-white font-medium text-gray-700 transition-all duration-200 hover:-translate-y-px hover:border-gray-300 hover:bg-gray-50 hover:shadow active:translate-y-0"
-                @onclick="OnFitViewport" title="适应窗口">
-            <i class="fas fa-expand-arrows-alt"></i>
-        </button>
-
-        <button class="ml-2 inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded border border-none border-gray-200 bg-white font-medium text-gray-700 transition-all duration-200 hover:-translate-y-px hover:border-gray-300 hover:bg-gray-50 hover:shadow active:translate-y-0"
+        <button class="flex h-8 w-8 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 hover:shadow active:scale-95"
                 @onclick="OnResetZoom" title="重置缩放">
-            <i class="fas fa-search"></i>
+            <i class="fas fa-expand text-xs"></i>
         </button>
     </div>
 
     <!-- 画布 -->
-    <div id="canvas" class="relative flex-1 bg-white"></div>
+    <div id="canvas" class="relative flex-1 bg-gradient-to-br from-slate-50 via-white to-blue-50/30"></div>
 
     <!-- 缩放控制浮动面板 -->
-    <div class="absolute right-4 bottom-4 flex flex-col rounded border border-gray-200 bg-white shadow">
-        <button class="flex h-8 w-8 cursor-pointer items-center justify-center rounded border-none bg-transparent font-bold text-gray-700 hover:bg-gray-50"
+    <div class="absolute bottom-4 right-4 flex flex-col overflow-hidden rounded-lg border border-slate-200 bg-white/95 shadow-lg backdrop-blur-sm">
+        <button class="flex h-7 w-7 items-center justify-center border-b border-slate-200 text-slate-600 transition-colors hover:bg-slate-50 hover:text-blue-600"
                 @onclick="OnZoomIn">
-            <i class="fas fa-plus"></i>
+            <i class="fas fa-plus text-xs"></i>
         </button>
-        <div class="border-t border-b border-gray-200 px-2 py-1 text-center text-xs text-gray-500">
+        <div class="flex h-8 w-7 items-center justify-center border-b border-slate-200 bg-slate-50/50 text-[10px] font-medium text-slate-600">
             @((CurrentZoom * 100).ToString("0"))%
         </div>
-        <button class="flex h-8 w-8 cursor-pointer items-center justify-center rounded border-none bg-transparent font-bold text-gray-700 hover:bg-gray-50"
+        <button class="flex h-7 w-7 items-center justify-center text-slate-600 transition-colors hover:bg-slate-50 hover:text-blue-600"
                 @onclick="OnZoomOut">
-            <i class="fas fa-minus"></i>
+            <i class="fas fa-minus text-xs"></i>
         </button>
     </div>
 </div>

@@ -3,7 +3,8 @@
 @page "/"
 @implements IAsyncDisposable
 
-<div class="flex flex-1 overflow-hidden bg-gray-100">
+<!-- 美化的 BPMN 编辑器 - 现代简洁风格 -->
+<div class="flex h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/30">
 	<LeftPanel />
 
 	<CenterPanel CurrentZoom="@(CurrentZoom)"
@@ -93,54 +94,6 @@
 		}
 	}
 
-	// [JSInvokable]
-	// public async Task OnElementSelected(string elementId, string elementType, string elementName)
-	// {
-	//     SelectedElementId = elementId;
-	//     SelectedElementType = elementType;
-	//     SelectedElementName = elementName;
-	//     IsSequenceFlowSelected = elementType == "bpmn:SequenceFlow";
-	//     IsTaskSelected = IsTaskType(elementType);
-
-	//     if (_jsModule is not null)
-	//     {
-	//         await _jsModule.InvokeVoidAsync("setCurrentElement", elementId);
-	//     }
-
-	//     StateHasChanged();
-	// }
-
-	// [JSInvokable]
-	// public async Task OnElementDeselected()
-	// {
-	//     SelectedElementId = null;
-	//     SelectedElementType = string.Empty;
-	//     SelectedElementName = string.Empty;
-	//     IsSequenceFlowSelected = false;
-	//     IsTaskSelected = false;
-	//     StateHasChanged();
-	// }
-
-	// [JSInvokable]
-	// public async Task OnElementChanged(string elementId, string elementType)
-	// {
-	//     await UpdateElementCount();
-	//     StateHasChanged();
-	// }
-
-	// [JSInvokable]
-	// public async Task OnZoomChanged(double zoomLevel)
-	// {
-	//     CurrentZoom = zoomLevel;
-	//     StateHasChanged();
-	// }
-
-	// [JSInvokable]
-	// public async Task OnParametersUpdated()
-	// {
-	//     StateHasChanged();
-	// }
-
 	[JSInvokable]
 	public async Task OnElementSelected(string elementId, string elementType, string elementName)
 	{
@@ -220,7 +173,7 @@
 		});
 	}
 
-	
+
 	[JSInvokable]
 	public async Task OnDiagramSaved()
 	{
@@ -255,7 +208,7 @@
 			   (type.Contains("Task") || type == "bpmn:SubProcess" || type == "bpmn:CallActivity");
 	}
 
-	// 属性更新方法 - 修复方法签名
+	// 属性更新方法
 	private async Task UpdateProperty(string key, string? value)
 	{
 		if (_jsModule is not null && !string.IsNullOrEmpty(value))
@@ -264,7 +217,6 @@
 		}
 	}
 
-	// 适配器方法用于 EventCallback
 	private async Task HandleUpdateProperty((string key, string? value) args)
 	{
 		await UpdateProperty(args.key, args.value);
@@ -278,7 +230,6 @@
 		}
 	}
 
-	// 适配器方法用于 EventCallback
 	private async Task HandleUpdateDocumentation(string? value)
 	{
 		await UpdateDocumentation(value);
@@ -292,7 +243,6 @@
 		}
 	}
 
-	// 适配器方法用于 EventCallback
 	private async Task HandleUpdateServiceClass(string? value)
 	{
 		await UpdateServiceClass(value);
@@ -417,25 +367,6 @@
 		_dotnetHelper?.Dispose();
 	}
 
-	// 参数管理
-	// public async Task AddInputParam()
-	// {
-	// 	if (_jsModule is not null)
-	// 	{
-	// 		Console.WriteLine("Adding input parameter...");
-	// 		await _jsModule.InvokeVoidAsync("addInputParam");
-	// 	}
-	// }
-
-	// public async Task AddOutputParam()
-	// {
-	// 	if (_jsModule is not null)
-	// 	{
-	// 		Console.WriteLine("Adding output parameter...");
-	// 		await _jsModule.InvokeVoidAsync("addOutputParam");
-	// 	}
-	// }
-
 	// 加载参数
 	private async Task LoadParameters()
 	{
@@ -443,14 +374,11 @@
 
 		try
 		{
-			// 设置当前元素
 			await _jsModule.InvokeVoidAsync("setCurrentElement", SelectedElementId);
 
-			// 获取输入参数
 			var inputParams = await _jsModule.InvokeAsync<object[]>("getInputParameters");
 			InputParameters = inputParams.Select(p => BpmnParameter.FromJsObject(p)).ToList();
 
-			// 获取输出参数
 			var outputParams = await _jsModule.InvokeAsync<object[]>("getOutputParameters");
 			OutputParameters = outputParams.Select(p => BpmnParameter.FromJsObject(p)).ToList();
 
@@ -460,7 +388,7 @@
 		{
 			Console.WriteLine($"Error loading parameters: {ex.Message}");
 		}
-	}	
+	}
 
 	public async Task RemoveInputParam(BpmnParameter parameter)
 	{
@@ -468,7 +396,6 @@
 		{
 			Console.WriteLine($"Removing input parameter: {parameter.Name}");
 
-			// 首先获取参数的索引
 			var index = await _jsModule.InvokeAsync<int>("getInputParameterIndexByName", parameter.Name);
 
 			if (index >= 0)
@@ -496,7 +423,6 @@
 		{
 			Console.WriteLine($"Removing output parameter: {parameter.Name}");
 
-			// 首先获取参数的索引
 			var index = await _jsModule.InvokeAsync<int>("getOutputParameterIndexByName", parameter.Name);
 
 			if (index >= 0)
@@ -524,7 +450,6 @@
 		{
 			Console.WriteLine($"Updating input parameter: {parameter.Name}");
 
-			// 首先获取参数的索引
 			var index = await _jsModule.InvokeAsync<int>("getInputParameterIndexByName", parameter.Name);
 
 			if (index >= 0)
@@ -552,7 +477,6 @@
 		{
 			Console.WriteLine($"Updating output parameter: {parameter.Name}");
 
-			// 首先获取参数的索引
 			var index = await _jsModule.InvokeAsync<int>("getOutputParameterIndexByName", parameter.Name);
 
 			if (index >= 0)
