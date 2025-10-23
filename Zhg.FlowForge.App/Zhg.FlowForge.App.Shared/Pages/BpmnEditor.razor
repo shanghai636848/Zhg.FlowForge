@@ -3,410 +3,498 @@
 @page "/"
 @implements IAsyncDisposable
 
+<!-- 美化的 BPMN 编辑器 - 现代简洁风格 -->
 <div class="flex h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/30">
-    <LeftPanel />
+	<LeftPanel />
 
-    <CenterPanel CurrentZoom="@(CurrentZoom)"
-                 OnSaveBpmn="SaveBpmn"
-                 OnLoadBpmn="LoadBpmn"
-                 OnExportBpmn="ExportBpmn"
-                 OnImportBpmn="ImportBpmn"
-                 OnUndo="Undo"
-                 OnRedo="Redo"
-                 OnZoomIn="ZoomIn"
-                 OnZoomOut="ZoomOut"
-                 OnFitViewport="FitViewport"
-                 OnResetZoom="ResetZoom" />
+	<CenterPanel CurrentZoom="@(CurrentZoom)"
+				 OnSaveBpmn="SaveBpmn"
+				 OnLoadBpmn="LoadBpmn"
+				 OnExportBpmn="ExportBpmn"
+				 OnImportBpmn="ImportBpmn"
+				 OnUndo="Undo"
+				 OnRedo="Redo"
+				 OnZoomIn="ZoomIn"
+				 OnZoomOut="ZoomOut"
+				 OnFitViewport="FitViewport"
+				 OnResetZoom="ResetZoom" />
 
-    <RightPanel SelectedElementId="@(SelectedElementId)"
-                SelectedElementType="@(SelectedElementType)"
-                SelectedElementName="@(SelectedElementName)"
-                IsSequenceFlowSelected="@(IsSequenceFlowSelected)"
-                IsTaskSelected="@(IsTaskSelected)"
-                InputParameters="@(InputParameters)"
-                OutputParameters="@(OutputParameters)"
-                OnUpdateProperty="HandleUpdateProperty"
-                OnUpdateDocumentation="HandleUpdateDocumentation"
-                OnUpdateServiceClass="HandleUpdateServiceClass"
-                OnAddInputParam="AddInputParam"
-                OnAddOutputParam="AddOutputParam"
-                OnOpenConditionBuilder="OpenConditionBuilder"
-                OnRemoveInputParam="RemoveInputParam"
-                OnRemoveOutputParam="RemoveOutputParam"
-                OnUpdateInputParam="UpdateInputParam"
-                OnUpdateOutputParam="UpdateOutputParam" />
+	<RightPanel SelectedElementId="@(SelectedElementId)"
+				SelectedElementType="@(SelectedElementType)"
+				SelectedElementName="@(SelectedElementName)"
+				IsSequenceFlowSelected="@(IsSequenceFlowSelected)"
+				IsTaskSelected="@(IsTaskSelected)"
+				InputParameters="@(InputParameters)"
+				OutputParameters="@(OutputParameters)"
+				OnUpdateProperty="HandleUpdateProperty"
+				OnUpdateDocumentation="HandleUpdateDocumentation"
+				OnUpdateServiceClass="HandleUpdateServiceClass"
+				OnAddInputParam="AddInputParam"
+				OnAddOutputParam="AddOutputParam"
+				OnOpenConditionBuilder="OpenConditionBuilder"
+				OnRemoveInputParam="RemoveInputParam"
+				OnRemoveOutputParam="RemoveOutputParam"
+				OnUpdateInputParam="UpdateInputParam"
+				OnUpdateOutputParam="UpdateOutputParam" />
 </div>
 
 @code {
-    [Inject] private IJSRuntime JSRuntime { get; set; } = default!;
+	[Inject] private IJSRuntime JSRuntime { get; set; } = default!;
 
-    private IJSObjectReference? _jsModule;
-    private DotNetObjectReference<BpmnEditor>? _dotnetHelper;
+	private IJSObjectReference? _jsModule;
+	private DotNetObjectReference<BpmnEditor>? _dotnetHelper;
 
-    public int ElementCount { get; private set; } = 0;
-    public double CurrentZoom { get; private set; } = 1.0;
-    public string? SelectedElementId { get; private set; }
-    public string SelectedElementType { get; private set; } = string.Empty;
-    public string SelectedElementName { get; private set; } = string.Empty;
-    public bool IsSequenceFlowSelected { get; private set; } = false;
-    public bool IsTaskSelected { get; private set; } = false;
+	// 状态变量
+	public int ElementCount { get; private set; } = 0;
+	public double CurrentZoom { get; private set; } = 1.0;
+	public string? SelectedElementId { get; private set; }
+	public string SelectedElementType { get; private set; } = string.Empty;
+	public string SelectedElementName { get; private set; } = string.Empty;
+	public bool IsSequenceFlowSelected { get; private set; } = false;
+	public bool IsTaskSelected { get; private set; } = false;
 
-    public List<BpmnParameter> InputParameters { get; private set; } = new();
-    public List<BpmnParameter> OutputParameters { get; private set; } = new();
+	// 参数状态
+	public List<BpmnParameter> InputParameters { get; private set; } = new();
+	public List<BpmnParameter> OutputParameters { get; private set; } = new();
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            await InitializeBpmnJs();
-        }
-    }
 
-    private async Task InitializeBpmnJs()
-    {
-        if (_jsModule is not null) return;
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			await InitializeBpmnJs();
+		}
+	}
 
-        try
-        {
-            _jsModule = await JSRuntime.InvokeAsync<IJSObjectReference>(
-                "import", "./_content/Zhg.FlowForge.App.Shared/js/bpmn-interop.js");
-            _dotnetHelper = DotNetObjectReference.Create(this);
+	private async Task InitializeBpmnJs()
+	{
+		if (_jsModule is not null) return;
 
-            var success = await _jsModule.InvokeAsync<bool>(
-                "initBpmnModeler", _dotnetHelper, "canvas");
+		try
+		{
+			_jsModule = await JSRuntime.InvokeAsync<IJSObjectReference>(
+				"import", "./_content/Zhg.FlowForge.App.Shared/js/bpmn-interop.js");
+			_dotnetHelper = DotNetObjectReference.Create(this);
 
-            if (success)
-            {
-                Console.WriteLine("BPMN.js initialized successfully");
-            }
-        }
-        catch (JSException ex)
-        {
-            Console.WriteLine($"BPMN.js init failed: {ex.Message}");
-        }
-    }
+			var success = await _jsModule.InvokeAsync<bool>(
+				"initBpmnModeler", _dotnetHelper, "canvas");
 
-    [JSInvokable]
-    public async Task OnElementSelected(string elementId, string elementType, string elementName)
-    {
-        await InvokeAsync(async () =>
-        {
-            SelectedElementId = elementId;
-            SelectedElementType = elementType;
-            SelectedElementName = elementName ?? string.Empty;
-            IsSequenceFlowSelected = elementType == "bpmn:SequenceFlow";
-            IsTaskSelected = IsTaskType(elementType);
+			if (success)
+			{
+				Console.WriteLine("BPMN.js initialized successfully");
+			}
+			else
+			{
+				Console.WriteLine("Failed to initialize BPMN.js");
+			}
+		}
+		catch (JSException ex)
+		{
+			Console.WriteLine($"BPMN.js init failed: {ex.Message}");
+		}
+	}
 
-            await LoadParameters();
-            StateHasChanged();
-        });
-    }
+	[JSInvokable]
+	public async Task OnElementSelected(string elementId, string elementType, string elementName)
+	{
+		Console.WriteLine($"JS -> Blazor: OnElementSelected({elementId}, {elementType}, {elementName})");
 
-    [JSInvokable]
-    public async Task OnElementDeselected()
-    {
-        await InvokeAsync(() =>
-        {
-            SelectedElementId = null;
-            SelectedElementType = string.Empty;
-            SelectedElementName = string.Empty;
-            IsSequenceFlowSelected = false;
-            IsTaskSelected = false;
+		await InvokeAsync(async () =>
+		{
+			SelectedElementId = elementId;
+			SelectedElementType = elementType;
+			SelectedElementName = elementName ?? string.Empty;
+			IsSequenceFlowSelected = elementType == "bpmn:SequenceFlow";
+			IsTaskSelected = IsTaskType(elementType);
 
-            InputParameters.Clear();
-            OutputParameters.Clear();
+			Console.WriteLine($"Blazor state updated - ID: {SelectedElementId}, Type: {SelectedElementType}, Name: {SelectedElementName}");
 
-            StateHasChanged();
-        });
-    }
+			// 加载参数
+			await LoadParameters();
 
-    [JSInvokable]
-    public async Task OnParametersUpdated()
-    {
-        await InvokeAsync(async () =>
-        {
-            await LoadParameters();
-            StateHasChanged();
-        });
-    }
+			StateHasChanged();
+		});
+	}
 
-    [JSInvokable]
-    public async Task OnElementChanged(string elementId, string elementType)
-    {
-        await InvokeAsync(async () =>
-        {
-            await UpdateElementCount();
-            StateHasChanged();
-        });
-    }
+	[JSInvokable]
+	public async Task OnElementDeselected()
+	{
+		Console.WriteLine("JS -> Blazor: OnElementDeselected");
 
-    [JSInvokable]
-    public async Task OnZoomChanged(double zoomLevel)
-    {
-        await InvokeAsync(() =>
-        {
-            CurrentZoom = zoomLevel;
-            StateHasChanged();
-        });
-    }
+		await InvokeAsync(() =>
+		{
+			SelectedElementId = null;
+			SelectedElementType = string.Empty;
+			SelectedElementName = string.Empty;
+			IsSequenceFlowSelected = false;
+			IsTaskSelected = false;
 
-    [JSInvokable]
-    public async Task OnDiagramSaved()
-    {
-        Console.WriteLine("Diagram saved successfully");
-    }
+			// 清空参数
+			InputParameters.Clear();
+			OutputParameters.Clear();
 
-    [JSInvokable]
-    public async Task OnDiagramLoaded()
-    {
-        await UpdateElementCount();
-        StateHasChanged();
-    }
+			Console.WriteLine("Blazor state cleared");
 
-    [JSInvokable]
-    public async Task OnDiagramImported()
-    {
-        await UpdateElementCount();
-        StateHasChanged();
-    }
+			StateHasChanged();
+		});
+	}
 
-    private async Task UpdateElementCount()
-    {
-        if (_jsModule is not null)
-        {
-            ElementCount = await _jsModule.InvokeAsync<int>("getElementCount");
-        }
-    }
+	[JSInvokable]
+	public async Task OnParametersUpdated()
+	{
+		Console.WriteLine("JS -> Blazor: OnParametersUpdated");
 
-    private bool IsTaskType(string type)
-    {
-        return !string.IsNullOrEmpty(type) &&
-               (type.Contains("Task") || type == "bpmn:SubProcess" || type == "bpmn:CallActivity");
-    }
+		await InvokeAsync(async () =>
+		{
+			// 重新加载参数
+			await LoadParameters();
 
-    private async Task UpdateProperty(string key, string? value)
-    {
-        if (_jsModule is not null && !string.IsNullOrEmpty(value))
-        {
-            await _jsModule.InvokeVoidAsync("updateProp", key, value);
-        }
-    }
+			StateHasChanged();
+		});
+	}
 
-    private async Task HandleUpdateProperty((string key, string? value) args)
-    {
-        await UpdateProperty(args.key, args.value);
-    }
+	[JSInvokable]
+	public async Task OnElementChanged(string elementId, string elementType)
+	{
+		await InvokeAsync(async () =>
+		{
+			await UpdateElementCount();
+			StateHasChanged();
+		});
+	}
 
-    private async Task UpdateDocumentation(string? value)
-    {
-        if (_jsModule is not null)
-        {
-            await _jsModule.InvokeVoidAsync("updateDocumentation", value ?? "");
-        }
-    }
+	[JSInvokable]
+	public async Task OnZoomChanged(double zoomLevel)
+	{
+		await InvokeAsync(() =>
+		{
+			CurrentZoom = zoomLevel;
+			StateHasChanged();
+		});
+	}
 
-    private async Task HandleUpdateDocumentation(string? value)
-    {
-        await UpdateDocumentation(value);
-    }
 
-    private async Task UpdateServiceClass(string? value)
-    {
-        if (_jsModule is not null)
-        {
-            await _jsModule.InvokeVoidAsync("updateServiceClass", value ?? "");
-        }
-    }
+	[JSInvokable]
+	public async Task OnDiagramSaved()
+	{
+		Console.WriteLine("Diagram saved successfully");
+	}
 
-    private async Task HandleUpdateServiceClass(string? value)
-    {
-        await UpdateServiceClass(value);
-    }
+	[JSInvokable]
+	public async Task OnDiagramLoaded()
+	{
+		await UpdateElementCount();
+		StateHasChanged();
+	}
 
-    public async Task SaveBpmn()
-    {
-        if (_jsModule is not null)
-        {
-            await _jsModule.InvokeVoidAsync("saveBpmn");
-        }
-    }
+	[JSInvokable]
+	public async Task OnDiagramImported()
+	{
+		await UpdateElementCount();
+		StateHasChanged();
+	}
 
-    public async Task LoadBpmn()
-    {
-        if (_jsModule is not null)
-        {
-            await _jsModule.InvokeVoidAsync("loadBpmn");
-        }
-    }
+	private async Task UpdateElementCount()
+	{
+		if (_jsModule is not null)
+		{
+			ElementCount = await _jsModule.InvokeAsync<int>("getElementCount");
+		}
+	}
 
-    public async Task ExportBpmn()
-    {
-        if (_jsModule is not null)
-        {
-            await _jsModule.InvokeVoidAsync("exportBpmn");
-        }
-    }
+	private bool IsTaskType(string type)
+	{
+		return !string.IsNullOrEmpty(type) &&
+			   (type.Contains("Task") || type == "bpmn:SubProcess" || type == "bpmn:CallActivity");
+	}
 
-    public async Task ImportBpmn()
-    {
-        if (_jsModule is not null)
-        {
-            await _jsModule.InvokeVoidAsync("importBpmn");
-        }
-    }
+	// 属性更新方法
+	private async Task UpdateProperty(string key, string? value)
+	{
+		if (_jsModule is not null && !string.IsNullOrEmpty(value))
+		{
+			await _jsModule.InvokeVoidAsync("updateProp", key, value);
+		}
+	}
 
-    public async Task Undo()
-    {
-        if (_jsModule is not null)
-        {
-            await _jsModule.InvokeVoidAsync("undo");
-        }
-    }
+	private async Task HandleUpdateProperty((string key, string? value) args)
+	{
+		await UpdateProperty(args.key, args.value);
+	}
 
-    public async Task Redo()
-    {
-        if (_jsModule is not null)
-        {
-            await _jsModule.InvokeVoidAsync("redo");
-        }
-    }
+	private async Task UpdateDocumentation(string? value)
+	{
+		if (_jsModule is not null)
+		{
+			await _jsModule.InvokeVoidAsync("updateDocumentation", value ?? "");
+		}
+	}
 
-    public async Task ZoomIn()
-    {
-        if (_jsModule is not null)
-        {
-            await _jsModule.InvokeVoidAsync("zoomIn");
-        }
-    }
+	private async Task HandleUpdateDocumentation(string? value)
+	{
+		await UpdateDocumentation(value);
+	}
 
-    public async Task ZoomOut()
-    {
-        if (_jsModule is not null)
-        {
-            await _jsModule.InvokeVoidAsync("zoomOut");
-        }
-    }
+	private async Task UpdateServiceClass(string? value)
+	{
+		if (_jsModule is not null)
+		{
+			await _jsModule.InvokeVoidAsync("updateServiceClass", value ?? "");
+		}
+	}
 
-    public async Task FitViewport()
-    {
-        if (_jsModule is not null)
-        {
-            await _jsModule.InvokeVoidAsync("fitViewport");
-        }
-    }
+	private async Task HandleUpdateServiceClass(string? value)
+	{
+		await UpdateServiceClass(value);
+	}
 
-    public async Task ResetZoom()
-    {
-        if (_jsModule is not null)
-        {
-            await _jsModule.InvokeVoidAsync("resetZoom");
-        }
-    }
+	// 文件操作方法
+	public async Task SaveBpmn()
+	{
+		if (_jsModule is not null)
+		{
+			await _jsModule.InvokeVoidAsync("saveBpmn");
+		}
+	}
 
-    public async Task AddInputParam()
-    {
-        if (_jsModule is not null)
-        {
-            await _jsModule.InvokeVoidAsync("addInputParam");
-        }
-    }
+	public async Task LoadBpmn()
+	{
+		if (_jsModule is not null)
+		{
+			await _jsModule.InvokeVoidAsync("loadBpmn");
+		}
+	}
 
-    public async Task AddOutputParam()
-    {
-        if (_jsModule is not null)
-        {
-            await _jsModule.InvokeVoidAsync("addOutputParam");
-        }
-    }
+	public async Task ExportBpmn()
+	{
+		if (_jsModule is not null)
+		{
+			await _jsModule.InvokeVoidAsync("exportBpmn");
+		}
+	}
 
-    public async Task OpenConditionBuilder()
-    {
-        if (_jsModule is not null)
-        {
-            await _jsModule.InvokeVoidAsync("openConditionBuilder");
-        }
-    }
+	public async Task ImportBpmn()
+	{
+		if (_jsModule is not null)
+		{
+			await _jsModule.InvokeVoidAsync("importBpmn");
+		}
+	}
 
-    public async ValueTask DisposeAsync()
-    {
-        if (_jsModule is not null)
-        {
-            await _jsModule.InvokeVoidAsync("disposeBpmnModeler");
-            await _jsModule.DisposeAsync();
-        }
+	// 编辑操作
+	public async Task Undo()
+	{
+		if (_jsModule is not null)
+		{
+			await _jsModule.InvokeVoidAsync("undo");
+		}
+	}
 
-        _dotnetHelper?.Dispose();
-    }
+	public async Task Redo()
+	{
+		if (_jsModule is not null)
+		{
+			await _jsModule.InvokeVoidAsync("redo");
+		}
+	}
 
-    private async Task LoadParameters()
-    {
-        if (_jsModule is null || SelectedElementId is null) return;
+	// 视图控制
+	public async Task ZoomIn()
+	{
+		if (_jsModule is not null)
+		{
+			await _jsModule.InvokeVoidAsync("zoomIn");
+		}
+	}
 
-        try
-        {
-            await _jsModule.InvokeVoidAsync("setCurrentElement", SelectedElementId);
+	public async Task ZoomOut()
+	{
+		if (_jsModule is not null)
+		{
+			await _jsModule.InvokeVoidAsync("zoomOut");
+		}
+	}
 
-            var inputParams = await _jsModule.InvokeAsync<object[]>("getInputParameters");
-            InputParameters = inputParams.Select(p => BpmnParameter.FromJsObject(p)).ToList();
+	public async Task FitViewport()
+	{
+		if (_jsModule is not null)
+		{
+			await _jsModule.InvokeVoidAsync("fitViewport");
+		}
+	}
 
-            var outputParams = await _jsModule.InvokeAsync<object[]>("getOutputParameters");
-            OutputParameters = outputParams.Select(p => BpmnParameter.FromJsObject(p)).ToList();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error loading parameters: {ex.Message}");
-        }
-    }
+	public async Task ResetZoom()
+	{
+		if (_jsModule is not null)
+		{
+			await _jsModule.InvokeVoidAsync("resetZoom");
+		}
+	}
 
-    public async Task RemoveInputParam(BpmnParameter parameter)
-    {
-        if (_jsModule is not null)
-        {
-            var index = await _jsModule.InvokeAsync<int>("getInputParameterIndexByName", parameter.Name);
+	// 参数管理
+	public async Task AddInputParam()
+	{
+		if (_jsModule is not null)
+		{
+			await _jsModule.InvokeVoidAsync("addInputParam");
+		}
+	}
 
-            if (index >= 0)
-            {
-                await _jsModule.InvokeAsync<bool>("removeInputParameter", index);
-            }
-        }
-    }
+	public async Task AddOutputParam()
+	{
+		if (_jsModule is not null)
+		{
+			await _jsModule.InvokeVoidAsync("addOutputParam");
+		}
+	}
 
-    public async Task RemoveOutputParam(BpmnParameter parameter)
-    {
-        if (_jsModule is not null)
-        {
-            var index = await _jsModule.InvokeAsync<int>("getOutputParameterIndexByName", parameter.Name);
+	public async Task OpenConditionBuilder()
+	{
+		if (_jsModule is not null)
+		{
+			await _jsModule.InvokeVoidAsync("openConditionBuilder");
+		}
+	}
 
-            if (index >= 0)
-            {
-                await _jsModule.InvokeAsync<bool>("removeOutputParameter", index);
-            }
-        }
-    }
+	public async ValueTask DisposeAsync()
+	{
+		if (_jsModule is not null)
+		{
+			await _jsModule.InvokeVoidAsync("disposeBpmnModeler");
+			await _jsModule.DisposeAsync();
+		}
 
-    public async Task UpdateInputParam(BpmnParameter parameter)
-    {
-        if (_jsModule is not null)
-        {
-            var index = await _jsModule.InvokeAsync<int>("getInputParameterIndexByName", parameter.Name);
+		_dotnetHelper?.Dispose();
+	}
 
-            if (index >= 0)
-            {
-                await _jsModule.InvokeAsync<bool>("updateInputParameter", index, parameter.Name, parameter.Type, parameter.Value);
-            }
-        }
-    }
+	// 加载参数
+	private async Task LoadParameters()
+	{
+		if (_jsModule is null || SelectedElementId is null) return;
 
-    public async Task UpdateOutputParam(BpmnParameter parameter)
-    {
-        if (_jsModule is not null)
-        {
-            var index = await _jsModule.InvokeAsync<int>("getOutputParameterIndexByName", parameter.Name);
+		try
+		{
+			await _jsModule.InvokeVoidAsync("setCurrentElement", SelectedElementId);
 
-            if (index >= 0)
-            {
-                await _jsModule.InvokeAsync<bool>("updateOutputParameter", index, parameter.Name, parameter.Type, parameter.Value);
-            }
-        }
-    }
+			var inputParams = await _jsModule.InvokeAsync<object[]>("getInputParameters");
+			InputParameters = inputParams.Select(p => BpmnParameter.FromJsObject(p)).ToList();
+
+			var outputParams = await _jsModule.InvokeAsync<object[]>("getOutputParameters");
+			OutputParameters = outputParams.Select(p => BpmnParameter.FromJsObject(p)).ToList();
+
+			Console.WriteLine($"Loaded {InputParameters.Count} input parameters and {OutputParameters.Count} output parameters");
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($"Error loading parameters: {ex.Message}");
+		}
+	}
+
+	public async Task RemoveInputParam(BpmnParameter parameter)
+	{
+		if (_jsModule is not null)
+		{
+			Console.WriteLine($"Removing input parameter: {parameter.Name}");
+
+			var index = await _jsModule.InvokeAsync<int>("getInputParameterIndexByName", parameter.Name);
+
+			if (index >= 0)
+			{
+				var success = await _jsModule.InvokeAsync<bool>("removeInputParameter", index);
+				if (success)
+				{
+					Console.WriteLine($"Successfully removed input parameter at index {index}");
+				}
+				else
+				{
+					Console.WriteLine($"Failed to remove input parameter at index {index}");
+				}
+			}
+			else
+			{
+				Console.WriteLine($"Input parameter '{parameter.Name}' not found");
+			}
+		}
+	}
+
+	public async Task RemoveOutputParam(BpmnParameter parameter)
+	{
+		if (_jsModule is not null)
+		{
+			Console.WriteLine($"Removing output parameter: {parameter.Name}");
+
+			var index = await _jsModule.InvokeAsync<int>("getOutputParameterIndexByName", parameter.Name);
+
+			if (index >= 0)
+			{
+				var success = await _jsModule.InvokeAsync<bool>("removeOutputParameter", index);
+				if (success)
+				{
+					Console.WriteLine($"Successfully removed output parameter at index {index}");
+				}
+				else
+				{
+					Console.WriteLine($"Failed to remove output parameter at index {index}");
+				}
+			}
+			else
+			{
+				Console.WriteLine($"Output parameter '{parameter.Name}' not found");
+			}
+		}
+	}
+
+	public async Task UpdateInputParam(BpmnParameter parameter)
+	{
+		if (_jsModule is not null)
+		{
+			Console.WriteLine($"Updating input parameter: {parameter.Name}");
+
+			var index = await _jsModule.InvokeAsync<int>("getInputParameterIndexByName", parameter.Name);
+
+			if (index >= 0)
+			{
+				var success = await _jsModule.InvokeAsync<bool>("updateInputParameter", index, parameter.Name, parameter.Type, parameter.Value);
+				if (success)
+				{
+					Console.WriteLine($"Successfully updated input parameter at index {index}");
+				}
+				else
+				{
+					Console.WriteLine($"Failed to update input parameter at index {index}");
+				}
+			}
+			else
+			{
+				Console.WriteLine($"Input parameter '{parameter.Name}' not found");
+			}
+		}
+	}
+
+	public async Task UpdateOutputParam(BpmnParameter parameter)
+	{
+		if (_jsModule is not null)
+		{
+			Console.WriteLine($"Updating output parameter: {parameter.Name}");
+
+			var index = await _jsModule.InvokeAsync<int>("getOutputParameterIndexByName", parameter.Name);
+
+			if (index >= 0)
+			{
+				var success = await _jsModule.InvokeAsync<bool>("updateOutputParameter", index, parameter.Name, parameter.Type, parameter.Value);
+				if (success)
+				{
+					Console.WriteLine($"Successfully updated output parameter at index {index}");
+				}
+				else
+				{
+					Console.WriteLine($"Failed to update output parameter at index {index}");
+				}
+			}
+			else
+			{
+				Console.WriteLine($"Output parameter '{parameter.Name}' not found");
+			}
+		}
+	}
 }
