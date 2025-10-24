@@ -1,0 +1,43 @@
+﻿<div class="relative inline-block"
+	 @onmouseenter="Show"
+	 @onmouseleave="Hide">
+	@ChildContent@if (IsVisible)
+	{
+		<div class="@GetTooltipClass()">
+			<div class="@GetContentClass()">
+				@Content
+			</div>
+			<div class="@GetArrowClass()"></div>
+		</div>
+	}
+</div>
+@code {
+	[Parameter] public string Content { get; set; } = "";
+	[Parameter] public string Placement { get; set; } = "top"; // top, bottom, left, right
+	[Parameter] public RenderFragment? ChildContent { get; set; }
+	private bool IsVisible = false; private void Show() => IsVisible = true;
+	private void Hide() => IsVisible = false; private string GetTooltipClass()
+	{
+		var baseClass = "absolute z-50 pointer-events-none animate-[fadeIn_0.15s_ease-out]"; var positionClass = Placement switch
+		{
+			"bottom" => "top-full left-1/2 -translate-x-1/2 mt-2",
+			"left" => "right-full top-1/2 -translate-y-1/2 mr-2",
+			"right" => "left-full top-1/2 -translate-y-1/2 ml-2",
+			_ => "bottom-full left-1/2 -translate-x-1/2 mb-2"
+		}; return $"{baseClass} {positionClass}";
+	}
+	private string GetContentClass()
+	{
+		return "px-2 py-1 bg-slate-900 text-white text-xs rounded shadow-lg whitespace-nowrap";
+	}
+	private string GetArrowClass()
+	{
+		var baseClass = "absolute w-2 h-2 bg-slate-900 transform rotate-45"; var positionClass = Placement switch
+		{
+			"bottom" => "top-0 left-1/2 -translate-x-1/2 -translate-y-1/2",
+			"left" => "right-0 top-1/2 translate-x-1/2 -translate-y-1/2",
+			"right" => "left-0 top-1/2 -translate-x-1/2 -translate-y-1/2",
+			_ => "bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2"
+		}; return $"{baseClass} {positionClass}";
+	}
+}

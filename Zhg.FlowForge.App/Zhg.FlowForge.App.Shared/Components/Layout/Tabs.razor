@@ -1,0 +1,91 @@
+﻿<div class="@ContainerClass">
+    <!-- 标签头部 -->
+    <div class="@GetTabHeaderClass()">
+        @foreach (var tab in TabList)
+        {
+            <button class="@GetTabButtonClass(tab.Key)"
+                    @onclick="() => SelectTab(tab.Key)">
+                @if (!string.IsNullOrEmpty(tab.Icon))
+                {
+                    <i class="@tab.Icon text-xs"></i>
+                }
+                <span>@tab.Label</span>
+                @if (tab.Count > 0)
+                {
+                    <Badge Variant="primary" Size="sm">@tab.Count</Badge>
+                }
+            </button>
+        }
+    </div>
+
+    <!-- 标签内容 -->
+    <div class="@ContentClass">
+        @ChildContent
+    </div>
+</div>
+
+@code {
+    [Parameter] public string ActiveTab { get; set; } = "";
+    [Parameter] public string Variant { get; set; } = "line"; // line, enclosed, pills
+    [Parameter] public string Size { get; set; } = "md"; // sm, md, lg
+    [Parameter] public string ContainerClass { get; set; } = "";
+    [Parameter] public string ContentClass { get; set; } = "p-3";
+    [Parameter] public List<TabItem> TabList { get; set; } = new();
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public EventCallback<string> ActiveTabChanged { get; set; }
+
+    private async Task SelectTab(string key)
+    {
+        ActiveTab = key;
+        await ActiveTabChanged.InvokeAsync(key);
+    }
+
+    private string GetTabHeaderClass()
+    {
+        var baseClass = "flex items-center";
+        
+        if (Variant == "line")
+            return $"{baseClass} border-b border-slate-200";
+        else if (Variant == "enclosed")
+            return $"{baseClass} border-b border-slate-200";
+        else
+            return $"{baseClass} gap-1";
+    }
+
+    private string GetTabButtonClass(string key)
+    {
+        var isActive = ActiveTab == key;
+        var baseClass = "flex items-center gap-1.5 font-medium transition-all";
+        
+        var sizeClass = Size switch
+        {
+            "sm" => "px-2 py-1 text-xs",
+            "lg" => "px-4 py-2.5 text-sm",
+            _ => "px-3 py-1.5 text-xs"
+        };
+
+        if (Variant == "line")
+        {
+            var activeClass = isActive
+                ? "border-b-2 border-blue-600 text-blue-600"
+                : "border-b-2 border-transparent text-slate-600 hover:text-slate-900";
+            return $"{baseClass} {sizeClass} {activeClass}";
+        }
+        else if (Variant == "enclosed")
+        {
+            var activeClass = isActive
+                ? "bg-white border border-slate-200 border-b-white -mb-px text-blue-600"
+                : "text-slate-600 hover:text-slate-900";
+            return $"{baseClass} {sizeClass} rounded-t-md {activeClass}";
+        }
+        else
+        {
+            var activeClass = isActive
+                ? "bg-blue-500 text-white"
+                : "bg-slate-100 text-slate-700 hover:bg-slate-200";
+            return $"{baseClass} {sizeClass} rounded-md {activeClass}";
+        }
+    }
+
+    public record TabItem(string Key, string Label, string Icon = "", int Count = 0);
+}

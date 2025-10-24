@@ -1,0 +1,160 @@
+﻿<div class="@ContainerClass">
+    @if (!string.IsNullOrEmpty(Label))
+    {
+        <label class="mb-1 block text-xs font-medium text-slate-700">
+            @if (Required)
+            {
+                <span class="text-rose-500">*</span>
+            }
+            @Label
+        </label>
+    }
+
+    <div class="@GetUploadAreaClass()"
+         @ondragover="OnDragOver"
+         @ondragleave="OnDragLeave"
+         @ondrop="OnDrop"
+         @onclick="OpenFileDialog">
+
+        <input type="file"
+               @ref="fileInput"
+               class="hidden"
+               accept="@Accept"
+               multiple="@Multiple"
+               disabled="@Disabled"
+               @onchange="OnFileSelected" />
+
+        @if (Files.Any())
+        {
+            <!-- 已选文件列表 -->
+            <div class="space-y-1.5">
+                @foreach (var file in Files)
+                {
+                    <div class="flex items-center gap-2 rounded-md border border-slate-200 bg-white p-2">
+                        <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-blue-50">
+                            <i class="@GetFileIcon(file.Name) text-sm text-blue-600"></i>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <div class="truncate text-xs font-medium text-slate-900">@file.Name</div>
+                            <div class="text-xs text-slate-500">@FormatFileSize(file.Size)</div>
+                        </div>
+                        <button class="flex h-6 w-6 items-center justify-center rounded
+                                              text-rose-600 transition-colors hover:bg-rose-50"
+                                @onclick:stopPropagation="true"
+                                @onclick="() => RemoveFile(file)">
+                            <i class="fas fa-times text-xs"></i>
+                        </button>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <!-- 上传提示 -->
+            <div class="py-6 text-center">
+                <div class="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-blue-50">
+                    <i class="fas fa-cloud-upload-alt text-xl text-blue-600"></i>
+                </div>
+                <p class="mb-1 text-xs font-medium text-slate-900">
+                    点击或拖拽文件到此区域上传
+                </p>
+                <p class="text-xs text-slate-500">
+                    @(Multiple ? "支持批量上传" : "单个文件上传")
+                    @if (!string.IsNullOrEmpty(Accept))
+                    {
+                        <span>，支持格式：@Accept</span>
+                    }
+                </p>
+            </div>
+        }
+    </div>
+
+    @if (!string.IsNullOrEmpty(HelpText))
+    {
+        <span class="mt-1 block text-xs text-slate-500">@HelpText</span>
+    }
+</div>
+
+@code {
+    private ElementReference fileInput;
+    private bool IsDragging = false;
+
+    [Parameter] public string Label { get; set; } = "";
+    [Parameter] public string Accept { get; set; } = "";
+    [Parameter] public string HelpText { get; set; } = "";
+    [Parameter] public string ContainerClass { get; set; } = "";
+    [Parameter] public bool Required { get; set; }
+    [Parameter] public bool Multiple { get; set; }
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public List<FileInfo> Files { get; set; } = new();
+    [Parameter] public EventCallback<List<FileInfo>> FilesChanged { get; set; }
+
+    private void OpenFileDialog()
+    {
+        if (!Disabled)
+        {
+            // Trigger file input click via JS
+        }
+    }
+
+    private void OnDragOver(DragEventArgs e) => IsDragging = true;
+    private void OnDragLeave(DragEventArgs e) => IsDragging = false;
+
+    private async Task OnDrop(DragEventArgs e)
+    {
+        IsDragging = false;
+        // Handle file drop
+    }
+
+    private async Task OnFileSelected(ChangeEventArgs e)
+    {
+        // Handle file selection
+    }
+
+    private void RemoveFile(FileInfo file)
+    {
+        Files.Remove(file);
+        FilesChanged.InvokeAsync(Files);
+    }
+
+    private string GetUploadAreaClass()
+    {
+        var baseClass = "border-2 border-dashed rounded-lg transition-all cursor-pointer";
+
+        if (IsDragging)
+            return $"{baseClass} border-blue-400 bg-blue-50";
+        else if (Disabled)
+            return $"{baseClass} border-slate-200 bg-slate-50 cursor-not-allowed opacity-60";
+        else
+            return $"{baseClass} border-slate-300 hover:border-blue-400 hover:bg-blue-50";
+    }
+
+    private string GetFileIcon(string fileName)
+    {
+        var ext = Path.GetExtension(fileName).ToLower();
+        return ext switch
+        {
+            ".pdf" => "fas fa-file-pdf",
+            ".doc" or ".docx" => "fas fa-file-word",
+            ".xls" or ".xlsx" => "fas fa-file-excel",
+            ".jpg" or ".jpeg" or ".png" or ".gif" => "fas fa-file-image",
+            ".zip" or ".rar" => "fas fa-file-archive",
+            _ => "fas fa-file"
+        };
+    }
+
+    private string FormatFileSize(long bytes)
+    {
+        string[] sizes = { "B", "KB", "MB", "GB" };
+        double len = bytes;
+        int order = 0;
+        while (len >= 1024 && order < sizes.Length - 1)
+        {
+            order++;
+            len /= 1024;
+        }
+        return $"{len:F2} {sizes[order]}";
+    }
+
+    public record FileInfo(string Name, long Size);
+}

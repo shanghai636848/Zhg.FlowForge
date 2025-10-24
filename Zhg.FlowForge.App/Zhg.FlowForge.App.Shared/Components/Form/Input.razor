@@ -1,0 +1,124 @@
+﻿<div class="@ContainerClass">
+    @if (!string.IsNullOrEmpty(Label))
+    {
+        <label class="mb-1 block text-xs font-medium text-slate-700">
+            @if (Required)
+            {
+                <span class="text-rose-500">*</span>
+            }
+            @if (!string.IsNullOrEmpty(Icon))
+            {
+                <i class="@Icon theme-primary-text mr-1 text-[0.625rem]"></i>
+            }
+            @Label
+        </label>
+    }
+
+    <div class="relative">
+        @if (!string.IsNullOrEmpty(PrefixIcon))
+        {
+            <i class="@PrefixIcon absolute top-2 left-2.5 text-xs text-slate-400"></i>
+        }
+
+        <input type="@Type"
+               class="@GetInputClass()"
+               placeholder="@Placeholder"
+               value="@Value"
+               disabled="@Disabled"
+               readonly="@Readonly"
+               @oninput="OnInputHandler"
+               @onfocus="OnFocusHandler"
+               @onblur="OnBlurHandler" />
+
+        @if (!string.IsNullOrEmpty(SuffixIcon))
+        {
+            <i class="@SuffixIcon absolute top-2 right-2.5 text-xs text-slate-400"></i>
+        }
+
+        @if (Clearable && !string.IsNullOrEmpty(Value))
+        {
+            <button class="absolute top-1.5 right-2 flex h-4 w-4
+                              items-center justify-center rounded-full bg-slate-300
+                              text-xs text-white transition-colors hover:bg-slate-400"
+                    @onclick="ClearValue">
+                <i class="fas fa-times text-[0.5rem]"></i>
+            </button>
+        }
+    </div>
+
+    @if (HasError && !string.IsNullOrEmpty(ErrorMessage))
+    {
+        <span class="mt-1 flex items-center gap-1 text-xs text-rose-600">
+            <i class="fas fa-exclamation-circle text-[0.625rem]"></i>
+            @ErrorMessage
+        </span>
+    }
+
+    @if (!string.IsNullOrEmpty(HelpText))
+    {
+        <span class="mt-1 block text-xs text-slate-500">@HelpText</span>
+    }
+</div>
+
+@code {
+    [Parameter] public string Label { get; set; } = "";
+    [Parameter] public string Icon { get; set; } = "";
+    [Parameter] public string Type { get; set; } = "text";
+    [Parameter] public string Placeholder { get; set; } = "";
+    [Parameter] public string Value { get; set; } = "";
+    [Parameter] public string HelpText { get; set; } = "";
+    [Parameter] public string ErrorMessage { get; set; } = "";
+    [Parameter] public string Size { get; set; } = "md"; // sm, md, lg
+    [Parameter] public string PrefixIcon { get; set; } = "";
+    [Parameter] public string SuffixIcon { get; set; } = "";
+    [Parameter] public string ContainerClass { get; set; } = "";
+    [Parameter] public bool Required { get; set; }
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public bool Readonly { get; set; }
+    [Parameter] public bool HasError { get; set; }
+    [Parameter] public bool Clearable { get; set; }
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+    [Parameter] public EventCallback OnFocus { get; set; }
+    [Parameter] public EventCallback OnBlur { get; set; }
+
+    private async Task OnInputHandler(ChangeEventArgs e)
+    {
+        Value = e.Value?.ToString() ?? "";
+        await ValueChanged.InvokeAsync(Value);
+    }
+
+    private async Task OnFocusHandler() => await OnFocus.InvokeAsync();
+    private async Task OnBlurHandler() => await OnBlur.InvokeAsync();
+
+    private async Task ClearValue()
+    {
+        Value = "";
+        await ValueChanged.InvokeAsync(Value);
+    }
+
+    private string GetInputClass()
+    {
+        var baseClass = "w-full rounded-md border bg-white text-xs text-slate-700 transition-all";
+
+        var sizeClass = Size switch
+        {
+            "sm" => "h-6 px-2 py-1",
+            "lg" => "h-8 px-3 py-2",
+            _ => "h-7 px-2 py-1.5"
+        };
+
+        var paddingClass = "";
+        if (!string.IsNullOrEmpty(PrefixIcon)) paddingClass += " pl-7";
+        if (!string.IsNullOrEmpty(SuffixIcon)) paddingClass += " pr-7";
+        if (Clearable && !string.IsNullOrEmpty(Value)) paddingClass += " pr-8";
+
+        var stateClass = HasError
+            ? "border-rose-300 focus:border-rose-400 focus:ring-1 focus:ring-rose-100"
+            : "border-blue-200 hover:border-blue-300 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-100";
+
+        if (Disabled) stateClass += " bg-slate-50 cursor-not-allowed opacity-60";
+        if (Readonly) stateClass += " bg-slate-50";
+
+        return $"{baseClass} {sizeClass} {paddingClass} {stateClass}";
+    }
+}

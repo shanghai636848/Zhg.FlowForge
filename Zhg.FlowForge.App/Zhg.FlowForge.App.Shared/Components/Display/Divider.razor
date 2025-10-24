@@ -1,0 +1,40 @@
+﻿<div class="@GetDividerClass()">
+	@if (!string.IsNullOrEmpty(Text))
+	{
+		<span class="@GetTextClass()">@Text</span>
+	}
+</div>
+@code {
+	[Parameter] public string Text { get; set; } = "";
+	[Parameter] public string Orientation { get; set; } = "horizontal"; // horizontal, vertical
+	[Parameter] public string TextAlign { get; set; } = "center"; // left, center, right
+	[Parameter] public string Variant { get; set; } = "solid"; // solid, dashed, dotted
+
+	private string GetDividerClass()
+	{
+		if (Orientation == "vertical")
+		{
+			return "w-px h-full bg-slate-200";
+		}
+		var baseClass = "relative flex items-center"; if (string.IsNullOrEmpty(Text))
+		{
+			var lineStyle = Variant switch
+			{
+				"dashed" => "border-dashed",
+				"dotted" => "border-dotted",
+				_ => ""
+			};
+			return $"border-t border-slate-200 {lineStyle}";
+		}
+		return baseClass;
+	}
+	private string GetTextClass()
+	{
+		if (string.IsNullOrEmpty(Text)) return ""; var baseClass = "px-2 text-xs text-slate-500 bg-white"; var alignClass = TextAlign switch
+		{
+			"left" => "mr-auto",
+			"right" => "ml-auto",
+			_ => "mx-auto"
+		}; return $"{baseClass} {alignClass}";
+	}
+}

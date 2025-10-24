@@ -1,0 +1,63 @@
+﻿<div class="@GetAlertClass()" role="alert">
+    <div class="flex items-start gap-2.5">
+        <i class="@GetIconClass() mt-0.5 shrink-0 text-sm"></i>
+
+        <div class="min-w-0 flex-1">
+            @if (!string.IsNullOrEmpty(Title))
+            {
+                <div class="mb-0.5 text-xs font-semibold">
+                    @Title
+                </div>
+            }
+            <div class="text-xs">
+                @ChildContent
+            </div>
+        </div>
+
+        @if (Closable)
+        {
+            <button class="flex h-5 w-5 shrink-0 items-center justify-center
+                              rounded transition-colors hover:bg-black/10"
+                    @onclick="OnClose">
+                <i class="fas fa-times text-xs"></i>
+            </button>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string Type { get; set; } = "info"; // success, info, warning, error
+    [Parameter] public bool Closable { get; set; }
+    [Parameter] public bool ShowIcon { get; set; } = true;
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private string GetAlertClass()
+    {
+        var baseClass = "p-3 rounded-lg border";
+
+        var typeClass = Type switch
+        {
+            "success" => "bg-emerald-50 border-emerald-200 text-emerald-900",
+            "warning" => "bg-amber-50 border-amber-200 text-amber-900",
+            "error" => "bg-rose-50 border-rose-200 text-rose-900",
+            _ => "bg-blue-50 border-blue-200 text-blue-900"
+        };
+
+        return $"{baseClass} {typeClass}";
+    }
+
+    private string GetIconClass()
+    {
+        if (!ShowIcon) return "";
+
+        return Type switch
+        {
+            "success" => "fas fa-check-circle text-emerald-600",
+            "warning" => "fas fa-exclamation-triangle text-amber-600",
+            "error" => "fas fa-times-circle text-rose-600",
+            _ => "fas fa-info-circle text-blue-600"
+        };
+    }
+}

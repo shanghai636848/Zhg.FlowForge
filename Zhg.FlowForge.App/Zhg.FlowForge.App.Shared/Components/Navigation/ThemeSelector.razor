@@ -1,0 +1,63 @@
+﻿@inject IThemeService ThemeService
+
+<div class="relative" 
+     @onmouseenter="() => IsOpen = true" 
+     @onmouseleave="() => IsOpen = false">
+    <IconButton 
+        Icon="fas fa-palette" 
+        Variant="ghost-light" 
+        Size="sm"
+        Title="切换主题" />
+
+    @if (IsOpen)
+    {
+        <div class="absolute top-full right-0 z-50 mt-1 w-48 animate-[fadeIn_0.2s_ease-out] rounded-lg
+                    border border-slate-200 bg-white py-1 shadow-xl">
+            @foreach (var theme in AvailableThemes)
+            {
+                <button class="flex w-full items-center justify-between px-3
+                              py-1.5 text-left text-xs transition-colors hover:bg-slate-50
+                              @(CurrentTheme == theme.Id ? "bg-blue-50 text-blue-700" : "text-slate-700")"
+                        @onclick="() => SelectTheme(theme.Id)">
+                    <span class="flex items-center gap-2">
+                        <span class="h-3 w-3 rounded-full" 
+                              style="background: @theme.Color"></span>
+                        <span>@theme.Name</span>
+                    </span>
+                    @if (CurrentTheme == theme.Id)
+                    {
+                        <i class="fas fa-check text-xs"></i>
+                    }
+                </button>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private bool IsOpen = false;
+    private string CurrentTheme = "tech-blue";
+
+    private List<ThemeInfo> AvailableThemes = new()
+    {
+        new("tech-blue", "科技蓝", "#3b82f6"),
+        new("magic-purple", "魔幻紫", "#a855f7"),
+        new("eco-green", "生态绿", "#10b981"),
+        new("warm-orange", "暖阳橙", "#f97316"),
+        new("dark", "深色模式", "#1e293b")
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        CurrentTheme = await ThemeService.GetCurrentThemeAsync();
+    }
+
+    private async Task SelectTheme(string themeId)
+    {
+        CurrentTheme = themeId;
+        await ThemeService.SetThemeAsync(themeId);
+        IsOpen = false;
+    }
+
+    record ThemeInfo(string Id, string Name, string Color);
+}

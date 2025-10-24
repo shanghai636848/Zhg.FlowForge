@@ -1,0 +1,276 @@
+﻿@using Zhg.FlowForge.App.Shared.Components.Display
+@inject NavigationManager Navigation
+@inject ILocalizationService Localization
+
+@if (IsOpen)
+{
+	<div class="fixed inset-0 z-50 flex items-start justify-center pt-[10vh]"
+		 @onclick="Close">
+		<!-- 遮罩 -->
+		<div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
+
+		<!-- 搜索框 -->
+		<div class="relative mx-4 w-full max-w-2xl animate-[scaleIn_0.2s_ease-out] overflow-hidden rounded-xl
+	                    bg-white shadow-2xl"
+			 @onclick:stopPropagation="true">
+
+			<!-- 输入区 -->
+			<div class="border-b border-slate-200 p-4">
+				<div class="relative">
+					<i class="fas fa-search absolute top-3.5 left-4 text-slate-400"></i>
+					<input type="text"
+						   class="h-12 w-full pr-4 pl-12 text-base text-slate-900
+	                                  focus:outline-none"
+						   placeholder="搜索项目、文档、模板..."
+						   @bind="searchQuery"
+						   @bind:event="oninput"
+						   @onkeydown="HandleKeyDown"
+						   @ref="searchInput"
+						   autofocus />
+					@if (!string.IsNullOrEmpty(searchQuery))
+					{
+						<button class="absolute top-3.5 right-4 flex h-5 w-5
+		                                      items-center justify-center rounded-full bg-slate-200 hover:bg-slate-300"
+								@onclick="ClearSearch">
+							<i class="fas fa-times text-xs text-slate-600"></i>
+						</button>
+					}
+				</div>
+			</div>
+
+			<!-- 快捷键提示 -->
+			<div class="flex items-center gap-4 border-b border-slate-200 bg-slate-50 px-4 py-2 text-xs">
+				<div class="flex items-center gap-1.5">
+					<kbd class="kbd">↑</kbd>
+					<kbd class="kbd">↓</kbd>
+					<span class="text-slate-600">导航</span>
+				</div>
+				<div class="flex items-center gap-1.5">
+					<kbd class="kbd">Enter</kbd>
+					<span class="text-slate-600">选择</span>
+				</div>
+				<div class="flex items-center gap-1.5">
+					<kbd class="kbd">Esc</kbd>
+					<span class="text-slate-600">关闭</span>
+				</div>
+			</div>
+
+			<!-- 搜索结果 -->
+			<div class="scrollable max-h-96 overflow-y-auto">
+				@if (string.IsNullOrEmpty(searchQuery))
+				{
+					<!-- 最近搜索 -->
+					@if (RecentSearches.Any())
+					{
+						<div class="p-3">
+							<div class="px-3 py-2 text-xs font-semibold text-slate-500">
+								最近搜索
+							</div>
+							@foreach (var search in RecentSearches)
+							{
+								<button class="flex w-full items-center gap-3 rounded-lg px-3 py-2
+				                                              text-left transition-colors hover:bg-slate-50"
+										@onclick="() => ApplySearch(search)">
+									<i class="fas fa-clock text-slate-400"></i>
+									<span class="flex-1 text-sm text-slate-700">@search</span>
+									<i class="fas fa-arrow-up-right text-xs text-slate-400"></i>
+								</button>
+							}
+						</div>
+					}
+
+					<!-- 快捷操作 -->
+					<div class="border-t border-slate-200 p-3">
+						<div class="px-3 py-2 text-xs font-semibold text-slate-500">
+							快捷操作
+						</div>
+						<div class="space-y-1">
+							<button class="search-quick-action"
+									@onclick="@(() => Navigation.NavigateTo("designer"))">
+								<div class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100">
+									<i class="fas fa-plus text-sm text-blue-600"></i>
+								</div>
+								<span class="flex-1 text-sm font-medium text-slate-700">新建项目</span>
+								<kbd class="kbd">Ctrl+N</kbd>
+							</button>
+
+							<button class="search-quick-action"
+									@onclick="@(() => Navigation.NavigateTo("templates"))">
+								<div class="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-100">
+									<i class="fas fa-layer-group text-sm text-purple-600"></i>
+								</div>
+								<span class="flex-1 text-sm font-medium text-slate-700">浏览模板</span>
+								<kbd class="kbd">Ctrl+T</kbd>
+							</button>
+						</div>
+					</div>
+				}
+				else if (FilteredResults.Any())
+				{
+					<!-- 搜索结果分组 -->
+					@foreach (var group in FilteredResults.GroupBy(r => r.Type))
+					{
+						<div class="p-3">
+							<div class="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-slate-500">
+								<i class="@GetTypeIcon(group.Key)"></i>
+								@GetTypeName(group.Key)
+								<Badge Variant="primary" Size="sm">@group.Count()</Badge>
+							</div>
+							@foreach (var result in group.Take(5))
+							{
+								<button class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5
+				text-left transition-colors hover:bg-slate-50
+				@(SelectedIndex == SearchResults.IndexOf(result) ? "bg-blue-50" : "")"
+										@onclick="() => SelectResult(result)">
+									<div class="flex h-9 w-9 @GetTypeBg(result.Type)
+				                                             shrink-0 items-center justify-center rounded-lg">
+										<i class="@GetTypeIcon(result.Type) @GetTypeColor(result.Type) text-sm"></i>
+									</div>
+									<div class="min-w-0 flex-1">
+										<div class="truncate text-sm font-medium text-slate-900">
+											@HighlightMatch(result.Title, searchQuery)
+										</div>
+										@if (!string.IsNullOrEmpty(result.Description))
+										{
+											<div class="truncate text-xs text-slate-600">
+												@result.Description
+											</div>
+										}
+									</div>
+									@if (!string.IsNullOrEmpty(result.Badge))
+									{
+										<Badge Variant="success" Size="sm">@result.Badge</Badge>
+									}
+									<i class="fas fa-arrow-up-right text-xs text-slate-400"></i>
+								</button>
+							}
+							@if (group.Count() > 5)
+							{
+								<div class="cursor-pointer px-3 py-2 text-xs text-blue-600 hover:text-blue-700">
+									查看全部 @group.Count() 个结果
+								</div>
+							}
+						</div>
+					}
+				}
+				else
+				{
+					<!-- 无结果 -->
+					<div class="p-12 text-center">
+						<div class="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100">
+							<i class="fas fa-search text-2xl text-slate-400"></i>
+						</div>
+						<div class="mb-1 text-sm font-medium text-slate-900">未找到相关结果</div>
+						<div class="text-xs text-slate-600">尝试使用不同的关键词</div>
+					</div>
+				}
+			</div>
+		</div>
+	</div>
+}
+<style>
+	 .kbd {
+		 @@apply inline-flex items-center justify-center px-1.5 py-0.5 rounded bg-white border border-slate-300 text-slate-700 font-mono text-xs shadow-sm;
+	 }
+
+	 .search-quick-action {
+		 @@apply w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-slate-50 text-left transition-colors;
+	 }
+</style>
+@code {
+	[Parameter] public bool IsOpen { get; set; }
+	[Parameter] public EventCallback<bool> IsOpenChanged { get; set; }
+	private ElementReference searchInput;
+	private string searchQuery = "";
+	private int SelectedIndex = -1; private List<string> RecentSearches = new()
+{
+	"订单处理流程",
+	"用户审批",
+	"库存管理"
+}; private List<SearchResult> SearchResults = new()
+{
+	new("project", "订单处理流程", "电商订单自动化处理系统", "/project/1", ""),
+	new("project", "用户审批流程", "多级审批工作流", "/project/2", "Hot"),
+	new("template", "标准审批模板", "企业标准审批流程模板", "/template/1", ""),
+	new("doc", "BPMN 快速入门", "了解 BPMN 2.0 规范", "/docs/getting-started", ""),
+	new("doc", "代码生成指南", "自动生成高质量代码", "/docs/code-generation", "")
+}; private IEnumerable<SearchResult> FilteredResults =>
+	string.IsNullOrEmpty(searchQuery)
+		? Enumerable.Empty<SearchResult>()
+		: SearchResults.Where(r =>
+			r.Title.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+			r.Description.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)); private async Task Close()
+	{
+		IsOpen = false;
+		await IsOpenChanged.InvokeAsync(false);
+	}
+	private void ClearSearch()
+	{
+		searchQuery = "";
+		SelectedIndex = -1;
+	}
+	private void ApplySearch(string query)
+	{
+		searchQuery = query;
+	}
+	private async Task SelectResult(SearchResult result)
+	{
+		Navigation.NavigateTo(result.Url);
+		await Close();
+	}
+	private void HandleKeyDown(KeyboardEventArgs e)
+	{
+		if (e.Key == "Escape")
+		{
+			Close();
+		}
+		else if (e.Key == "ArrowDown")
+		{
+			SelectedIndex = Math.Min(SelectedIndex + 1, SearchResults.Count - 1);
+		}
+		else if (e.Key == "ArrowUp")
+		{
+			SelectedIndex = Math.Max(SelectedIndex - 1, 0);
+		}
+		else if (e.Key == "Enter" && SelectedIndex >= 0)
+		{
+			SelectResult(SearchResults[SelectedIndex]);
+		}
+	}
+	private string GetTypeIcon(string type) => type switch
+	{
+		"project" => "fas fa-folder",
+		"template" => "fas fa-file-code",
+		"doc" => "fas fa-book",
+		_ => "fas fa-file"
+	};
+	private string GetTypeName(string type) => type switch
+	{
+		"project" => "项目",
+		"template" => "模板",
+		"doc" => "文档",
+		_ => "其他"
+	};
+	private string GetTypeBg(string type) => type switch
+	{
+		"project" => "bg-blue-100",
+		"template" => "bg-purple-100",
+		"doc" => "bg-emerald-100",
+		_ => "bg-slate-100"
+	};
+	private string GetTypeColor(string type) => type switch
+	{
+		"project" => "text-blue-600",
+		"template" => "text-purple-600",
+		"doc" => "text-emerald-600",
+		_ => "text-slate-600"
+	};
+	private MarkupString HighlightMatch(string text, string query)
+	{
+		if (string.IsNullOrEmpty(query)) return (MarkupString)text; var index = text.IndexOf(query, StringComparison.OrdinalIgnoreCase);
+		if (index < 0) return (MarkupString)text; var before = text.Substring(0, index);
+		var match = text.Substring(index, query.Length);
+		var after = text.Substring(index + query.Length); return (MarkupString)$"{before}<mark class=\"bg-yellow-200 text-slate-900\">{match}</mark>{after}";
+	}
+	record SearchResult(string Type, string Title, string Description, string Url, string Badge);
+}

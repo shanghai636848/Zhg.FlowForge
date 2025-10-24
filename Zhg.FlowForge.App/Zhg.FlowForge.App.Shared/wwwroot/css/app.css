@@ -355,7 +355,7 @@
 
     /* 输入框 */
     .input-field {
-        @apply w-full rounded-md border px-2 py-1.5 text-xs transition-all focus:outline-none focus:ring-1;
+        @apply w-full rounded-md border px-2 py-1.5 text-xs transition-all focus:ring-1 focus:outline-none;
         border-color: var(--primary-200);
         background: white;
         color: var(--primary-900);
@@ -387,7 +387,7 @@
 
     /* 徽章 */
     .badge {
-        @apply inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-2xs font-medium;
+        @apply text-2xs inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 font-medium;
     }
 
     .badge-primary {
@@ -418,7 +418,7 @@
     }
 
     .panel-header {
-        @apply border-b pb-2 mb-2 text-xs font-semibold;
+        @apply mb-2 border-b pb-2 text-xs font-semibold;
         border-color: var(--primary-200);
         color: var(--primary-700);
     }

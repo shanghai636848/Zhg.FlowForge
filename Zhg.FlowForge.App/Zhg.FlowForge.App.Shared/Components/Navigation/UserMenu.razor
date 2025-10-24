@@ -1,0 +1,104 @@
+﻿@inject NavigationManager Navigation
+
+<div class="relative" @ref="menuRef">
+    <div class="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1 transition-colors hover:bg-white/10"
+         @onclick="ToggleMenu">
+        <Avatar Name="@UserName" Size="sm" />
+        <span class="text-xs font-medium text-white">@UserName</span>
+        <i class="fas fa-chevron-down text-xs text-white/80"></i>
+    </div>
+
+    @if (IsOpen)
+    {
+        <div class="absolute top-full right-0 z-50 mt-1 w-56 animate-[fadeIn_0.2s_ease-out] rounded-lg
+                    border border-slate-200 bg-white py-1 shadow-xl">
+            <!-- 用户信息 -->
+            <div class="border-b border-slate-200 px-3 py-2">
+                <div class="flex items-center gap-2.5">
+                    <Avatar Name="@UserName" Size="md" />
+                    <div class="min-w-0 flex-1">
+                        <div class="truncate text-sm font-semibold text-slate-900">@UserName</div>
+                        <div class="truncate text-xs text-slate-600">@UserEmail</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 菜单项 -->
+            <div class="py-1">
+                <button class="menu-item" @onclick="@(() => Navigate("profile"))">
+                    <i class="fas fa-user text-xs"></i>
+                    <span>个人资料</span>
+                </button>
+                <button class="menu-item" @onclick="@(() => Navigate("settings"))">
+                    <i class="fas fa-cog text-xs"></i>
+                    <span>系统设置</span>
+                </button>
+                <button class="menu-item" @onclick="@(() => Navigate("billing"))">
+                    <i class="fas fa-credit-card text-xs"></i>
+                    <span>账单管理</span>
+                </button>
+            </div>
+
+            <div class="border-t border-slate-200"></div>
+
+            <div class="py-1">
+                <button class="menu-item" @onclick="@(() => Navigate("help"))">
+                    <i class="fas fa-life-ring text-xs"></i>
+                    <span>帮助中心</span>
+                </button>
+                <button class="menu-item" @onclick="@(() => Navigate("feedback"))">
+                    <i class="fas fa-comment-dots text-xs"></i>
+                    <span>反馈建议</span>
+                </button>
+            </div>
+
+            <div class="border-t border-slate-200"></div>
+
+            <div class="py-1">
+                <button class="menu-item text-rose-600 hover:bg-rose-50" @onclick="Logout">
+                    <i class="fas fa-sign-out-alt text-xs"></i>
+                    <span>退出登录</span>
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .menu-item {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 0.625rem;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.75rem;
+        color: var(--color-slate-700);
+        text-align: left;
+        transition: background-color 0.15s;
+    }
+
+    .menu-item:hover {
+        background-color: var(--color-slate-50);
+    }
+</style>
+
+@code {
+    private ElementReference menuRef;
+    private bool IsOpen = false;
+    private string UserName = "Admin User";
+    private string UserEmail = "admin@flowforge.com";
+
+    private void ToggleMenu() => IsOpen = !IsOpen;
+
+    private void Navigate(string url)
+    {
+        IsOpen = false;
+        Navigation.NavigateTo(url);
+    }
+
+    private void Logout()
+    {
+        IsOpen = false;
+        Navigation.NavigateTo("/logout");
+    }
+}

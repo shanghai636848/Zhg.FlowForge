@@ -1,3 +1,4 @@
+using Zhg.FlowForge.App.Shared.Services;
 using Zhg.FlowForge.App.Web.Components;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -6,6 +7,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
+
+// 注册全局服务
+builder.Services.AddSingleton<IThemeService, ThemeService>();
+builder.Services.AddSingleton<IToastService, ToastService>();
+builder.Services.AddSingleton<ILocalizationService, LocalizationService>();
+
+
 
 var app = builder.Build();
 

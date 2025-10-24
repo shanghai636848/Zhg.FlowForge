@@ -1,0 +1,54 @@
+﻿<div class="@ContainerClass">
+	@if (!string.IsNullOrEmpty(Label))
+	{
+		<div class="mb-1.5 flex items-center justify-between">
+			<span class="text-xs font-medium text-slate-700">@Label</span>
+			@if (ShowPercentage)
+			{
+				<span class="text-xs font-semibold text-slate-900">@Value%</span>
+			}
+		</div>
+	}
+<div class="@GetTrackClass()">
+		<div class="@GetBarClass()"
+			 style="width: @Value%">
+			@if (Striped)
+			{
+				<div class="absolute inset-0 bg-[repeating-linear-gradient(45deg,transparent,transparent_10px,rgba(255,255,255,0.1)_10px,rgba(255,255,255,0.1)_20px)]"></div>
+			}
+		</div>
+	</div>@if (!string.IsNullOrEmpty(HelpText))
+	{
+		<span class="mt-1 block text-xs text-slate-500">@HelpText</span>
+	}
+</div>
+@code {
+	[Parameter] public string Label { get; set; } = "";
+	[Parameter] public string HelpText { get; set; } = "";
+	[Parameter] public int Value { get; set; } = 0;
+	[Parameter] public string Size { get; set; } = "md"; // sm, md, lg
+	[Parameter] public string Color { get; set; } = "primary"; // primary, success, warning, danger
+	[Parameter] public string ContainerClass { get; set; } = "";
+	[Parameter] public bool ShowPercentage { get; set; } = true;
+	[Parameter] public bool Striped { get; set; }
+	[Parameter] public bool Animated { get; set; }
+	private string GetTrackClass()
+	{
+		var baseClass = "w-full bg-slate-100 rounded-full overflow-hidden"; var sizeClass = Size switch
+		{
+			"sm" => "h-1.5",
+			"lg" => "h-3",
+			_ => "h-2"
+		}; return $"{baseClass} {sizeClass}";
+	}
+	private string GetBarClass()
+	{
+		var baseClass = "h-full transition-all duration-500 ease-out relative"; var colorClass = Color switch
+		{
+			"success" => "bg-emerald-600",
+			"warning" => "bg-amber-600",
+			"danger" => "bg-rose-600",
+			_ => "bg-blue-600"
+		}; return $"{baseClass} {colorClass}";
+	}
+}

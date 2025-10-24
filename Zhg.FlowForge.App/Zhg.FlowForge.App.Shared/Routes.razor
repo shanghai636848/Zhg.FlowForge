@@ -1,6 +1,34 @@
-﻿<Router AppAssembly="typeof(Layout.MainLayout).Assembly" NotFoundPage="typeof(Pages.NotFound)">
+﻿@* <Router AppAssembly="typeof(Layout.MainLayout).Assembly" NotFoundPage="typeof(Pages.NotFound)">
     <Found Context="routeData">
         <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
         <FocusOnNavigate RouteData="routeData" Selector="h1" />
     </Found>
+</Router>
+ *@
+
+
+<Router AppAssembly="@typeof(Layout.MainLayout).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <PageTitle>404 - 页面未找到</PageTitle>
+        <LayoutView Layout="@typeof(Layout.EmptyLayout)">
+            <div class="flex min-h-screen items-center justify-center bg-slate-50">
+                <div class="text-center">
+                    <div class="mb-4 text-6xl font-bold text-blue-600">404</div>
+                    <h1 class="mb-2 text-2xl font-semibold text-slate-900">页面未找到</h1>
+                    <p class="mb-6 text-slate-600">抱歉，您访问的页面不存在</p>
+                    <a href="/" class="inline-flex h-10 items-center gap-2 rounded-lg bg-gradient-to-r
+                                     from-blue-500 via-indigo-500 to-purple-600 px-6
+                                     font-medium text-white shadow-sm transition-all
+                                     hover:scale-105 hover:shadow-md">
+                        <i class="fas fa-home"></i>
+                        <span>返回首页</span>
+                    </a>
+                </div>
+            </div>
+        </LayoutView>
+    </NotFound>
 </Router>

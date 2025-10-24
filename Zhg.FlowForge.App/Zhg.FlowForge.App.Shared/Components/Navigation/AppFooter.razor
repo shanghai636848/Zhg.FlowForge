@@ -1,0 +1,178 @@
+﻿@inject ILocalizationService Localization
+@inject NavigationManager Navigation
+
+<footer class="bg-slate-900 text-white">
+    <!-- 主要内容区 -->
+    <div class="mx-auto max-w-[96rem] px-4 py-12">
+        <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-5">
+            <!-- 品牌信息 -->
+            <div class="lg:col-span-2">
+                <div class="mb-4 flex items-center gap-2.5">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-lg
+                                bg-gradient-to-br from-blue-500 to-purple-600">
+                        <i class="fas fa-code-branch text-lg text-white"></i>
+                    </div>
+                    <div>
+                        <div class="text-base font-bold">FlowForge</div>
+                        <div class="text-xs text-slate-400">BPMN Code Generation Platform</div>
+                    </div>
+                </div>
+                <p class="mb-4 max-w-sm text-sm text-slate-400">
+                    从 BPMN 设计到代码部署的一站式自动化平台，让业务流程开发变得简单高效。
+                </p>
+                <!-- 社交媒体 -->
+                <div class="flex items-center gap-3">
+                    <a href="#" class="group flex h-9 w-9 items-center
+                                     justify-center rounded-lg bg-slate-800 transition-colors hover:bg-slate-700">
+                        <i class="fab fa-github text-slate-400 transition-colors group-hover:text-white"></i>
+                    </a>
+                    <a href="#" class="group flex h-9 w-9 items-center
+                                     justify-center rounded-lg bg-slate-800 transition-colors hover:bg-slate-700">
+                        <i class="fab fa-twitter text-slate-400 transition-colors group-hover:text-white"></i>
+                    </a>
+                    <a href="#" class="group flex h-9 w-9 items-center
+                                     justify-center rounded-lg bg-slate-800 transition-colors hover:bg-slate-700">
+                        <i class="fab fa-linkedin text-slate-400 transition-colors group-hover:text-white"></i>
+                    </a>
+                    <a href="#" class="group flex h-9 w-9 items-center
+                                     justify-center rounded-lg bg-slate-800 transition-colors hover:bg-slate-700">
+                        <i class="fab fa-discord text-slate-400 transition-colors group-hover:text-white"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 产品 -->
+            <div>
+                <h4 class="mb-4 text-sm font-semibold">产品</h4>
+                <ul class="space-y-2.5">
+                    <li><a href="/designer" class="footer-link">@Localization["common.designer"]</a></li>
+                    <li><a href="/templates" class="footer-link">@Localization["common.templates"]</a></li>
+                    <li><a href="/projects" class="footer-link">@Localization["common.projects"]</a></li>
+                    <li><a href="/pricing" class="footer-link">定价方案</a></li>
+                    <li><a href="/changelog" class="footer-link">更新日志</a></li>
+                </ul>
+            </div>
+
+            <!-- 资源 -->
+            <div>
+                <h4 class="mb-4 text-sm font-semibold">@Localization["footer.resources"]</h4>
+                <ul class="space-y-2.5">
+                    <li><a href="/docs" class="footer-link">@Localization["footer.documentation"]</a></li>
+                    <li><a href="/api" class="footer-link">@Localization["footer.api"]</a></li>
+                    <li><a href="/guides" class="footer-link">使用指南</a></li>
+                    <li><a href="/examples" class="footer-link">示例项目</a></li>
+                    <li><a href="/blog" class="footer-link">技术博客</a></li>
+                </ul>
+            </div>
+
+            <!-- 公司 -->
+            <div>
+                <h4 class="mb-4 text-sm font-semibold">公司</h4>
+                <ul class="space-y-2.5">
+                    <li><a href="/about" class="footer-link">@Localization["footer.about"]</a></li>
+                    <li><a href="/contact" class="footer-link">@Localization["footer.contact"]</a></li>
+                    <li><a href="/careers" class="footer-link">加入我们</a></li>
+                    <li><a href="/support" class="footer-link">@Localization["footer.support"]</a></li>
+                    <li><a href="/feedback" class="footer-link">@Localization["footer.feedback"]</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 分隔线 -->
+        <div class="my-8 h-px bg-slate-800"></div>
+
+        <!-- 底部信息 -->
+        <div class="flex flex-col items-center justify-between gap-4 md:flex-row">
+            <!-- 版权信息 -->
+            <div class="text-center text-sm text-slate-400 md:text-left">
+                @Localization["footer.company"]
+            </div>
+
+            <!-- 底部链接 -->
+            <div class="flex items-center gap-6 text-sm">
+                <a href="/privacy" class="footer-link">@Localization["footer.privacy"]</a>
+                <a href="/terms" class="footer-link">@Localization["footer.terms"]</a>
+                <a href="/cookies" class="footer-link">Cookie 政策</a>
+                <a href="/sitemap" class="footer-link">网站地图</a>
+            </div>
+
+            <!-- 语言和主题 -->
+            <div class="flex items-center gap-3">
+                <button class="footer-link flex items-center gap-1.5"
+                        @onclick="OpenLanguageModal">
+                    <i class="fas fa-language text-xs"></i>
+                    <span>@GetCurrentLanguageName()</span>
+                </button>
+                <span class="text-slate-700">|</span>
+                <button class="footer-link flex items-center gap-1.5"
+                        @onclick="OpenThemeModal">
+                    <i class="fas fa-palette text-xs"></i>
+                    <span>主题</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 备案信息（中国地区） -->
+        @if (Localization.CurrentLanguage.StartsWith("zh"))
+        {
+            <div class="mt-6 text-center text-xs text-slate-500">
+                <a href="https://beian.miit.gov.cn" target="_blank" class="hover:text-slate-400">
+                    ICP备案号：京ICP备XXXXXXXX号-1
+                </a>
+                <span class="mx-2">|</span>
+                <a href="#" class="hover:text-slate-400">
+                    京公网安备 XXXXXXXXXXXXXXXX号
+                </a>
+            </div>
+        }
+    </div>
+
+    <!-- 返回顶部按钮 -->
+    @if (ShowBackToTop)
+    {
+        <button class="fixed right-6 bottom-6 z-30 flex h-11
+                          w-11 animate-[fadeIn_0.3s_ease-out] items-center justify-center
+                          rounded-full bg-blue-600 text-white shadow-lg
+                          transition-all hover:scale-110 hover:bg-blue-700"
+                @onclick="ScrollToTop">
+            <i class="fas fa-arrow-up"></i>
+        </button>
+    }
+</footer>
+
+<style>
+    .footer-link {
+        @@apply text-sm text-slate-400 hover:text-white transition-colors;
+    }
+</style>
+
+@code {
+    private bool ShowBackToTop = false;
+
+    protected override void OnInitialized()
+    {
+        // 监听滚动事件来显示/隐藏返回顶部按钮
+    }
+
+    private void OpenLanguageModal()
+    {
+        // 打开语言选择模态框
+    }
+
+    private void OpenThemeModal()
+    {
+        // 打开主题选择模态框
+    }
+
+    private void ScrollToTop()
+    {
+        // 滚动到顶部
+    }
+
+    private string GetCurrentLanguageName()
+    {
+        var current = Localization.AvailableLanguages
+            .FirstOrDefault(l => l.Code == Localization.CurrentLanguage);
+        return current?.NativeName ?? "中文";
+    }
+}

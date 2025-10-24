@@ -1,109 +1,112 @@
-﻿@using static Zhg.FlowForge.App.Shared.Layout.LanguageSwitcher
-@inherits LayoutComponentBase
+﻿@using Zhg.FlowForge.App.Shared.Components
+@using Zhg.FlowForge.App.Shared.Components.Feedback
+@using Zhg.FlowForge.App.Shared.Components.Navigation
+@* @inherits LayoutComponentBase
+@inject IThemeService ThemeService
 
-<!-- 主布局 - 紧凑优化版 -->
-<div class="flex h-screen flex-col overflow-hidden bg-gradient-to-br from-slate-50 via-purple-50/20 to-pink-50/20">
-    <Header @bind-CurrentLanguage="currentLanguage" />
+<div class="flex h-screen flex-col bg-slate-50" data-theme="@CurrentTheme">
+    <!-- 顶部导航栏 -->
+    <TopNavBar />
 
-    <!-- 主内容区域 - 占据剩余空间 -->
+    <!-- 主内容区 -->
     <main class="flex-1 overflow-hidden">
-        <div class="h-full animate-fade-in">
-            @Body
-        </div>
+        @Body
     </main>
 
-    <Footer CurrentLanguage="currentLanguage" />
+    <!-- 全局 Toast 通知 -->
+    <ToastContainer />
 </div>
 
-<style>
-    /* 全局滚动条样式 */
-    ::-webkit-scrollbar {
-        width: 6px;
-        height: 6px;
+@code {
+    private string CurrentTheme = "tech-blue";
+
+    protected override async Task OnInitializedAsync()
+    {
+        CurrentTheme = await ThemeService.GetCurrentThemeAsync();
+        ThemeService.OnThemeChanged += OnThemeChanged;
     }
 
-    ::-webkit-scrollbar-track {
-        background: #f1f5f9;
-        border-radius: 3px;
+    private void OnThemeChanged(string newTheme)
+    {
+        CurrentTheme = newTheme;
+        StateHasChanged();
     }
 
-    ::-webkit-scrollbar-thumb {
-        background: linear-gradient(to bottom, #cbd5e1, #94a3b8);
-        border-radius: 3px;
-        transition: background 0.2s;
+    public void Dispose()
+    {
+        ThemeService.OnThemeChanged -= OnThemeChanged;
     }
+} *@
 
-        ::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(to bottom, #94a3b8, #64748b);
-        }
 
-    /* 淡入动画 */
-    @@keyframes fade-in {
-        from {
-            opacity: 0;
-            transform: translateY(4px);
-        }
+@inherits LayoutComponentBase
+@inject IThemeService ThemeService
+@inject ILocalizationService Localization
+<div class="flex min-h-screen flex-col bg-slate-50" data-theme="@CurrentTheme">
+	<!-- 全局 Header -->
+	<AppHeader ShowBreadcrumb="true" Breadcrumbs="@CurrentBreadcrumbs" />
 
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
+	<!-- 主内容区 -->
+	<main class="flex-1">
+		@Body
+	</main>
 
-    .animate-fade-in {
-        animation: fade-in 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
+	<!-- 全局 Footer -->
+	<AppFooter />
 
-    /* 防止整体页面滚动 */
-    html, body {
-        overflow: hidden;
-        height: 100%;
-        margin: 0;
-        padding: 0;
-    }
+	<!-- 全局 Toast 通知 -->
+	<Toast />
 
-    /* 全局字体优化 */
-    body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        font-size: 12px;
-        line-height: 1.5;
-        color: #334155;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-    }
-
-    /* 输入框全局样式优化 */
-    input, textarea, select {
-        font-size: 12px;
-    }
-
-        input:focus, textarea:focus, select:focus {
-            outline: none;
-        }
-
-    /* 按钮全局样式优化 */
-    button {
-        font-size: 12px;
-        cursor: pointer;
-    }
-
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-    /* 选择文本样式 */
-    ::selection {
-        background-color: rgba(99, 102, 241, 0.2);
-        color: inherit;
-    }
-
-    ::-moz-selection {
-        background-color: rgba(99, 102, 241, 0.2);
-        color: inherit;
-    }
-</style>
+	<!-- Cookie 同意横幅 -->
+	@if (ShowCookieBanner)
+	{
+		<CookieBanner OnAccept="AcceptCookies" OnReject="RejectCookies" />
+	}
+</div>
 
 @code {
-    private LanguageData currentLanguage = LanguageData.English;
+	private string CurrentTheme = "tech-blue";
+	private bool ShowCookieBanner = false;
+	private List<AppHeader.BreadcrumbItem> CurrentBreadcrumbs = new();
+
+	protected override async Task OnInitializedAsync()
+	{
+		CurrentTheme = await ThemeService.GetCurrentThemeAsync();
+		ThemeService.OnThemeChanged += OnThemeChanged;
+
+		Localization.OnLanguageChanged += StateHasChanged;
+
+		// 检查是否需要显示 Cookie 横幅
+		ShowCookieBanner = await CheckCookieConsent();
+	}
+
+	private void OnThemeChanged(string newTheme)
+	{
+		CurrentTheme = newTheme;
+		StateHasChanged();
+	}
+
+	private async Task<bool> CheckCookieConsent()
+	{
+		// 检查是否已同意 Cookie
+		return false; // 示例
+	}
+
+	private void AcceptCookies()
+	{
+		ShowCookieBanner = false;
+		// 保存同意状态
+	}
+
+	private void RejectCookies()
+	{
+		ShowCookieBanner = false;
+		// 保存拒绝状态
+	}
+
+	public void Dispose()
+	{
+		ThemeService.OnThemeChanged -= OnThemeChanged;
+		Localization.OnLanguageChanged -= StateHasChanged;
+	}
 }

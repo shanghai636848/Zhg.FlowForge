@@ -1,0 +1,160 @@
+﻿@using Zhg.FlowForge.App.Shared.Components.Buttons
+@inject ILocalizationService Localization
+
+<div class="fixed inset-0 z-50" @onclick="OnClose">
+	<!-- 遮罩 -->
+	<div class="absolute inset-0 bg-slate-900/20"></div>
+
+	<!-- 面板 -->
+	<div class="absolute top-14 right-4 flex max-h-[32rem] w-96 animate-[slideInRight_0.2s_ease-out] flex-col
+                rounded-lg border border-slate-200 bg-white shadow-2xl"
+		 @onclick:stopPropagation="true">
+
+		<!-- 头部 -->
+		<div class="flex items-center justify-between border-b border-slate-200 p-3">
+			<h3 class="text-sm font-semibold text-slate-900">
+				@Localization["nav.notifications"]
+			</h3>
+			<div class="flex items-center gap-2">
+				<button class="text-xs font-medium text-blue-600 hover:text-blue-700">
+					全部已读
+				</button>
+				<IconButton Icon="fas fa-times"
+							Size="sm"
+							Variant="ghost"
+							OnClick="OnClose" />
+			</div>
+		</div>
+
+		<!-- 标签页 -->
+		<div class="flex border-b border-slate-200">
+			<button class="flex-1 px-4 py-2.5 text-xs font-medium transition-colors
+                          @(ActiveTab == "all" ? "text-blue-600 border-b-2 border-blue-600" : "text-slate-600 hover:text-slate-900")"
+					@onclick="@(() => ActiveTab = "all")">
+				全部 (5)
+			</button>
+			<button class="flex-1 px-4 py-2.5 text-xs font-medium transition-colors
+                          @(ActiveTab == "unread" ? "text-blue-600 border-b-2 border-blue-600" : "text-slate-600 hover:text-slate-900")"
+					@onclick="@(() => ActiveTab = "unread")">
+				未读 (3)
+			</button>
+		</div>
+
+		<!-- 通知列表 -->
+		<div class="scrollable flex-1 overflow-y-auto">
+			@if (Notifications.Any())
+			{
+				@foreach (var notification in FilteredNotifications)
+				{
+					<div class="cursor-pointer border-b border-slate-100 p-3 transition-colors hover:bg-slate-50
+		                              @(!notification.IsRead ? "bg-blue-50/50" : "")"
+						 @onclick="() => MarkAsRead(notification.Id)">
+						<div class="flex items-start gap-3">
+							<div class="flex h-8 w-8 @GetNotificationIconBg(notification.Type)
+		                                        shrink-0 items-center justify-center rounded-full">
+								<i class="@GetNotificationIcon(notification.Type) text-xs"></i>
+							</div>
+							<div class="min-w-0 flex-1">
+								<div class="mb-1 flex items-start justify-between gap-2">
+									<h4 class="flex-1 text-xs font-semibold text-slate-900">
+										@notification.Title
+									</h4>
+									@if (!notification.IsRead)
+									{
+										<span class="mt-1 h-2 w-2 shrink-0 rounded-full bg-blue-600"></span>
+									}
+								</div>
+								<p class="mb-1 line-clamp-2 text-xs text-slate-600">
+									@notification.Content
+								</p>
+								<span class="text-xs text-slate-500">
+									@GetRelativeTime(notification.Time)
+								</span>
+							</div>
+						</div>
+					</div>
+				}
+			}
+			else
+			{
+				<div class="py-12 text-center">
+					<i class="fas fa-bell-slash mb-2 text-3xl text-slate-300"></i>
+					<p class="text-xs text-slate-500">暂无通知</p>
+				</div>
+			}
+		</div>
+
+		<!-- 底部 -->
+		<div class="border-t border-slate-200 p-3">
+			<a href="/notifications" class="block text-center text-xs font-medium text-blue-600 hover:text-blue-700">
+				查看全部通知
+			</a>
+		</div>
+	</div>
+</div>
+
+@code {
+	[Parameter] public EventCallback OnClose { get; set; }
+
+	private string ActiveTab = "all";
+
+	private List<NotificationItem> Notifications = new()
+	{
+		new("1", "success", "编译成功", "项目 MyWorkflow 编译成功，可以进行部署", DateTime.Now.AddMinutes(-5), false),
+		new("2", "info", "系统更新", "FlowForge 已更新到 v2.1.0", DateTime.Now.AddHours(-2), false),
+		new("3", "warning", "存储空间不足", "您的存储空间即将用完，请及时清理", DateTime.Now.AddHours(-5), false),
+		new("4", "success", "部署完成", "项目 OrderProcess 已成功部署到生产环境", DateTime.Now.AddDays(-1), true),
+		new("5", "info", "团队邀请", "张三邀请您加入 Enterprise Team", DateTime.Now.AddDays(-2), true),
+	};
+
+	private IEnumerable<NotificationItem> FilteredNotifications =>
+		ActiveTab == "unread"
+			? Notifications.Where(n => !n.IsRead)
+			: Notifications;
+
+	private void MarkAsRead(string id)
+	{
+		var notification = Notifications.FirstOrDefault(n => n.Id == id);
+		if (notification != null)
+		{
+			notification.IsRead = true;
+		}
+	}
+
+	private string GetNotificationIcon(string type) => type switch
+	{
+		"success" => "fas fa-check-circle text-emerald-600",
+		"warning" => "fas fa-exclamation-triangle text-amber-600",
+		"error" => "fas fa-times-circle text-rose-600",
+		_ => "fas fa-info-circle text-blue-600"
+	};
+
+	private string GetNotificationIconBg(string type) => type switch
+	{
+		"success" => "bg-emerald-100",
+		"warning" => "bg-amber-100",
+		"error" => "bg-rose-100",
+		_ => "bg-blue-100"
+	};
+
+	private string GetRelativeTime(DateTime time)
+	{
+		var span = DateTime.Now - time;
+		if (span.TotalMinutes < 1) return "刚刚";
+		if (span.TotalMinutes < 60) return $"{(int)span.TotalMinutes}分钟前";
+		if (span.TotalHours < 24) return $"{(int)span.TotalHours}小时前";
+		if (span.TotalDays < 7) return $"{(int)span.TotalDays}天前";
+		return time.ToString("MM-dd HH:mm");
+	}
+	public record NotificationItem(
+		string Id,
+		string Type,
+		string Title,
+		string Content,
+		DateTime Time,
+		bool IsRead
+	)
+	{
+		public bool IsRead { get; set; } = IsRead;
+	}
+}

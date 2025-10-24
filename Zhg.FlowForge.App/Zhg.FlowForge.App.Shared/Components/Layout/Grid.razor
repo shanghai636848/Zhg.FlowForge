@@ -1,0 +1,26 @@
+﻿<div class="@GetGridClass()">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public int Cols { get; set; } = 3;
+    [Parameter] public string Gap { get; set; } = "3"; // 1, 2, 3, 4, 6, 8
+    [Parameter] public string ColsSm { get; set; } = "";
+    [Parameter] public string ColsMd { get; set; } = "";
+    [Parameter] public string ColsLg { get; set; } = "";
+    [Parameter] public string ColsXl { get; set; } = "";
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private string GetGridClass()
+    {
+        var baseClass = $"grid grid-cols-{Cols} gap-{Gap}";
+
+        var responsiveClass = "";
+        if (!string.IsNullOrEmpty(ColsSm)) responsiveClass += $" sm:grid-cols-{ColsSm}";
+        if (!string.IsNullOrEmpty(ColsMd)) responsiveClass += $" md:grid-cols-{ColsMd}";
+        if (!string.IsNullOrEmpty(ColsLg)) responsiveClass += $" lg:grid-cols-{ColsLg}";
+        if (!string.IsNullOrEmpty(ColsXl)) responsiveClass += $" xl:grid-cols-{ColsXl}";
+
+        return $"{baseClass}{responsiveClass}";
+    }
+}

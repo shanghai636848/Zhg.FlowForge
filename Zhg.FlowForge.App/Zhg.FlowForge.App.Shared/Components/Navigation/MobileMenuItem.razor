@@ -1,0 +1,62 @@
+﻿@using Zhg.FlowForge.App.Shared.Components.Display
+@inject NavigationManager Navigation
+
+<NavLink href="@Href"
+         class="mobile-menu-item"
+         Match="@Match"
+         ActiveClass="active">
+    <div class="flex items-center gap-3">
+        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100
+                    transition-colors group-hover:bg-blue-100">
+            <i class="@Icon text-sm text-slate-600 transition-colors group-hover:text-blue-600"></i>
+        </div>
+        <span class="flex-1 text-sm font-medium">@Label</span>
+        
+        @if (!string.IsNullOrEmpty(Badge))
+        {
+            <Badge Variant="@BadgeVariant" Size="sm">@Badge</Badge>
+        }
+        else if (Count > 0)
+        {
+            <Badge Variant="primary" Size="sm">@Count</Badge>
+        }
+    </div>
+</NavLink>
+
+<style>
+    .mobile-menu-item {
+        display: block;
+        padding: 0.625rem 0.75rem;
+        border-radius: 0.5rem;
+        color: var(--color-slate-700);
+        transition: all 0.15s;
+    }
+
+    .mobile-menu-item:hover {
+        background-color: var(--color-slate-50);
+    }
+
+    .mobile-menu-item.active {
+        background: linear-gradient(to right, var(--color-blue-50), var(--color-indigo-50));
+        color: var(--color-blue-700);
+    }
+
+    .mobile-menu-item.active .w-9 {
+        background: linear-gradient(to br, var(--color-blue-500), var(--color-indigo-600));
+    }
+
+    .mobile-menu-item.active i {
+        color: white !important;
+    }
+</style>
+
+@code {
+    [Parameter] public string Href { get; set; } = "";
+    [Parameter] public string Icon { get; set; } = "";
+    [Parameter] public string Label { get; set; } = "";
+    [Parameter] public string Badge { get; set; } = "";
+    [Parameter] public string BadgeVariant { get; set; } = "primary";
+    [Parameter] public int Count { get; set; }
+    [Parameter] public NavLinkMatch Match { get; set; } = NavLinkMatch.Prefix;
+    [Parameter] public EventCallback OnClick { get; set; }
+}

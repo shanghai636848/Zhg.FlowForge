@@ -1,0 +1,30 @@
+﻿<SidePanel Title="@Title"
+           Icon="@Icon"
+           Width="18rem"
+           Position="right"
+           ContentClass="p-2.5">
+
+    @if (HasContent)
+    {
+        <div class="space-y-2.5">
+            @ChildContent
+        </div>
+    }
+    else
+    {
+        <div class="py-8 text-center">
+            <div class="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
+                <i class="fas fa-mouse-pointer text-lg text-slate-400"></i>
+            </div>
+            <p class="text-xs text-slate-600">@EmptyText</p>
+        </div>
+    }
+</SidePanel>
+
+@code {
+    [Parameter] public string Title { get; set; } = "属性";
+    [Parameter] public string Icon { get; set; } = "fas fa-sliders-h";
+    [Parameter] public bool HasContent { get; set; } = false;
+    [Parameter] public string EmptyText { get; set; } = "请选择一个元素";
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

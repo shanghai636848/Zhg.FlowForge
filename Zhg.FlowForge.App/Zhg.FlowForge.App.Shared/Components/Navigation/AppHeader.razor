@@ -1,0 +1,224 @@
+﻿@using Zhg.FlowForge.App.Shared.Components.Buttons
+@using Zhg.FlowForge.App.Shared.Components.Search
+@inject NavigationManager Navigation
+@inject IThemeService ThemeService
+@inject ILocalizationService Localization
+@inject IToastService ToastService
+
+<header class="sticky top-0 z-40">
+    <!-- 主导航栏 -->
+    <nav class="theme-nav-gradient h-14 bg-gray-800 shadow-lg">
+        <div class="mx-auto flex h-full max-w-[96rem] items-center justify-between px-4">
+            <!-- 左侧：Logo + 菜单 -->
+            <div class="flex items-center gap-4">
+                <!-- 移动端汉堡包菜单 -->
+                <button class="flex h-8 w-8 items-center justify-center rounded-md transition-colors
+                              hover:bg-white/10 lg:hidden"
+                        @onclick="ToggleMobileMenu">
+                    <i class="fas fa-bars text-sm text-white"></i>
+                </button>
+
+                <!-- Logo -->
+                <a href="/" class="group flex cursor-pointer items-center gap-2.5">
+                    <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-white
+                                shadow-sm transition-shadow group-hover:shadow-md">
+                        <i class="fas fa-code-branch text-base text-[var(--primary-600)]"></i>
+                    </div>
+                    <div class="hidden sm:block">
+                        <div class="text-sm leading-none font-bold text-white">FlowForge</div>
+                        <div class="mt-0.5 text-xs leading-none text-white/70">BPMN Platform</div>
+                    </div>
+                </a>
+
+                <!-- 桌面端导航 -->
+                <div class="ml-6 hidden items-center gap-1 lg:flex">
+                    <NavLinkItem Href="/" Icon="fas fa-home" Match="NavLinkMatch.All">
+                        @Localization["common.home"]
+                    </NavLinkItem>
+                    <NavLinkItem Href="/designer" Icon="fas fa-shapes">
+                        @Localization["common.designer"]
+                    </NavLinkItem>
+                    <NavLinkItem Href="/projects" Icon="fas fa-folder">
+                        @Localization["common.projects"]
+                    </NavLinkItem>
+                    <NavLinkItem Href="/templates" Icon="fas fa-file-code">
+                        @Localization["common.templates"]
+                    </NavLinkItem>
+                    <NavLinkItem Href="/docs" Icon="fas fa-book">
+                        @Localization["common.docs"]
+                    </NavLinkItem>
+                </div>
+            </div>
+
+            <!-- 右侧：工具栏 -->
+            <div class="flex items-center gap-2">
+                <!-- 搜索按钮（移动端） -->
+                <button class="flex h-8 w-8 items-center justify-center rounded-md bg-white/10
+                              text-white transition-colors hover:bg-white/20 lg:hidden"
+                        @onclick="OpenSearch">
+                    <i class="fas fa-search text-xs"></i>
+                </button>
+
+                <!-- 搜索框（桌面端） -->
+                <div class="relative hidden lg:block">
+                    <input type="text"
+                           class="placeholder-white/60 h-8 w-64 rounded-lg border border-white/20 bg-white/10 pr-3
+                                  pl-8 text-xs text-white
+                                  transition-all focus:bg-white/20 focus:ring-2 focus:ring-white/30
+                                  focus:outline-none"
+                           placeholder="@Localization["nav.search.placeholder"]"
+                           @bind="searchQuery"
+                           @onkeydown="HandleSearchKeyDown" />
+                    <i class="fas fa-search absolute top-2.5 left-2.5 text-xs text-white/60"></i>
+                    @if (!string.IsNullOrEmpty(searchQuery))
+                    {
+                        <button class="absolute top-2 right-2 flex h-4 w-4
+                                      items-center justify-center rounded-full bg-white/20
+                                      text-xs text-white transition-colors hover:bg-white/30"
+                                @onclick="ClearSearch">
+                            <i class="fas fa-times text-[0.5rem]"></i>
+                        </button>
+                    }
+                </div>
+
+                <div class="hidden h-6 w-px bg-white/20 lg:block"></div>
+
+                <!-- 快捷操作 -->
+                <div class="hidden items-center gap-1 md:flex">
+                    <!-- 新建项目 -->
+                    <button class="flex h-8 items-center gap-1.5 rounded-md bg-white/10
+                                  px-3 text-xs font-medium text-white transition-all
+                                  hover:scale-105 hover:bg-white/20"
+                            @onclick="CreateNewProject">
+                        <i class="fas fa-plus text-xs"></i>
+                        <span class="hidden xl:inline">@Localization["project.new"]</span>
+                    </button>
+                </div>
+
+                <div class="hidden h-6 w-px bg-white/20 md:block"></div>
+
+                <!-- 工具图标 -->
+                <div class="flex items-center gap-1">
+                    <!-- 主题切换 -->
+                    <ThemeSelector />
+
+                    <!-- 语言切换 -->
+                    <LanguageSelector />
+
+                    <!-- 通知 -->
+                    <div class="relative">
+                        <IconButton Icon="fas fa-bell"
+                                   Variant="ghost-light"
+                                   Size="sm"
+                                   Title="@(Localization["nav.notifications"])"
+                                   OnClick="ToggleNotifications" />
+                        @if (UnreadNotificationCount > 0)
+                        {
+                            <span class="absolute top-0.5 right-0.5 flex h-4 min-w-[1rem]
+                                        items-center justify-center rounded-full border-2
+                                        border-white bg-rose-500 px-1
+                                        font-bold text-white text-[0.625rem]">
+                                @(UnreadNotificationCount > 99 ? "99+" : UnreadNotificationCount.ToString())
+                            </span>
+                        }
+                    </div>
+
+                    <!-- 帮助 -->
+                    <IconButton Icon="fas fa-question-circle"
+                               Variant="ghost-light"
+                               Size="sm"
+                               Title="@Localization["common.help"]"
+                               OnClick="OpenHelp" />
+                </div>
+
+                <div class="mx-1 h-6 w-px bg-white/20"></div>
+
+                <!-- 用户菜单 -->
+                <UserMenu />
+            </div>
+        </div>
+    </nav>
+
+    <!-- 面包屑导航（可选） -->
+    @if (ShowBreadcrumb && Breadcrumbs.Any())
+    {
+        <div class="h-10 border-b border-slate-200 bg-white">
+            <div class="mx-auto flex h-full max-w-[96rem] items-center px-4">
+                <nav class="flex items-center gap-2 text-xs">
+                    @for (int i = 0; i < Breadcrumbs.Count; i++)
+                    {
+                        var breadcrumb = Breadcrumbs[i];
+                        var isLast = i == Breadcrumbs.Count - 1;
+
+                        @if (!isLast)
+                        {
+                            <a href="@breadcrumb.Url"
+                               class="text-slate-600 transition-colors hover:text-blue-600">
+                                @breadcrumb.Label
+                            </a>
+                            <i class="fas fa-chevron-right text-xs text-slate-400"></i>
+                        }
+                        else
+                        {
+                            <span class="font-medium text-slate-900">@breadcrumb.Label</span>
+                        }
+                    }
+                </nav>
+            </div>
+        </div>
+    }
+
+    <!-- 通知面板 -->
+    @if (ShowNotifications)
+    {
+        <NotificationPanel OnClose="() => ShowNotifications = false" />
+    }
+</header>
+
+<!-- 移动端菜单 -->
+<MobileMenu @bind-IsOpen="ShowMobileMenu" />
+
+<!-- 搜索模态框 -->
+<SearchModal @bind-IsOpen="ShowSearchModal" />
+
+@code {
+    [Parameter] public bool ShowBreadcrumb { get; set; }
+    [Parameter] public List<BreadcrumbItem> Breadcrumbs { get; set; } = new();
+
+    private bool ShowMobileMenu = false;
+    private bool ShowNotifications = false;
+    private bool ShowSearchModal = false;
+    private string searchQuery = "";
+    private int UnreadNotificationCount = 5;
+
+    protected override void OnInitialized()
+    {
+        Localization.OnLanguageChanged += StateHasChanged;
+    }
+
+    private void ToggleMobileMenu() => ShowMobileMenu = !ShowMobileMenu;
+    private void ToggleNotifications() => ShowNotifications = !ShowNotifications;
+    private void OpenSearch() => ShowSearchModal = true;
+    private void OpenHelp() => Navigation.NavigateTo("/help");
+    private void ClearSearch() => searchQuery = "";
+
+    private void HandleSearchKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !string.IsNullOrEmpty(searchQuery))
+        {
+            Navigation.NavigateTo($"/search?q={Uri.EscapeDataString(searchQuery)}");
+        }
+    }
+
+    private void CreateNewProject()
+    {
+        Navigation.NavigateTo("/designer");
+    }
+
+    public void Dispose()
+    {
+        Localization.OnLanguageChanged -= StateHasChanged;
+    }
+
+    public record BreadcrumbItem(string Label, string Url);
+}

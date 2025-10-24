@@ -1,0 +1,92 @@
+﻿@if (IsOpen)
+{
+    <div class="fixed inset-0 z-50 flex items-center justify-center" @onclick="HandleBackdropClick">
+        <!-- 遮罩层 -->
+        <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
+
+        <!-- 模态框 -->
+        <div class="max-w-@MaxWidth relative mx-3 flex
+                    max-h-[90vh] w-full animate-[fadeIn_0.2s_ease-out]
+                    flex-col rounded-xl bg-white
+                    shadow-xl"
+             @onclick:stopPropagation="true">
+            
+            <!-- 头部 -->
+            @if (!HideHeader)
+            {
+                <div class="flex items-center justify-between border-b border-slate-200 p-3">
+                    <h2 class="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                        @if (!string.IsNullOrEmpty(Icon))
+                        {
+                            <i class="@Icon text-xs @IconColorClass"></i>
+                        }
+                        @Title
+                    </h2>
+
+                    @if (!HideClose)
+                    {
+                        <IconButton 
+                            Icon="fas fa-times"
+                            Size="sm"
+                            Variant="ghost"
+                            OnClick="Close" />
+                    }
+                </div>
+            }
+
+            <!-- 内容 -->
+            <div class="scrollable flex-1 overflow-y-auto p-3">
+                @ChildContent
+            </div>
+
+            <!-- 底部 -->
+            @if (FooterActions != null)
+            {
+                <div class="flex items-center justify-end gap-2 border-t border-slate-200 p-3">
+                    @FooterActions
+                </div>
+            }
+        </div>
+    </div>
+
+    <style>
+        @@keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+    </style>
+}
+
+@code {
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string Icon { get; set; } = "";
+    [Parameter] public string IconColorClass { get; set; } = "text-blue-600";
+    [Parameter] public string MaxWidth { get; set; } = "2xl"; // sm, md, lg, xl, 2xl, 3xl, 4xl
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public bool CloseOnBackdrop { get; set; } = true;
+    [Parameter] public bool HideHeader { get; set; }
+    [Parameter] public bool HideClose { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public RenderFragment? FooterActions { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private async Task Close()
+    {
+        IsOpen = false;
+        await OnClose.InvokeAsync();
+    }
+
+    private async Task HandleBackdropClick()
+    {
+        if (CloseOnBackdrop)
+        {
+            await Close();
+        }
+    }
+}

@@ -1,0 +1,118 @@
+﻿<div class="@GetContainerClass()">
+	@if (Type == "spinner")
+	{
+		<div class="@GetSpinnerClass()">
+			<i class="fas fa-spinner fa-spin"></i>
+		</div>
+	}
+	else if (Type == "dots")
+	{
+		<div class="flex items-center gap-1">
+			<span class="@GetDotClass()" style="animation-delay: 0ms"></span>
+			<span class="@GetDotClass()" style="animation-delay: 150ms"></span>
+			<span class="@GetDotClass()" style="animation-delay: 300ms"></span>
+		</div>
+	}
+	else if (Type == "bars")
+	{
+		<div class="flex h-6 items-end gap-1">
+			<span class="@GetBarClass()" style="animation-delay: 0ms"></span>
+			<span class="@GetBarClass()" style="animation-delay: 150ms"></span>
+			<span class="@GetBarClass()" style="animation-delay: 300ms"></span>
+			<span class="@GetBarClass()" style="animation-delay: 450ms"></span>
+		</div>
+	}
+	@if (!string.IsNullOrEmpty(Text))
+	{
+		<span class="mt-2 text-xs text-slate-600">@Text</span>
+	}
+</div>
+<style>
+	@@keyframes bounce {
+		0%, 80%, 100% {
+			transform: scale(0);
+			opacity: 0.5;
+		}
+
+		40% {
+			transform: scale(1);
+			opacity: 1;
+		}
+	}
+
+	@@keyframes bar {
+		0%, 40%, 100% {
+			transform: scaleY(0.4);
+		}
+
+		20% {
+			transform: scaleY(1);
+		}
+	}
+
+	.loading-dot {
+		animation: bounce 1.4s infinite ease-in-out both;
+	}
+
+	.loading-bar {
+		animation: bar 1.2s infinite ease-in-out;
+	}
+</style>
+@code {
+	[Parameter] public string Type { get; set; } = "spinner"; // spinner, dots, bars
+	[Parameter] public string Size { get; set; } = "md"; // sm, md, lg
+	[Parameter] public string Text { get; set; } = "";
+	[Parameter] public bool Fullscreen { get; set; }
+	[Parameter] public string Color { get; set; } = "primary"; // primary, success, warning, danger
+
+	private string GetContainerClass()
+	{
+		var baseClass = "flex flex-col items-center justify-center"; if (Fullscreen)
+			return $"{baseClass} fixed inset-0 bg-white/80 backdrop-blur-sm z-50"; return baseClass;
+	}
+	private string GetSpinnerClass()
+	{
+		var sizeClass = Size switch
+		{
+			"sm" => "text-base",
+			"lg" => "text-3xl",
+			_ => "text-xl"
+		}; var colorClass = Color switch
+		{
+			"success" => "text-emerald-600",
+			"warning" => "text-amber-600",
+			"danger" => "text-rose-600",
+			_ => "text-blue-600"
+		}; return $"{sizeClass} {colorClass}";
+	}
+	private string GetDotClass()
+	{
+		var sizeClass = Size switch
+		{
+			"sm" => "w-1.5 h-1.5",
+			"lg" => "w-3 h-3",
+			_ => "w-2 h-2"
+		}; var colorClass = Color switch
+		{
+			"success" => "bg-emerald-600",
+			"warning" => "bg-amber-600",
+			"danger" => "bg-rose-600",
+			_ => "bg-blue-600"
+		}; return $"{sizeClass} {colorClass} rounded-full loading-dot";
+	}
+	private string GetBarClass()
+	{
+		var sizeClass = Size switch
+		{
+			"sm" => "w-1",
+			"lg" => "w-1.5",
+			_ => "w-1"
+		}; var colorClass = Color switch
+		{
+			"success" => "bg-emerald-600",
+			"warning" => "bg-amber-600",
+			"danger" => "bg-rose-600",
+			_ => "bg-blue-600"
+		}; return $"{sizeClass} {colorClass} h-full origin-bottom loading-bar";
+	}
+}

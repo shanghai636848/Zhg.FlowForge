@@ -1,0 +1,18 @@
+﻿<div class="inline-flex items-center @(Vertical ? "flex-col" : "") @ContainerClass">
+    @if (Vertical)
+    {
+        @ChildContent
+    }
+    else
+    {
+        <div class="flex items-center divide-x divide-slate-200 overflow-hidden rounded-md border border-slate-200">
+            @ChildContent
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public bool Vertical { get; set; }
+    [Parameter] public string ContainerClass { get; set; } = "";
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

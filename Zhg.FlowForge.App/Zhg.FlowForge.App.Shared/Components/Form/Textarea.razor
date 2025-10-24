@@ -1,0 +1,74 @@
+﻿<div class="@ContainerClass">
+    @if (!string.IsNullOrEmpty(Label))
+    {
+        <label class="mb-1 block text-xs font-medium text-slate-700">
+            @if (Required)
+            {
+                <span class="text-rose-500">*</span>
+            }
+            @Label
+        </label>
+    }
+
+    <textarea class="@GetTextareaClass()"
+              rows="@Rows"
+              placeholder="@Placeholder"
+              disabled="@Disabled"
+              readonly="@Readonly"
+              @bind="Value"
+              @bind:event="oninput"></textarea>
+
+    @if (ShowCount)
+    {
+        <div class="mt-1 text-right text-xs text-slate-500">
+            @Value.Length@(MaxLength > 0 ? $" / {MaxLength}" : "")
+        </div>
+    }
+
+    @if (HasError && !string.IsNullOrEmpty(ErrorMessage))
+    {
+        <span class="mt-1 flex items-center gap-1 text-xs text-rose-600">
+            <i class="fas fa-exclamation-circle text-[0.625rem]"></i>
+            @ErrorMessage
+        </span>
+    }
+
+    @if (!string.IsNullOrEmpty(HelpText))
+    {
+        <span class="mt-1 block text-xs text-slate-500">@HelpText</span>
+    }
+</div>
+
+@code {
+    [Parameter] public string Label { get; set; } = "";
+    [Parameter] public string Placeholder { get; set; } = "";
+    [Parameter] public string Value { get; set; } = "";
+    [Parameter] public string HelpText { get; set; } = "";
+    [Parameter] public string ErrorMessage { get; set; } = "";
+    [Parameter] public string ContainerClass { get; set; } = "";
+    [Parameter] public int Rows { get; set; } = 3;
+    [Parameter] public int MaxLength { get; set; } = 0;
+    [Parameter] public bool Required { get; set; }
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public bool Readonly { get; set; }
+    [Parameter] public bool HasError { get; set; }
+    [Parameter] public bool ShowCount { get; set; }
+    [Parameter] public bool Resizable { get; set; } = true;
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+
+    private string GetTextareaClass()
+    {
+        var baseClass = "w-full px-2 py-1.5 rounded-md border bg-white text-xs text-slate-700 transition-all";
+
+        var resizeClass = Resizable ? "resize-y" : "resize-none";
+
+        var stateClass = HasError
+            ? "border-rose-300 focus:border-rose-400 focus:ring-1 focus:ring-rose-100"
+            : "border-blue-200 hover:border-blue-300 focus:border-blue-400 focus:outline-none focus:ring-1 focus:ring-blue-100";
+
+        if (Disabled) stateClass += " bg-slate-50 cursor-not-allowed opacity-60";
+        if (Readonly) stateClass += " bg-slate-50";
+
+        return $"{baseClass} {resizeClass} {stateClass}";
+    }
+}

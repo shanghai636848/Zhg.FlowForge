@@ -1,0 +1,42 @@
+﻿@inject NavigationManager Navigation
+
+<NavLink href="@Href"
+         class="nav-link-item"
+         Match="@Match"
+         ActiveClass="active">
+    @if (!string.IsNullOrEmpty(Icon))
+    {
+        <i class="@Icon text-xs"></i>
+    }
+    <span>@ChildContent</span>
+</NavLink>
+
+<style>
+    .nav-link-item {
+        display: flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.375rem 0.625rem;
+        border-radius: 0.375rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.9);
+        transition: background-color 0.2s;
+        cursor: pointer;
+    }
+
+        .nav-link-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-link-item.active {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+</style>
+
+@code {
+    [Parameter] public string Href { get; set; } = "";
+    [Parameter] public string Icon { get; set; } = "";
+    [Parameter] public NavLinkMatch Match { get; set; } = NavLinkMatch.Prefix;
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

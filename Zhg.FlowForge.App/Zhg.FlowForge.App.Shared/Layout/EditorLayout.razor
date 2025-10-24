@@ -1,0 +1,15 @@
+﻿@inherits LayoutComponentBase
+@inject IThemeService ThemeService
+
+<div class="flex h-screen bg-slate-50" data-theme="@CurrentTheme">
+    @Body
+</div>
+
+@code {
+    private string CurrentTheme = "tech-blue";
+
+    protected override async Task OnInitializedAsync()
+    {
+        CurrentTheme = await ThemeService.GetCurrentThemeAsync();
+    }
+}

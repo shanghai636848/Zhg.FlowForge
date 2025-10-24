@@ -1,0 +1,22 @@
+﻿<div class="@GetContainerClass()">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public string MaxWidth { get; set; } = "7xl"; // sm, md, lg, xl, 2xl, 3xl, 4xl, 5xl, 6xl, 7xl, full
+    [Parameter] public bool Fluid { get; set; }
+    [Parameter] public string Padding { get; set; } = "4"; // 0, 2, 3, 4, 6, 8
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private string GetContainerClass()
+    {
+        if (Fluid)
+        {
+            return $"w-full px-{Padding}";
+        }
+
+        var maxWidthClass = MaxWidth == "full" ? "max-w-full" : $"max-w-[var(--container-{MaxWidth})]";
+
+        return $"{maxWidthClass} mx-auto px-{Padding}";
+    }
+}

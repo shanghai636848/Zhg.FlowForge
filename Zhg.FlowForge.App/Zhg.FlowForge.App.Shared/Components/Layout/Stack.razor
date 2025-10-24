@@ -1,0 +1,40 @@
+﻿<div class="@GetStackClass()">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public string Direction { get; set; } = "vertical"; // vertical, horizontal
+    [Parameter] public string Gap { get; set; } = "2"; // 0, 1, 2, 3, 4, 6, 8
+    [Parameter] public string Align { get; set; } = ""; // start, center, end, stretch
+    [Parameter] public string Justify { get; set; } = ""; // start, center, end, between, around
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private string GetStackClass()
+    {
+        var baseClass = "flex";
+
+        var directionClass = Direction == "horizontal" ? "" : "flex-col";
+        var gapClass = Direction == "horizontal" ? $"gap-{Gap}" : $"space-y-{Gap}";
+
+        var alignClass = Align switch
+        {
+            "start" => "items-start",
+            "center" => "items-center",
+            "end" => "items-end",
+            "stretch" => "items-stretch",
+            _ => ""
+        };
+
+        var justifyClass = Justify switch
+        {
+            "start" => "justify-start",
+            "center" => "justify-center",
+            "end" => "justify-end",
+            "between" => "justify-between",
+            "around" => "justify-around",
+            _ => ""
+        };
+
+        return $"{baseClass} {directionClass} {gapClass} {alignClass} {justifyClass}";
+    }
+}

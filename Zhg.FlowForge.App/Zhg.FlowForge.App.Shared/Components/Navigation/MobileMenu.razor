@@ -1,0 +1,264 @@
+﻿@using Zhg.FlowForge.App.Shared.Components.Buttons
+@using Zhg.FlowForge.App.Shared.Components.Display
+@inject NavigationManager Navigation
+@inject ILocalizationService Localization
+
+@if (IsOpen)
+{
+	<div class="fixed inset-0 z-50 lg:hidden">
+		<!-- 遮罩层 -->
+		<div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"
+			 @onclick="Close"></div>
+
+		<!-- 侧边菜单 -->
+		<div class="absolute inset-y-0 left-0 flex w-80 max-w-[85vw] animate-[slideInLeft_0.3s_ease-out]
+	                    flex-col bg-white shadow-2xl"
+			 @onclick:stopPropagation="true">
+
+			<!-- 菜单头部 -->
+			<div class="flex h-14 items-center justify-between border-b border-slate-200 px-4">
+				<div class="flex items-center gap-2">
+					<div class="flex h-8 w-8 items-center justify-center rounded-lg
+	                                bg-gradient-to-br from-blue-500 to-purple-600">
+						<i class="fas fa-code-branch text-sm text-white"></i>
+					</div>
+					<div>
+						<div class="text-sm leading-none font-bold text-slate-900">FlowForge</div>
+						<div class="mt-0.5 text-xs leading-none text-slate-600">BPMN Platform</div>
+					</div>
+				</div>
+				<IconButton Icon="fas fa-times"
+							Size="sm"
+							Variant="ghost"
+							OnClick="Close" />
+			</div>
+
+			<!-- 用户信息区 -->
+			<div class="border-b border-slate-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-4">
+				<div class="flex items-center gap-3">
+					<Avatar Name="Admin User" Size="lg" ShowStatus="true" Status="online" />
+					<div class="min-w-0 flex-1">
+						<div class="truncate text-sm font-semibold text-slate-900">Admin User</div>
+						<div class="truncate text-xs text-slate-600">admin@flowforge.com</div>
+					</div>
+					<button class="flex h-7 w-7 items-center justify-center rounded-md hover:bg-white/50"
+							@onclick="GoToProfile">
+						<i class="fas fa-cog text-xs text-slate-600"></i>
+					</button>
+				</div>
+			</div>
+
+			<!-- 主菜单 -->
+			<div class="scrollable flex-1 overflow-y-auto">
+				<!-- 导航菜单 -->
+				<div class="p-3">
+					<div class="px-3 py-2 text-xs font-semibold tracking-wider text-slate-500 uppercase">
+						@Localization["nav.welcome"]
+					</div>
+					<nav class="space-y-1">
+						<MobileMenuItem Href="/"
+										Icon="fas fa-home"
+										Label="@Localization["common.home"]"
+										Match="NavLinkMatch.All"
+										OnClick="Close" />
+
+						<MobileMenuItem Href="/designer"
+										Icon="fas fa-shapes"
+										Label="@Localization["common.designer"]"
+										Badge="New"
+										BadgeVariant="success"
+										OnClick="Close" />
+
+						<MobileMenuItem Href="/projects"
+										Icon="fas fa-folder"
+										Label="@Localization["common.projects"]"
+										Count="24"
+										OnClick="Close" />
+
+						<MobileMenuItem Href="/templates"
+										Icon="fas fa-file-code"
+										Label="@Localization["common.templates"]"
+										OnClick="Close" />
+
+						<MobileMenuItem Href="/docs"
+										Icon="fas fa-book"
+										Label="@Localization["common.docs"]"
+										OnClick="Close" />
+					</nav>
+				</div>
+
+				<!-- 快捷操作 -->
+				<div class="border-t border-slate-200 p-3">
+					<div class="px-3 py-2 text-xs font-semibold tracking-wider text-slate-500 uppercase">
+						快捷操作
+					</div>
+					<div class="space-y-1">
+						<button class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5
+	                                      text-left text-slate-700 transition-colors hover:bg-slate-50"
+								@onclick="CreateProject">
+							<div class="flex h-9 w-9 shrink-0 items-center justify-center
+	                                        rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600">
+								<i class="fas fa-plus text-sm text-white"></i>
+							</div>
+							<div class="flex-1">
+								<div class="text-sm font-medium">@Localization["project.new"]</div>
+								<div class="text-xs text-slate-500">创建新的 BPMN 项目</div>
+							</div>
+						</button>
+
+						<button class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5
+	                                      text-left text-slate-700 transition-colors hover:bg-slate-50"
+								@onclick="ImportProject">
+							<div class="flex h-9 w-9 shrink-0 items-center justify-center
+	                                        rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600">
+								<i class="fas fa-upload text-sm text-white"></i>
+							</div>
+							<div class="flex-1">
+								<div class="text-sm font-medium">@Localization["project.import"]</div>
+								<div class="text-xs text-slate-500">导入已有的项目文件</div>
+							</div>
+						</button>
+					</div>
+				</div>
+
+				<!-- 最近使用 -->
+				<div class="border-t border-slate-200 p-3">
+					<div class="px-3 py-2 text-xs font-semibold tracking-wider text-slate-500 uppercase">
+						@Localization["project.recent"]
+					</div>
+					<div class="space-y-1">
+						@foreach (var project in RecentProjects)
+						{
+							<button class="flex w-full items-center gap-2.5 rounded-lg px-3 py-2
+		                                          text-left text-slate-700 transition-colors hover:bg-slate-50"
+									@onclick="() => OpenProject(project.Id)">
+								<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-blue-100">
+									<i class="fas fa-project-diagram text-xs text-blue-600"></i>
+								</div>
+								<div class="min-w-0 flex-1">
+									<div class="truncate text-xs font-medium">@project.Name</div>
+									<div class="text-xs text-slate-500">@project.UpdatedAt</div>
+								</div>
+								<i class="fas fa-chevron-right text-xs text-slate-400"></i>
+							</button>
+						}
+					</div>
+				</div>
+
+				<!-- 设置 -->
+				<div class="border-t border-slate-200 p-3">
+					<div class="px-3 py-2 text-xs font-semibold tracking-wider text-slate-500 uppercase">
+						@Localization["common.settings"]
+					</div>
+					<div class="space-y-1">
+						<!-- 主题切换 -->
+						<div class="px-3 py-2">
+							<div class="mb-2 flex items-center justify-between">
+								<span class="text-xs font-medium text-slate-700">
+									@Localization["nav.theme"]
+								</span>
+							</div>
+							<div class="grid grid-cols-3 gap-2">
+								@foreach (var theme in AvailableThemes)
+								{
+									<button class="flex flex-col items-center gap-1 rounded-lg border p-2
+		                                                  @(CurrentTheme == theme.Id ?
+																		   "border-blue-500 bg-blue-50" :
+																		   "border-slate-200 hover:border-slate-300")
+		                                                  transition-colors"
+											@onclick="() => SelectTheme(theme.Id)">
+										<div class="h-6 w-6 rounded-full"
+											 style="background: @theme.Color"></div>
+										<span class="text-[0.625rem] text-slate-600">@theme.Name</span>
+									</button>
+								}
+							</div>
+						</div>
+
+						<!-- 语言切换 -->
+						<div class="px-3 py-2">
+							<div class="mb-2 flex items-center justify-between">
+								<span class="text-xs font-medium text-slate-700">
+									@Localization["nav.language"]
+								</span>
+							</div>
+							<select class="h-8 w-full rounded-md border border-slate-200 bg-white px-2
+	                                          text-xs text-slate-700 focus:border-blue-400 focus:outline-none"
+									@bind="CurrentLanguage"
+									@bind:event="onchange">
+								@foreach (var lang in Localization.AvailableLanguages)
+								{
+									<option value="@lang.Code">@lang.Flag @lang.NativeName</option>
+								}
+							</select>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- 菜单底部 -->
+			<div class="border-t border-slate-200 bg-slate-50 p-3">
+				<div class="flex items-center gap-2">
+					<button class="flex h-9 flex-1 items-center justify-center gap-1.5
+	                                  rounded-lg border border-slate-300 bg-white
+	                                  text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50"
+							@onclick="GoToSettings">
+						<i class="fas fa-cog text-xs"></i>
+						<span>@Localization["common.settings"]</span>
+					</button>
+					<button class="flex h-9 flex-1 items-center justify-center
+	                                  gap-1.5 rounded-lg bg-rose-500
+	                                  text-xs font-medium text-white transition-colors hover:bg-rose-600"
+							@onclick="Logout">
+						<i class="fas fa-sign-out-alt text-xs"></i>
+						<span>@Localization["common.logout"]</span>
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+@code {
+	[Parameter] public bool IsOpen { get; set; }
+	[Parameter] public EventCallback<bool> IsOpenChanged { get; set; }
+
+	private string CurrentTheme = "tech-blue";
+	private string CurrentLanguage = "zh-CN";
+
+	private List<ThemeInfo> AvailableThemes = new()
+	{
+		new("tech-blue", "蓝色", "#3b82f6"),
+		new("magic-purple", "紫色", "#a855f7"),
+		new("eco-green", "绿色", "#10b981")
+	};
+
+	private List<RecentProject> RecentProjects = new()
+	{
+		new("1", "订单处理流程", "2小时前"),
+		new("2", "用户审批流程", "昨天"),
+		new("3", "库存管理系统", "3天前")
+	};
+
+	private async Task Close()
+	{
+		IsOpen = false;
+		await IsOpenChanged.InvokeAsync(false);
+	}
+
+	private async Task SelectTheme(string themeId)
+	{
+		CurrentTheme = themeId;
+		// 调用主题服务
+	}
+
+	private void GoToProfile() => Navigation.NavigateTo("/profile");
+	private void GoToSettings() => Navigation.NavigateTo("/settings");
+	private void CreateProject() { Close(); Navigation.NavigateTo("/designer"); }
+	private void ImportProject() { Close(); }
+	private void OpenProject(string id) { Close(); Navigation.NavigateTo($"/project/{id}"); }
+	private void Logout() { Close(); Navigation.NavigateTo("/logout"); }
+
+	record ThemeInfo(string Id, string Name, string Color);
+	record RecentProject(string Id, string Name, string UpdatedAt);
+}

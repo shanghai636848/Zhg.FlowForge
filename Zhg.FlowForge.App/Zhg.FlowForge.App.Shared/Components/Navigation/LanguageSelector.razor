@@ -1,0 +1,66 @@
+﻿@using Zhg.FlowForge.App.Shared.Components.Buttons
+@inject ILocalizationService Localization
+
+<div class="relative"
+	 @onmouseenter="() => IsOpen = true"
+	 @onmouseleave="() => IsOpen = false">
+
+	<IconButton Icon="fas fa-language"
+				Variant="ghost-light"
+				Size="sm"
+				Title="@(Localization["nav.language"])" />
+
+	@if (IsOpen)
+	{
+		<div class="absolute top-full right-0 z-50 mt-1 w-56 animate-[fadeIn_0.2s_ease-out] rounded-lg
+	                    border border-slate-200 bg-white py-1 shadow-xl">
+			<div class="border-b border-slate-200 px-3 py-2">
+				<div class="text-xs font-semibold text-slate-900">
+					@Localization["nav.language"]
+				</div>
+			</div>
+
+			<div class="scrollable max-h-80 overflow-y-auto py-1">
+				@foreach (var language in Localization.AvailableLanguages)
+				{
+					<button class="flex w-full items-center justify-between px-3
+		                                  py-2 text-left text-xs transition-colors hover:bg-slate-50
+		                                  @(Localization.CurrentLanguage == language.Code ? "bg-blue-50 text-blue-700" : "text-slate-700")"
+							@onclick="() => SelectLanguage(language.Code)">
+						<span class="flex items-center gap-2">
+							<span class="text-base">@language.Flag</span>
+							<span class="flex flex-col">
+								<span class="font-medium">@language.NativeName</span>
+								<span class="text-[0.625rem] text-slate-500">@language.Name</span>
+							</span>
+						</span>
+						@if (Localization.CurrentLanguage == language.Code)
+						{
+							<i class="fas fa-check text-xs"></i>
+						}
+					</button>
+				}
+			</div>
+		</div>
+	}
+</div>
+
+@code {
+	private bool IsOpen = false;
+
+	protected override void OnInitialized()
+	{
+		Localization.OnLanguageChanged += StateHasChanged;
+	}
+
+	private async Task SelectLanguage(string languageCode)
+	{
+		await Localization.SetLanguageAsync(languageCode);
+		IsOpen = false;
+	}
+
+	public void Dispose()
+	{
+		Localization.OnLanguageChanged -= StateHasChanged;
+	}
+}

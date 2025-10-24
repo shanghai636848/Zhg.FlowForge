@@ -1,0 +1,100 @@
+﻿@inject IToastService ToastService
+
+<div class="pointer-events-none fixed top-3 right-3 z-[70] flex flex-col gap-2">
+    @foreach (var toast in Toasts)
+    {
+        <div class="pointer-events-auto max-w-md min-w-[16rem] animate-[slideIn_0.3s_ease-out] @GetToastClass(toast.Type)
+                        rounded-lg border p-3 shadow-lg"
+             @key="toast.Id">
+            <div class="flex items-start gap-2">
+                <i class="@GetToastIcon(toast.Type) mt-0.5 text-sm"></i>
+                <div class="min-w-0 flex-1">
+                    @if (!string.IsNullOrEmpty(toast.Title))
+                    {
+                        <div class="mb-0.5 text-xs font-semibold">
+                            @toast.Title
+                        </div>
+                    }
+                    <div class="text-xs">
+                        @toast.Message
+                    </div>
+                </div>
+                <button class="flex h-5 w-5 shrink-0 items-center justify-center
+                                  rounded transition-colors hover:bg-black/10"
+                        @onclick="() => RemoveToast(toast.Id)">
+                    <i class="fas fa-times text-xs"></i>
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    @@keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+</style>
+
+@code {
+    private List<ToastMessage> Toasts = new();
+
+    protected override void OnInitialized()
+    {
+        ToastService.OnShow += ShowToast;
+    }
+
+    private void ShowToast(ToastMessage toast)
+    {
+        Toasts.Add(toast);
+        StateHasChanged();
+
+        // 自动移除
+        _ = Task.Delay(toast.Duration).ContinueWith(_ =>
+        {
+            InvokeAsync(() => RemoveToast(toast.Id));
+        });
+    }
+
+    private void RemoveToast(string id)
+    {
+        Toasts.RemoveAll(t => t.Id == id);
+        StateHasChanged();
+    }
+
+    private string GetToastClass(ToastType type)
+    {
+        return type switch
+        {
+            ToastType.Success => "bg-emerald-50 border-emerald-200 text-emerald-900",
+            ToastType.Error => "bg-rose-50 border-rose-200 text-rose-900",
+            ToastType.Warning => "bg-amber-50 border-amber-200 text-amber-900",
+            ToastType.Info => "bg-blue-50 border-blue-200 text-blue-900",
+            _ => "bg-slate-50 border-slate-200 text-slate-900"
+        };
+    }
+
+    private string GetToastIcon(ToastType type)
+    {
+        return type switch
+        {
+            ToastType.Success => "fas fa-check-circle text-emerald-600",
+            ToastType.Error => "fas fa-times-circle text-rose-600",
+            ToastType.Warning => "fas fa-exclamation-triangle text-amber-600",
+            ToastType.Info => "fas fa-info-circle text-blue-600",
+            _ => "fas fa-bell text-slate-600"
+        };
+    }
+
+    public void Dispose()
+    {
+        ToastService.OnShow -= ShowToast;
+    }
+}

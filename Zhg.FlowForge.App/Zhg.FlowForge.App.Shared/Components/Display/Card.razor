@@ -1,0 +1,75 @@
+﻿<div class="@GetCardClass()" @onclick="OnClickHandler">
+    @if (!string.IsNullOrEmpty(Title) || HeaderActions != null)
+    {
+        <div class="flex items-center justify-between @(NoPadding ? "p-3" : "pb-2.5")">
+            @if (!string.IsNullOrEmpty(Title))
+            {
+                <h3 class="flex items-center gap-1.5 text-xs font-semibold text-slate-900">
+                    @if (!string.IsNullOrEmpty(Icon))
+                    {
+                        <i class="@Icon @IconColorClass text-[0.625rem]"></i>
+                    }
+                    @Title
+                </h3>
+            }
+            @if (HeaderActions != null)
+            {
+                <div class="flex items-center gap-1">
+                    @HeaderActions
+                </div>
+            }
+        </div>
+    }<div class="@GetContentClass()">
+    @ChildContent
+</div>@if (FooterActions != null)
+{
+    <div class="@(NoPadding ? "p-3" : "pt-2.5") flex @GetBorderColorClass() items-center justify-end gap-1.5 border-t">
+        @FooterActions
+    </div>
+}
+</div>
+@code {
+[Parameter] public string Title { get; set; } = "";
+[Parameter] public string Icon { get; set; } = "";
+[Parameter] public string IconColorClass { get; set; } = "text-blue-600";
+[Parameter] public string Variant { get; set; } = "default"; // default, primary, success, warning, danger
+[Parameter] public string Padding { get; set; } = "3"; // 0, 2, 3, 4
+[Parameter] public bool Hoverable { get; set; }
+[Parameter] public bool Clickable { get; set; }
+[Parameter] public bool NoPadding { get; set; }
+[Parameter] public RenderFragment? ChildContent { get; set; }
+[Parameter] public RenderFragment? HeaderActions { get; set; }
+[Parameter] public RenderFragment? FooterActions { get; set; }
+[Parameter] public EventCallback OnClick { get; set; }private async Task OnClickHandler()
+{
+    if (Clickable)
+    {
+        await OnClick.InvokeAsync();
+    }
+}private string GetCardClass()
+{
+    var baseClass = "rounded-lg border shadow-sm transition-all";    var paddingClass = NoPadding ? "" : $"p-{Padding}";    var variantClass = Variant switch
+    {
+        "primary" => "border-blue-200 theme-card-bg",
+        "success" => "border-emerald-200 bg-gradient-to-br from-emerald-50/50 to-teal-50/50",
+        "warning" => "border-amber-200 bg-gradient-to-br from-amber-50/50 to-yellow-50/50",
+        "danger" => "border-rose-200 bg-gradient-to-br from-rose-50/50 to-pink-50/50",
+        _ => "border-slate-200 bg-white"
+    };    var interactionClass = "";
+    if (Hoverable) interactionClass += " hover:shadow-md";
+    if (Clickable) interactionClass += " cursor-pointer hover:border-blue-300";    return $"{baseClass} {paddingClass} {variantClass} {interactionClass}";
+}private string GetContentClass()
+{
+    return NoPadding ? "" : "";
+}private string GetBorderColorClass()
+{
+    return Variant switch
+    {
+        "primary" => "border-blue-200",
+        "success" => "border-emerald-200",
+        "warning" => "border-amber-200",
+        "danger" => "border-rose-200",
+        _ => "border-slate-200"
+    };
+}
+}

@@ -1,0 +1,75 @@
+﻿@inject NavigationManager Navigation
+@inject IThemeService ThemeService
+
+<nav class="theme-nav-gradient flex h-12 items-center justify-between px-3 shadow-lg">
+    <!-- 左侧：Logo 和导航 -->
+    <div class="flex items-center gap-3">
+        <!-- Logo -->
+        <div class="flex cursor-pointer items-center gap-2" @onclick="@(() => Navigation.NavigateTo("\\"))">
+            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-white">
+                <i class="fas fa-code-branch text-sm text-[var(--primary-600)]"></i>
+            </div>
+            <span class="text-sm font-semibold text-white">FlowForge</span>
+        </div>
+
+        <!-- 主导航 -->
+        <div class="ml-6 flex items-center gap-1">
+            <NavLinkItem Href="/" Icon="fas fa-home" Match="NavLinkMatch.All">
+                首页
+            </NavLinkItem>
+            <NavLinkItem Href="/designer" Icon="fas fa-shapes">
+                流程设计
+            </NavLinkItem>
+            <NavLinkItem Href="/templates" Icon="fas fa-file-code">
+                模板库
+            </NavLinkItem>
+            <NavLinkItem Href="/docs" Icon="fas fa-book">
+                文档
+            </NavLinkItem>
+        </div>
+    </div>
+
+    <!-- 右侧：工具栏 -->
+    <div class="flex items-center gap-2">
+        <!-- 主题选择器 -->
+        <ThemeSelector />
+
+        <!-- 搜索 -->
+        <IconButton 
+            Icon="fas fa-search" 
+            Variant="ghost-light" 
+            Size="sm"
+            Title="搜索 (Ctrl+K)"
+            OnClick="OpenSearch" />
+
+        <!-- 通知 -->
+        <div class="relative">
+            <IconButton 
+                Icon="fas fa-bell" 
+                Variant="ghost-light" 
+                Size="sm"
+                Title="通知"
+                OnClick="ToggleNotifications" />
+            <span class="absolute top-1 right-1 h-2 w-2 rounded-full border border-white bg-rose-500"></span>
+        </div>
+
+        <!-- 帮助 -->
+        <IconButton 
+            Icon="fas fa-question-circle" 
+            Variant="ghost-light" 
+            Size="sm"
+            Title="帮助"
+            OnClick="OpenHelp" />
+
+        <div class="mx-1 h-6 w-px bg-white/20"></div>
+
+        <!-- 用户菜单 -->
+        <UserMenu />
+    </div>
+</nav>
+
+@code {
+    private void OpenSearch() { }
+    private void ToggleNotifications() { }
+    private void OpenHelp() { }
+}

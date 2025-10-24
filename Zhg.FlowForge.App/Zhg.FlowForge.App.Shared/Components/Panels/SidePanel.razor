@@ -1,0 +1,73 @@
+﻿<div class="@GetContainerClass() theme-panel-left flex flex-col border-r">
+    <!-- 面板头部 -->
+    @if (!string.IsNullOrEmpty(Title))
+    {
+        <div class="@GetHeaderClass()">
+            <h3 class="theme-primary-text flex items-center gap-1.5 text-xs font-semibold">
+                @if (!string.IsNullOrEmpty(Icon))
+                {
+                    <i class="@Icon text-[0.625rem]"></i>
+                }
+                @Title
+            </h3>
+            @if (Collapsible)
+            {
+                <IconButton 
+                    Icon="@(IsCollapsed ? "fas fa-chevron-right" : "fas fa-chevron-left")"
+                    Size="xs"
+                    Variant="ghost"
+                    OnClick="ToggleCollapse" />
+            }
+            @HeaderActions
+        </div>
+    }
+
+    <!-- 面板内容 -->
+    <div class="scrollable flex-1 overflow-y-auto @ContentClass">
+        @if (!IsCollapsed)
+        {
+            @ChildContent
+        }
+    </div>
+
+    <!-- 面板底部 -->
+    @if (FooterActions != null)
+    {
+        <div class="@GetFooterClass()">
+            @FooterActions
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string Icon { get; set; } = "";
+    [Parameter] public string Width { get; set; } = "13rem"; // 13rem, 18rem, 20rem
+    [Parameter] public string Position { get; set; } = "left"; // left, right
+    [Parameter] public bool Collapsible { get; set; } = false;
+    [Parameter] public string ContentClass { get; set; } = "p-2.5";
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public RenderFragment? HeaderActions { get; set; }
+    [Parameter] public RenderFragment? FooterActions { get; set; }
+
+    private bool IsCollapsed = false;
+
+    private void ToggleCollapse() => IsCollapsed = !IsCollapsed;
+
+    private string GetContainerClass()
+    {
+        var width = IsCollapsed ? "w-12" : $"w-[{Width}]";
+        var position = Position == "right" ? "theme-panel-right" : "theme-panel-left";
+        return $"{width} {position}";
+    }
+
+    private string GetHeaderClass()
+    {
+        return "flex items-center justify-between px-2.5 py-2 border-b theme-primary-border";
+    }
+
+    private string GetFooterClass()
+    {
+        return "px-2.5 py-2 border-t theme-primary-border space-y-1.5";
+    }
+}
