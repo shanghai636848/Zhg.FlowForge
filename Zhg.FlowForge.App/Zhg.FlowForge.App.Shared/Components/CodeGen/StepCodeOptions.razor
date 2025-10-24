@@ -1,5 +1,7 @@
-﻿@* @using Zhg.FlowForge.App.Shared.Components.Form
+﻿@using Zhg.FlowForge.App.Shared.Components.Form
 @using Zhg.FlowForge.App.Shared.Components.Layout
+@using Zhg.FlowForge.App.Shared.Models
+
 <!-- Components/CodeGen/StepCodeOptions.razor -->
 <div class="max-w-2xl">
     <div class="mb-6">
@@ -17,7 +19,7 @@
 
             <div class="grid grid-cols-2 gap-3">
                 <Input Label="类名前缀"
-                       Placeholder=@(Workflow)
+                       Placeholder="Workflow"
                        @bind-Value=@(Options.ClassPrefix) />
 
                 <Input Label="接口前缀"
@@ -28,37 +30,37 @@
 
         <FormGroup Title="代码风格" Icon="fas fa-paint-brush" Variant="primary">
             <div class="space-y-3">
-                <Checkbox @bind-Checked="Options.UseFileScoped">
+                <Checkbox @bind-Checked="@(Options.UseFileScoped)">
                     使用文件范围命名空间
                 </Checkbox>
 
-                <Checkbox @bind-Checked="Options.UseRecordTypes">
+                <Checkbox @bind-Checked="@(Options.UseRecordTypes)">
                     优先使用 Record 类型
                 </Checkbox>
 
-                <Checkbox @bind-Checked="Options.UseExpressionBodies">
+                <Checkbox @bind-Checked="@(Options.UseExpressionBodies)">
                     使用表达式主体
                 </Checkbox>
 
-                <Checkbox @bind-Checked="Options.UsePatternMatching">
+                <Checkbox @bind-Checked="@(Options.UsePatternMatching)">
                     使用模式匹配
                 </Checkbox>
             </div>
         </FormGroup>
 
         <FormGroup Title="异步编程" Icon="fas fa-sync">
-            <Checkbox @bind-Checked="Options.GenerateAsyncMethods">
+            <Checkbox @bind-Checked="@(Options.GenerateAsyncMethods)">
                 生成异步方法
             </Checkbox>
 
             @if (Options.GenerateAsyncMethods)
             {
                 <div class="ml-6 space-y-2">
-                    <Checkbox @bind-Checked="Options.UseConfigureAwait">
+                    <Checkbox @bind-Checked="@(Options.UseConfigureAwait)">
                         使用 ConfigureAwait(false)
                     </Checkbox>
 
-                    <Checkbox @bind-Checked="Options.UseValueTask">
+                    <Checkbox @bind-Checked="@(Options.UseValueTask)">
                         使用 ValueTask（高性能场景）
                     </Checkbox>
                 </div>
@@ -66,7 +68,7 @@
         </FormGroup>
 
         <FormGroup Title="日志和错误处理" Icon="fas fa-clipboard-list" Variant="warning">
-            <Checkbox @bind-Checked="Options.GenerateLogging">
+            <Checkbox @bind-Checked="@(Options.GenerateLogging)">
                 生成日志代码
             </Checkbox>
 
@@ -74,10 +76,10 @@
             {
                 <Select Label="日志框架"
                        Options="@LoggingFrameworkOptions"
-                       @bind-Value="Options.LoggingFramework" />
+                       @bind-Value="@(Options.LoggingFramework)" />
             }
 
-            <Checkbox @bind-Checked="Options.GenerateExceptionHandling">
+            <Checkbox @bind-Checked="@(Options.GenerateExceptionHandling)">
                 生成异常处理代码
             </Checkbox>
 
@@ -121,8 +123,8 @@
 </div>
 
 @code {
-    [Parameter] public CodeGenerationOptions Options { get; set; } = new();
-    [Parameter] public EventCallback<CodeGenerationOptions> OptionsChanged { get; set; }
+    [Parameter] public Services.CodeGenerationOptions Options { get; set; } = new();
+    [Parameter] public EventCallback<Services.CodeGenerationOptions> OptionsChanged { get; set; }
 
     private List<Select.SelectOption> NamingStyleOptions = new()
     {
@@ -137,4 +139,4 @@
         new("serilog", "Serilog"),
         new("nlog", "NLog")
     };
-} *@
+}

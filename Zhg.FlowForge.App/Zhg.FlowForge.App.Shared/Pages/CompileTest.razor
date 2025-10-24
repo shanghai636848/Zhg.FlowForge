@@ -1,0 +1,483 @@
+﻿@page "/compile/{ProjectId}"
+@using Microsoft.Extensions.Logging
+@using Zhg.FlowForge.App.Shared.Components.Buttons
+@using Zhg.FlowForge.App.Shared.Components.Display
+@using Zhg.FlowForge.App.Shared.Components.Form
+@using Zhg.FlowForge.App.Shared.Models
+@layout EditorLayout
+@inject ICompilationService CompilationService
+@inject IProjectService ProjectService
+@inject NavigationManager Navigation
+@inject IToastService ToastService
+
+<PageTitle>编译测试 - FlowForge</PageTitle>
+
+<div class="flex h-screen flex-col bg-slate-50">
+	<!-- 顶部工具栏 -->
+	<div class="flex h-14 items-center justify-between border-b border-slate-200 bg-white px-6">
+		<div class="flex items-center gap-3">
+			<button class="flex h-8 w-8 items-center justify-center rounded-md hover:bg-slate-100"
+					@onclick="@(() => Navigation.NavigateTo($"editor{ProjectId}"))">
+				<i class="fas fa-arrow-left text-sm text-slate-600"></i>
+			</button>
+
+			<h2 class="text-sm font-semibold text-slate-900">编译测试</h2>
+
+			@if (CompileResult != null)
+			{
+				@if (CompileResult.Success)
+				{
+					<Badge Variant="success" Size="sm">
+						<i class="fas fa-check mr-1 text-xs"></i>
+						编译成功
+					</Badge>
+				}
+				else
+				{
+					<Badge Variant="danger" Size="sm">
+						<i class="fas fa-times mr-1 text-xs"></i>
+						编译失败
+					</Badge>
+				}
+			}
+		</div>
+
+		<div class="flex items-center gap-2">
+			<!-- 编译配置 -->
+			<Select Options="@ConfigurationOptions"
+					Size="sm"
+					@bind-Value="CompileOptions.Configuration"
+					style="width: 120px;" />
+
+			<Select Options="@PlatformOptions"
+					Size="sm"
+					@bind-Value="CompileOptions.Platform"
+					style="width: 100px;" />
+
+			<div class="mx-1 h-6 w-px bg-slate-200"></div>
+
+			<!-- 编译选项 -->
+			<Checkbox @bind-Checked="CompileOptions.TreatWarningsAsErrors">
+				警告视为错误
+			</Checkbox>
+
+			<div class="mx-1 h-6 w-px bg-slate-200"></div>
+
+			<!-- 编译按钮 -->
+			<Button Variant="success"
+					Size="sm"
+					Icon="fas fa-hammer"
+					Loading="@IsCompiling"
+					OnClick="StartCompile">
+				@(IsCompiling ? "编译中..." : "开始编译")
+			</Button>
+
+			<!-- 清理按钮 -->
+			<Button Variant="secondary"
+					Size="sm"
+					Icon="fas fa-broom"
+					Disabled="@IsCompiling"
+					OnClick="CleanProject">
+				清理
+			</Button>
+		</div>
+	</div>
+
+	<!-- 主内容区 -->
+	<div class="flex flex-1 overflow-hidden">
+		<!-- 左侧：编译输出 -->
+		<div class="flex flex-1 flex-col bg-slate-900">
+			<!-- 输出工具栏 -->
+			<div class="flex h-10 items-center justify-between border-b border-slate-700 bg-slate-800 px-4">
+				<div class="flex items-center gap-3">
+					<span class="text-xs font-semibold text-slate-200">编译输出</span>
+
+					@if (CompileResult != null)
+					{
+						<span class="text-xs text-slate-400">
+							耗时: @CompileDuration
+						</span>
+					}
+				</div>
+
+				<div class="flex items-center gap-2">
+					<IconButton Icon="fas fa-copy"
+								Size="xs"
+								Variant="ghost-light"
+								Title="复制输出"
+								OnClick="CopyOutput" />
+
+					<IconButton Icon="fas fa-save"
+								Size="xs"
+								Variant="ghost-light"
+								Title="保存日志"
+								OnClick="SaveLog" />
+
+					<IconButton Icon="fas fa-trash"
+								Size="xs"
+								Variant="ghost-light"
+								Title="清空输出"
+								OnClick="ClearOutput" />
+				</div>
+			</div>
+
+			<!-- 输出内容 -->
+			<div class="scrollable flex-1 overflow-y-auto p-4 font-mono text-xs">
+				@foreach (var log in CompileLogs)
+				{
+					<div class="@GetLogClass(log.Level) mb-1">
+						<span class="text-slate-500">[@log.Time.ToString("HH:mm:ss.fff")]</span>
+						<span class="ml-2">@log.Message</span>
+					</div>
+				}
+
+				@if (CompileResult != null)
+				{
+					<div class="mt-4 border-t border-slate-700 pt-4">
+						<div class="@(CompileResult.Success ? "text-emerald-400" : "text-rose-400") mb-2 font-semibold">
+							@(CompileResult.Success ? "✓ 编译成功" : "✗ 编译失败")
+						</div>
+
+						@if (CompileResult.Success)
+						{
+							<div class="space-y-1 text-slate-400">
+								<div>程序集: @CompileResult.AssemblyName</div>
+								<div>大小: @FormatBytes(CompileResult.AssemblySize)</div>
+								<div>输出: @CompileResult.OutputPath</div>
+							</div>
+						}
+						else
+						{
+							<div class="text-rose-400">
+								@CompileResult.ErrorCount 个错误, @CompileResult.WarningCount 个警告
+							</div>
+						}
+					</div>
+				}
+			</div>
+		</div>
+
+		<!-- 右侧：诊断面板 -->
+		<div class="flex w-96 flex-col border-l border-slate-200 bg-white">
+			<!-- 诊断工具栏 -->
+			<div class="flex h-10 items-center justify-between border-b border-slate-200 px-4">
+				<div class="flex items-center gap-4 text-xs">
+					<button class="flex items-center gap-1.5 @(DiagnosticFilter == "all" ? "text-blue-600 font-semibold" : "text-slate-600")"
+							@onclick="@(() => DiagnosticFilter = "all")">
+						<span>全部</span>
+						<Badge Variant="primary" Size="sm">@AllDiagnosticsCount</Badge>
+					</button>
+
+					<button class="flex items-center gap-1.5 @(DiagnosticFilter == "error" ? "text-rose-600 font-semibold" : "text-slate-600")"
+							@onclick="@(() => DiagnosticFilter = "error")">
+						<i class="fas fa-times-circle"></i>
+						<span>错误</span>
+						<Badge Variant="danger" Size="sm">@ErrorCount</Badge>
+					</button>
+
+					<button class="flex items-center gap-1.5 @(DiagnosticFilter == "warning" ? "text-amber-600 font-semibold" : "text-slate-600")"
+							@onclick="@(() => DiagnosticFilter = "warning")">
+						<i class="fas fa-exclamation-triangle"></i>
+						<span>警告</span>
+						<Badge Variant="warning" Size="sm">@WarningCount</Badge>
+					</button>
+				</div>
+			</div>
+
+			<!-- 诊断列表 -->
+			<div class="scrollable flex-1 overflow-y-auto p-3">
+				@if (FilteredDiagnostics.Any())
+				{
+					<div class="space-y-2">
+						@foreach (var diagnostic in FilteredDiagnostics)
+						{
+							<div class="cursor-pointer rounded-lg border p-3 transition-shadow hover:shadow-sm
+				                                      @GetDiagnosticBorderClass(diagnostic.Severity)"
+								 @onclick="() => NavigateToDiagnostic(diagnostic)">
+								<div class="flex items-start gap-2">
+									<i class="@GetDiagnosticIcon(diagnostic.Severity) mt-0.5 text-sm"></i>
+									<div class="min-w-0 flex-1">
+										<div class="mb-1 text-xs font-semibold text-slate-900">
+											@diagnostic.Code
+										</div>
+										<div class="mb-2 text-xs text-slate-700">
+											@diagnostic.Message
+										</div>
+										<div class="text-xs text-slate-500">
+											@diagnostic.File
+											<span class="mx-1">•</span>
+											行 @diagnostic.Line, 列 @diagnostic.Column
+										</div>
+									</div>
+								</div>
+							</div>
+						}
+					</div>
+				}
+				else
+				{
+					<div class="py-12 text-center">
+						<i class="@GetEmptyIcon() mb-2 text-3xl"></i>
+						<p class="text-sm text-slate-600">@GetEmptyMessage()</p>
+					</div>
+				}
+			</div>
+		</div>
+	</div>
+
+	<!-- 底部操作栏 -->
+	@if (CompileResult?.Success == true)
+	{
+		<div class="flex h-16 items-center justify-between border-t border-slate-200 bg-white px-6">
+			<div class="flex items-center gap-3">
+				<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100">
+					<i class="fas fa-check text-lg text-emerald-600"></i>
+				</div>
+				<div>
+					<div class="text-sm font-semibold text-slate-900">编译成功</div>
+					<div class="text-xs text-slate-600">程序集已生成，可以进行部署</div>
+				</div>
+			</div>
+
+			<div class="flex items-center gap-2">
+				<Button Variant="secondary"
+						Size="sm"
+						Icon="fas fa-folder-open"
+						OnClick="OpenOutputFolder">
+					打开输出目录
+				</Button>
+
+				<Button Variant="secondary"
+						Size="sm"
+						Icon="fas fa-download"
+						OnClick="DownloadAssembly">
+					下载程序集
+				</Button>
+
+				<Button Variant="primary"
+						Size="sm"
+						Icon="fas fa-rocket"
+						OnClick="GoToDeploy">
+					继续部署
+				</Button>
+			</div>
+		</div>
+	}
+</div>
+@code {
+	[Parameter] public string ProjectId { get; set; } = "";
+	private bool IsCompiling = false;
+	private List<CompileLog> CompileLogs = new();
+	private Services.CompilationResult? CompileResult = null;
+	private string DiagnosticFilter = "all";
+
+	private Services.CompilationOptions CompileOptions = new()
+	{
+		Configuration = "Debug",
+		Platform = "AnyCPU",
+		TreatWarningsAsErrors = false
+	};
+
+	private List<Select.SelectOption> ConfigurationOptions = new()
+{
+	new("Debug", "调试"),
+	new("Release", "发布")
+};
+
+	private List<Select.SelectOption> PlatformOptions = new()
+{
+	new("AnyCPU", "Any CPU"),
+	new("x64", "x64"),
+	new("x86", "x86")
+};
+
+	private int AllDiagnosticsCount => CompileResult?.Diagnostics.Count ?? 0;
+	private int ErrorCount => CompileResult?.Diagnostics.Count(d => d.Severity == "Error") ?? 0;
+	private int WarningCount => CompileResult?.Diagnostics.Count(d => d.Severity == "Warning") ?? 0;
+
+	private IEnumerable<Zhg.FlowForge.App.Shared.Services.Diagnostic> FilteredDiagnostics
+	{
+		get
+		{
+			if (CompileResult == null) return Enumerable.Empty<Zhg.FlowForge.App.Shared.Services.Diagnostic>();
+
+			return DiagnosticFilter switch
+			{
+				"error" => CompileResult.Diagnostics.Where(d => d.Severity == "Error"),
+				"warning" => CompileResult.Diagnostics.Where(d => d.Severity == "Warning"),
+				_ => CompileResult.Diagnostics
+			};
+		}
+	}
+
+	private string CompileDuration => CompileResult != null
+		? $"{(CompileResult.EndTime - CompileResult.StartTime).TotalSeconds:F2}s"
+		: "";
+
+	private async Task StartCompile()
+	{
+		IsCompiling = true;
+		CompileLogs.Clear();
+		CompileResult = null;
+
+		try
+		{
+			AddLog("开始编译项目...", LogLevel.Information);
+			AddLog($"配置: {CompileOptions.Configuration}, 平台: {CompileOptions.Platform}", LogLevel.Information);
+
+			// 加载项目
+			var project = await ProjectService.GetProjectAsync(ProjectId);
+			AddLog($"项目: {project.Name}", LogLevel.Information);
+
+			// 执行编译
+			CompileResult = await CompilationService.CompileAsync(
+				ProjectId,
+				CompileOptions,
+				new Progress<string>(message => AddLog(message, LogLevel.Information))
+			);
+
+			// 显示结果
+			if (CompileResult.Success)
+			{
+				AddLog("✓ 编译成功", LogLevel.Information);
+				AddLog($"程序集: {CompileResult.AssemblyName}", LogLevel.Information);
+				AddLog($"输出路径: {CompileResult.OutputPath}", LogLevel.Information);
+				ToastService.Success("编译成功！");
+			}
+			else
+			{
+				AddLog($"✗ 编译失败: {ErrorCount} 个错误", LogLevel.Error);
+				ToastService.Error($"编译失败: {ErrorCount} 个错误");
+			}
+
+			// 显示诊断信息摘要
+			if (CompileResult.Diagnostics.Any())
+			{
+				AddLog($"共 {AllDiagnosticsCount} 个诊断信息 ({ErrorCount} 错误, {WarningCount} 警告)",
+					LogLevel.Information);
+			}
+		}
+		catch (Exception ex)
+		{
+			AddLog($"编译异常: {ex.Message}", LogLevel.Error);
+			ToastService.Error($"编译异常: {ex.Message}");
+		}
+		finally
+		{
+			IsCompiling = false;
+		}
+	}
+
+	private async Task CleanProject()
+	{
+		AddLog("清理项目...", LogLevel.Information);
+		await CompilationService.CleanAsync(ProjectId);
+		AddLog("清理完成", LogLevel.Information);
+		ToastService.Success("项目已清理");
+	}
+
+	private void AddLog(string message, LogLevel level)
+	{
+		CompileLogs.Add(new CompileLog
+		{
+			Time = DateTime.Now,
+			Message = message,
+			Level = level
+		});
+		StateHasChanged();
+	}
+
+	private void ClearOutput()
+	{
+		CompileLogs.Clear();
+		CompileResult = null;
+	}
+
+	private void CopyOutput()
+	{
+		var output = string.Join("\n", CompileLogs.Select(l => $"[{l.Time:HH:mm:ss}] {l.Message}"));
+		// 复制到剪贴板
+		ToastService.Success("输出已复制到剪贴板");
+	}
+
+	private void SaveLog()
+	{
+		// 保存日志到文件
+		ToastService.Success("日志已保存");
+	}
+
+	private void NavigateToDiagnostic(Zhg.FlowForge.App.Shared.Services.Diagnostic diagnostic)
+	{
+		Navigation.NavigateTo($"/editor/{ProjectId}?file={diagnostic.File}&line={diagnostic.Line}");
+	}
+
+	private void OpenOutputFolder()
+	{
+		// 打开输出目录
+	}
+
+	private void DownloadAssembly()
+	{
+		// 下载程序集
+	}
+
+	private void GoToDeploy()
+	{
+		Navigation.NavigateTo($"/deploy/{ProjectId}");
+	}
+
+	private string GetLogClass(LogLevel level) => level switch
+	{
+		LogLevel.Error => "text-rose-400",
+		LogLevel.Warning => "text-amber-400",
+		_ => "text-slate-300"
+	};
+
+	private string GetDiagnosticIcon(string severity) => severity switch
+	{
+		"Error" => "fas fa-times-circle text-rose-500",
+		"Warning" => "fas fa-exclamation-triangle text-amber-500",
+		_ => "fas fa-info-circle text-blue-500"
+	};
+
+	private string GetDiagnosticBorderClass(string severity) => severity switch
+	{
+		"Error" => "bg-rose-50 border-rose-200",
+		"Warning" => "bg-amber-50 border-amber-200",
+		_ => "bg-blue-50 border-blue-200"
+	};
+
+	private string GetEmptyIcon() => DiagnosticFilter switch
+	{
+		"error" => "fas fa-check-circle text-emerald-500",
+		"warning" => "fas fa-check-circle text-emerald-500",
+		_ => "fas fa-inbox text-slate-400"
+	};
+
+	private string GetEmptyMessage() => DiagnosticFilter switch
+	{
+		"error" => "没有错误",
+		"warning" => "没有警告",
+		_ => CompileResult == null ? "运行编译以查看诊断信息" : "没有诊断信息"
+	};
+
+	private string FormatBytes(long bytes)
+	{
+		string[] sizes = { "B", "KB", "MB", "GB" };
+		double len = bytes;
+		int order = 0;
+		while (len >= 1024 && order < sizes.Length - 1)
+		{
+			order++;
+			len /= 1024;
+		}
+		return $"{len:F2} {sizes[order]}";
+	}
+
+	class CompileLog
+	{
+		public DateTime Time { get; set; }
+		public string Message { get; set; } = "";
+		public LogLevel Level { get; set; }
+	}
+}

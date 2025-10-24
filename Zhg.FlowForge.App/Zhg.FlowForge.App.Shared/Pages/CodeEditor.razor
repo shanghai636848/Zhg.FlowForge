@@ -1,1 +1,536 @@
-﻿
+﻿@page "/editor/{ProjectId}"
+@using System.Threading.Tasks
+@using Zhg.FlowForge.App.Shared.Components.Buttons
+@using Zhg.FlowForge.App.Shared.Components.Editor
+@using Zhg.FlowForge.App.Shared.Models
+@layout EditorLayout
+@inject IJSRuntime JS
+@inject IProjectService ProjectService
+@inject ICodeAnalysisService AnalysisService
+@inject IToastService ToastService
+@inject NavigationManager Navigation
+
+<PageTitle>代码编辑器 - FlowForge</PageTitle>
+
+<div class="flex h-screen bg-slate-900">
+	<!-- 左侧文件树 -->
+	<div class="flex w-64 flex-col border-r border-slate-700 bg-slate-800">
+		<!-- 文件树头部 -->
+		<div class="flex h-12 items-center justify-between border-b border-slate-700 px-3">
+			<h3 class="text-xs font-semibold text-slate-200">项目文件</h3>
+			<div class="flex items-center gap-1">
+				<IconButton Icon="fas fa-folder-plus"
+							Size="xs"
+							Variant="ghost-light"
+							Title="新建文件夹"
+							OnClick="NewFolder" />
+				<IconButton Icon="fas fa-file-plus"
+							Size="xs"
+							Variant="ghost-light"
+							Title="新建文件"
+							OnClick="NewFile" />
+				<IconButton Icon="fas fa-sync"
+							Size="xs"
+							Variant="ghost-light"
+							Title="刷新"
+							OnClick="RefreshFiles" />
+			</div>
+		</div>
+
+		<!-- 文件树 -->
+		<div class="scrollable flex-1 overflow-y-auto p-2">
+			@* <FileTree File="@ProjectFiles.FirstOrDefault()"
+					  SelectedFile="@CurrentFile"
+					  OnFileSelected="OpenFile"
+					  OnFileRenamed="RenameFile"
+					  OnFileDeleted="DeleteFile" /> *@
+		</div>
+
+		<!-- 文件统计 -->
+		<div class="border-t border-slate-700 p-3 text-xs text-slate-400">
+			<div class="flex items-center justify-between">
+				<span>@ProjectFiles.Count 个文件</span>
+				<span>@TotalLines 行</span>
+			</div>
+		</div>
+	</div>
+
+	<!-- 中央编辑区 -->
+	<div class="flex flex-1 flex-col">
+		<!-- 编辑器工具栏 -->
+		<div class="flex h-12 items-center justify-between border-b border-slate-700 bg-slate-800 px-4">
+			<!-- 左侧：文件标签 -->
+			<div class="scrollable flex flex-1 items-center gap-1 overflow-x-auto">
+				@foreach (var file in OpenedFiles)
+				{
+					<div class="group flex h-8 items-center gap-2 rounded-t-lg px-3 transition-colors
+	                              @(CurrentFile?.Path == file.Path ?
+											 "bg-slate-900 text-white" :
+											 "bg-slate-700/50 text-slate-300 hover:bg-slate-700")"
+						 @onclick="() => SwitchToFile(file)">
+						<i class="@GetFileIcon(file.Path) text-xs"></i>
+						<span class="text-xs font-medium">@Path.GetFileName(file.Path)</span>
+						@if (file.IsDirty)
+						{
+							<i class="fas fa-circle text-[0.375rem] text-amber-500"></i>
+						}
+						<button class="flex h-4 w-4 items-center justify-center rounded opacity-0 transition-all
+	                                      group-hover:opacity-100 hover:bg-slate-600"
+								@onclick:stopPropagation="true"
+								@onclick="() => CloseFile(file)">
+							<i class="fas fa-times text-xs"></i>
+						</button>
+					</div>
+				}
+			</div>
+
+			<!-- 右侧：编辑器工具 -->
+			<div class="flex items-center gap-2">
+				<!-- 保存 -->
+				<Button Variant="primary"
+						Size="sm"
+						Icon="fas fa-save"
+						Disabled="@(!HasUnsavedChanges)"
+						OnClick="SaveAll">
+					保存全部
+				</Button>
+
+				<!-- 格式化 -->
+				<IconButton Icon="fas fa-align-left"
+							Size="sm"
+							Variant="ghost-light"
+							Title="格式化代码 (Shift+Alt+F)"
+							OnClick="FormatDocument" />
+
+				<!-- 查找替换 -->
+				<IconButton Icon="fas fa-search"
+							Size="sm"
+							Variant="ghost-light"
+							Title="查找 (Ctrl+F)"
+							OnClick="ShowFindDialog" />
+
+				<!-- 设置 -->
+				<IconButton Icon="fas fa-cog"
+							Size="sm"
+							Variant="ghost-light"
+							Title="编辑器设置"
+							OnClick="ShowSettings" />
+
+				<div class="mx-1 h-6 w-px bg-slate-700"></div>
+
+				<!-- 编译 -->
+				<Button Variant="success"
+						Size="sm"
+						Icon="fas fa-hammer"
+						OnClick="GoToCompile">
+					编译测试
+				</Button>
+			</div>
+		</div>
+
+		<!-- Monaco 编辑器容器 -->
+		<div id="monaco-container" class="relative flex-1">
+			@if (CurrentFile == null)
+			{
+				<!-- 欢迎屏幕 -->
+				<div class="absolute inset-0 flex items-center justify-center">
+					<div class="text-center">
+						<div class="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-2xl bg-slate-800">
+							<i class="fas fa-code text-4xl text-slate-600"></i>
+						</div>
+						<h3 class="mb-2 text-lg font-semibold text-slate-200">
+							FlowForge 代码编辑器
+						</h3>
+						<p class="mb-6 text-sm text-slate-400">
+							从左侧选择文件开始编辑
+						</p>
+						<div class="flex items-center justify-center gap-3">
+							<Button Variant="primary"
+									Size="sm"
+									Icon="fas fa-file-plus"
+									OnClick="NewFile">
+								新建文件
+							</Button>
+							<Button Variant="secondary"
+									Size="sm"
+									Icon="fas fa-folder-open"
+									OnClick="@(() => Navigation.NavigateTo("/"))">
+								打开项目
+							</Button>
+						</div>
+
+						<!-- 快捷键提示 -->
+						<div class="mt-8 inline-block text-left">
+							<div class="mb-3 text-xs font-semibold text-slate-400">快捷键</div>
+							<div class="space-y-2 text-xs text-slate-500">
+								<div class="flex items-center gap-4">
+									<kbd class="kbd-dark">Ctrl+S</kbd>
+									<span>保存文件</span>
+								</div>
+								<div class="flex items-center gap-4">
+									<kbd class="kbd-dark">Ctrl+F</kbd>
+									<span>查找</span>
+								</div>
+								<div class="flex items-center gap-4">
+									<kbd class="kbd-dark">Shift+Alt+F</kbd>
+									<span>格式化</span>
+								</div>
+								<div class="flex items-center gap-4">
+									<kbd class="kbd-dark">Ctrl+/</kbd>
+									<span>注释切换</span>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			}
+		</div>
+
+		<!-- 底部状态栏 -->
+		<div class="flex h-6 items-center justify-between border-t border-slate-700 bg-slate-800 px-4 text-xs text-slate-400">
+			<div class="flex items-center gap-4">
+				@if (CurrentFile != null)
+				{
+					<span>行 @_EditorState.Line, 列 @_EditorState.Column</span>
+					<span>@GetLanguageName(CurrentFile.Path)</span>
+					<span>UTF-8</span>
+					<span>LF</span>
+				}
+			</div>
+
+			<div class="flex items-center gap-4">
+				@if (_AnalysisState.IsAnalyzing)
+				{
+					<span class="flex items-center gap-2">
+						<i class="fas fa-spinner fa-spin text-xs"></i>
+						<span>分析中...</span>
+					</span>
+				}
+				else if (_AnalysisState.HasErrors)
+				{
+					<button class="flex items-center gap-2 hover:text-rose-400"
+							@onclick="ShowProblemsPanel">
+						<i class="fas fa-times-circle text-rose-500"></i>
+						<span>@_AnalysisState.ErrorCount 个错误</span>
+					</button>
+				}
+@if (_AnalysisState.HasWarnings)
+				{
+					<button class="flex items-center gap-2 hover:text-amber-400"
+							@onclick="ShowProblemsPanel">
+						<i class="fas fa-exclamation-triangle text-amber-500"></i>
+						<span>@_AnalysisState.WarningCount 个警告</span>
+					</button>
+				}
+				<span>@_EditorSettings.Theme</span>
+				<span>空格: @_EditorSettings.TabSize</span>
+			</div>
+		</div>
+	</div>
+
+	<!-- 右侧面板 -->
+	<div class="flex w-80 flex-col border-l border-slate-700 bg-slate-800">
+		<!-- 面板标签 -->
+		<div class="flex h-12 items-center gap-2 border-b border-slate-700 px-3">
+			<button class="h-8 flex-1 rounded text-xs font-medium transition-colors
+                      @(ActivePanel == "outline" ?
+								   "bg-slate-700 text-white" :
+								   "text-slate-400 hover:text-white hover:bg-slate-700/50")"
+					@onclick="@(() => ActivePanel = "outline")">
+				大纲
+			</button>
+			<button class="h-8 flex-1 rounded text-xs font-medium transition-colors
+                      @(ActivePanel == "problems" ?
+								   "bg-slate-700 text-white" :
+								   "text-slate-400 hover:text-white hover:bg-slate-700/50")"
+					@onclick="@(() => ActivePanel = "problems")">
+				问题
+			</button>
+			<button class="h-8 flex-1 rounded text-xs font-medium transition-colors
+                      @(ActivePanel == "search" ?
+								   "bg-slate-700 text-white" :
+								   "text-slate-400 hover:text-white hover:bg-slate-700/50")"
+					@onclick="@(() => ActivePanel = "search")">
+				搜索
+			</button>
+		</div>
+
+		<!-- 面板内容 -->
+		<div class="scrollable flex-1 overflow-y-auto p-3">
+			@switch (ActivePanel)
+			{
+				case "outline":
+					<CodeOutlinePanel Symbols="@CodeSymbols" OnSymbolClick="JumpToSymbol" />
+					break;
+				case "problems":
+					<ProblemsPanel Diagnostics="@Diagnostics" OnDiagnosticClick="JumpToDiagnostic" />
+					break;
+				case "search":
+@* 					<SearchInFilesPanel OnSearchPerformed="PerformSearch" />
+ *@					break;
+			}
+		</div>
+	</div>
+</div>
+<style>
+	.kbd-dark {
+		@@apply inline-flex items-center justify-center px-2 py-1 rounded bg-slate-700 border border-slate-600 text-slate-300 font-mono text-xs;
+	}
+</style>
+
+
+@code{
+	class EditorState
+	{
+		public int Line { get; set; } = 1;
+		public int Column { get; set; } = 1;
+	}
+
+	class AnalysisState
+	{
+		public bool IsAnalyzing { get; set; }
+		public bool HasErrors { get; set; }
+		public bool HasWarnings { get; set; }
+		public int ErrorCount { get; set; }
+		public int WarningCount { get; set; }
+	}
+
+	class EditorSettings
+	{
+		public string Theme { get; set; } = "vs-dark";
+		public int TabSize { get; set; } = 4;
+	}
+}
+@code {
+
+	[Parameter] public string ProjectId { get; set; } = "";
+	private List<Zhg.FlowForge.App.Shared.Services.ProjectFile> ProjectFiles = new();
+	private List<Zhg.FlowForge.App.Shared.Services.ProjectFile> OpenedFiles = new();
+	private Zhg.FlowForge.App.Shared.Services.ProjectFile? CurrentFile = null;
+	private string ActivePanel = "outline";
+	private bool HasUnsavedChanges => OpenedFiles.Any(f => f.IsDirty);
+	private int TotalLines = 0;
+
+	private EditorState _EditorState = new();
+	private AnalysisState _AnalysisState = new();
+	private EditorSettings _EditorSettings = new() { Theme = "vs-dark", TabSize = 4 };
+	private List<Zhg.FlowForge.App.Shared.Services.CodeSymbol> CodeSymbols = new();
+	private List<Zhg.FlowForge.App.Shared.Services.Diagnostic> Diagnostics = new();
+
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		if (firstRender)
+		{
+			await InitializeMonaco();
+			await LoadProject();
+		}
+	}
+
+	private async Task InitializeMonaco()
+	{
+		await JS.InvokeVoidAsync("initMonacoEditor", new
+		{
+			containerId = "monaco-container",
+			theme = _EditorSettings.Theme,
+			fontSize = 14,
+			tabSize = _EditorSettings.TabSize,
+			minimap = new { enabled = true },
+			automaticLayout = true
+		});
+
+		// 注册事件回调
+		await JS.InvokeVoidAsync("registerMonacoCallbacks",
+			DotNetObjectReference.Create(this));
+	}
+
+	private async Task LoadProject()
+	{
+		ProjectFiles = await ProjectService.GetProjectFilesAsync(ProjectId);
+		TotalLines = ProjectFiles.Sum(f => f.LineCount);
+		StateHasChanged();
+	}
+
+	private async Task OpenFile(Services.ProjectFile file)
+	{
+		if (!OpenedFiles.Contains(file))
+		{
+			OpenedFiles.Add(file);
+		}
+
+		CurrentFile = file;
+		var content = await ProjectService.GetFileContentAsync(ProjectId, file.Path);
+
+		await JS.InvokeVoidAsync("setMonacoContent", content, GetLanguage(file.Path));
+		await AnalyzeCurrentFile();
+		await UpdateCodeOutline();
+	}
+
+	private void SwitchToFile(Services.ProjectFile file)
+	{
+		CurrentFile = file;
+		// 切换 Monaco 编辑器内容
+	}
+
+	private void CloseFile(Services.ProjectFile file)
+	{
+		if (file.IsDirty)
+		{
+			// 提示保存
+		}
+
+		OpenedFiles.Remove(file);
+		if (CurrentFile == file && OpenedFiles.Any())
+		{
+			SwitchToFile(OpenedFiles.Last());
+		}
+		else if (!OpenedFiles.Any())
+		{
+			CurrentFile = null;
+		}
+	}
+
+	private async Task SaveAll()
+	{
+		foreach (var file in OpenedFiles.Where(f => f.IsDirty))
+		{
+			var content = await JS.InvokeAsync<string>("getMonacoContent");
+			await ProjectService.SaveFileAsync(ProjectId, file.Path, content);
+			file.IsDirty = false;
+		}
+		ToastService.Success("所有文件已保存");
+	}
+
+	private async Task FormatDocument()
+	{
+		await JS.InvokeVoidAsync("formatMonacoDocument");
+		ToastService.Success("代码已格式化");
+	}
+
+	private void ShowFindDialog()
+	{
+		JS.InvokeVoidAsync("showMonacoFind");
+	}
+
+	private void ShowSettings()
+	{
+		// 打开设置对话框
+	}
+
+	private void GoToCompile()
+	{
+		Navigation.NavigateTo($"/compile/{ProjectId}");
+	}
+
+	private async Task AnalyzeCurrentFile()
+	{
+		if (CurrentFile == null) return;
+
+		_AnalysisState.IsAnalyzing = true;
+		StateHasChanged();
+
+		var content = await JS.InvokeAsync<string>("getMonacoContent");
+		Diagnostics = await AnalysisService.AnalyzeCodeAsync(content, CurrentFile.Path);
+
+		_AnalysisState.ErrorCount = Diagnostics.Count(d => d.Severity == "Error");
+		_AnalysisState.WarningCount = Diagnostics.Count(d => d.Severity == "Warning");
+		_AnalysisState.HasErrors = _AnalysisState.ErrorCount > 0;
+		_AnalysisState.HasWarnings = _AnalysisState.WarningCount > 0;
+		_AnalysisState.IsAnalyzing = false;
+
+		// 在编辑器中显示诊断信息
+		await JS.InvokeVoidAsync("setMonacoDiagnostics", Diagnostics);
+		StateHasChanged();
+	}
+
+	private async Task UpdateCodeOutline()
+	{
+		if (CurrentFile == null) return;
+
+		var content = await JS.InvokeAsync<string>("getMonacoContent");
+		CodeSymbols = await AnalysisService.GetCodeOutlineAsync(content);
+		StateHasChanged();
+	}
+
+	[JSInvokable]
+	public async Task OnContentChanged()
+	{
+		if (CurrentFile != null)
+		{
+			CurrentFile.IsDirty = true;
+			await AnalyzeCurrentFile();
+			await UpdateCodeOutline();
+		}
+	}
+
+	[JSInvokable]
+	public void OnCursorPositionChanged(int line, int column)
+	{
+		_EditorState.Line = line;
+		_EditorState.Column = column;
+		StateHasChanged();
+	}
+
+	private async Task JumpToSymbol(Services.CodeSymbol symbol)
+	{
+		await JS.InvokeVoidAsync("jumpToLine", symbol.Line);
+	}
+
+	private async Task JumpToDiagnostic(Services.Diagnostic diagnostic)
+	{
+		await JS.InvokeVoidAsync("jumpToPosition", diagnostic.Line, diagnostic.Column);
+	}
+
+	private void ShowProblemsPanel()
+	{
+		ActivePanel = "problems";
+	}
+
+	private void NewFile() { }
+	private void NewFolder() { }
+	private async Task RefreshFiles() => await  LoadProject();
+	private void RenameFile(Services.ProjectFile file) { }
+	private void DeleteFile(Services.ProjectFile file) { }
+	private void PerformSearch(string query) { }
+
+	private string GetFileIcon(string path)
+	{
+		var ext = Path.GetExtension(path).ToLower();
+		return ext switch
+		{
+			".cs" => "fas fa-file-code text-blue-400",
+			".razor" => "fas fa-file-code text-purple-400",
+			".json" => "fas fa-brackets-curly text-amber-400",
+			".xml" => "fas fa-code text-rose-400",
+			".csproj" => "fas fa-project-diagram text-green-400",
+			_ => "fas fa-file text-slate-400"
+		};
+	}
+
+	private string GetLanguage(string path)
+	{
+		var ext = Path.GetExtension(path).ToLower();
+		return ext switch
+		{
+			".cs" => "csharp",
+			".razor" => "razor",
+			".json" => "json",
+			".xml" => "xml",
+			_ => "plaintext"
+		};
+	}
+
+	private string GetLanguageName(string path)
+	{
+		var ext = Path.GetExtension(path).ToLower();
+		return ext switch
+		{
+			".cs" => "C#",
+			".razor" => "Razor",
+			".json" => "JSON",
+			".xml" => "XML",
+			_ => "Plain Text"
+		};
+	}
+
+	
+}

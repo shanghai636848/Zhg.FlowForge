@@ -1,0 +1,37 @@
+﻿@using Zhg.FlowForge.App.Shared.Services
+@if (Symbols.Any())
+{
+    <div class="space-y-1">
+        @foreach (var symbol in Symbols)
+        {
+            <button class="flex w-full items-center gap-2 rounded px-2 py-1.5 text-left
+                                  text-xs text-slate-300 transition-colors hover:bg-slate-700"
+                    @onclick="() => OnSymbolClick.InvokeAsync(symbol)">
+                <i class="@GetSymbolIcon(symbol.Kind) text-xs"></i>
+                <span class="flex-1 truncate">@symbol.Name</span>
+                <span class="text-slate-500">@symbol.Line</span>
+            </button>
+        }
+    </div>
+}
+else
+{
+    <div class="py-8 text-center">
+        <i class="fas fa-code mb-2 text-2xl text-slate-600"></i>
+        <p class="text-xs text-slate-500">暂无代码符号</p>
+    </div>
+}
+
+@code {
+    [Parameter] public List<CodeSymbol> Symbols { get; set; } = new();
+    [Parameter] public EventCallback<CodeSymbol> OnSymbolClick { get; set; }
+
+    private string GetSymbolIcon(string kind) => kind switch
+    {
+        "Class" => "fas fa-cube text-blue-400",
+        "Method" => "fas fa-bolt text-purple-400",
+        "Property" => "fas fa-tag text-green-400",
+        "Field" => "fas fa-database text-amber-400",
+        _ => "fas fa-circle text-slate-400"
+    };
+}

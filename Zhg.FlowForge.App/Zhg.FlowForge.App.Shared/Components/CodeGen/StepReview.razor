@@ -1,6 +1,7 @@
-﻿@* @using Zhg.FlowForge.App.Shared.Components.Display
+﻿@using Zhg.FlowForge.App.Shared.Components.Display
 @using Zhg.FlowForge.App.Shared.Components.Feedback
 @using Zhg.FlowForge.App.Shared.Components.Layout
+@using Zhg.FlowForge.App.Shared.Models
 <!-- Components/CodeGen/StepReview.razor -->
 <div class="max-w-3xl">
     <div class="mb-6">
@@ -141,10 +142,10 @@
 </div>
 
 @code {
-    [Parameter] public ProjectConfig Config { get; set; } = new();
+    [Parameter] public Services.ProjectConfig Config { get; set; } = new();
     [Parameter] public string Template { get; set; } = "";
-    [Parameter] public CodeGenerationOptions Options { get; set; } = new();
-    [Parameter] public List<PackageDependency> Dependencies { get; set; } = new();
+    [Parameter] public Services.CodeGenerationOptions Options { get; set; } = new();
+    [Parameter] public List<Services.PackageDependency> Dependencies { get; set; } = new();
 
     private int EstimatedFiles => 12 + Dependencies.Count;
     private int EstimatedLines => 850;
@@ -166,4 +167,4 @@
         "microservice" => "容器化微服务架构",
         _ => ""
     };
-} *@
+}

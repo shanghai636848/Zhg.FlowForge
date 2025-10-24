@@ -1,8 +1,9 @@
-﻿@* @using Zhg.FlowForge.App.Shared.Components.Buttons
+﻿@using Zhg.FlowForge.App.Shared.Components.Buttons
 @using Zhg.FlowForge.App.Shared.Components.Display
 @using Zhg.FlowForge.App.Shared.Components.Feedback
 @using Zhg.FlowForge.App.Shared.Components.Form
 @using Zhg.FlowForge.App.Shared.Components.Layout
+@using Zhg.FlowForge.App.Shared.Models
 <!-- Components/CodeGen/StepDependencies.razor -->
 <div>
 	<div class="mb-6 flex items-center justify-between">
@@ -152,7 +153,7 @@
 		</div>
 	</div>
 </div>
-<!-- 添加依赖对话框 -->
+@* <!-- 添加依赖对话框 -->
 <Modal @bind-IsOpen="ShowAddDialog"
 	   Title="添加 NuGet 包"
 	   Icon="fas fa-search"
@@ -160,7 +161,7 @@
 	<div class="space-y-4">
 		<Input Placeholder="搜索 NuGet 包..."
 			   PrefixIcon="fas fa-search"
-			   @bind-Value="@(SearchQuery)" />
+			   @bind-Value="SearchQuery" />
 		@if (!string.IsNullOrEmpty(SearchQuery))
 		{
 			<div class="scrollable max-h-96 space-y-2 overflow-y-auto">
@@ -174,9 +175,37 @@
 		</Button>
 	</FooterActions>
 </Modal>
+ *@
+
+<!-- 添加依赖对话框 -->
+<Modal @bind-IsOpen="ShowAddDialog"
+	   Title="添加 NuGet 包"
+	   Icon="fas fa-search"
+	   MaxWidth="lg">
+	<ChildContent>
+		<div class="space-y-4">
+			<Input Placeholder="搜索 NuGet 包..."
+				   PrefixIcon="fas fa-search"
+				   @bind-Value="SearchQuery" />
+			@if (!string.IsNullOrEmpty(SearchQuery))
+			{
+				<div class="scrollable max-h-96 space-y-2 overflow-y-auto">
+					<!-- 搜索结果 -->
+				</div>
+			}
+		</div>
+	</ChildContent>
+	<FooterActions>
+		<Button Variant="secondary" OnClick="() => ShowAddDialog = false">
+			取消
+		</Button>
+	</FooterActions>
+</Modal>
+
+
 @code {
-	[Parameter] public List<PackageDependency> Dependencies { get; set; } = new();
-	[Parameter] public EventCallback<List<PackageDependency>> DependenciesChanged { get; set; }
+	[Parameter] public List<Services.PackageDependency> Dependencies { get; set; } = new();
+	[Parameter] public EventCallback<List<Services.PackageDependency>> DependenciesChanged { get; set; }
 	private string ActiveCategory = "selected";
 	private bool ShowAddDialog = false;
 	private string SearchQuery = "";
@@ -224,7 +253,7 @@
 	{
 		if (!Dependencies.Any(d => d.PackageId == package.Id))
 		{
-			Dependencies.Add(new PackageDependency
+			Dependencies.Add(new Services.PackageDependency
 			{
 				PackageId = package.Id,
 				Version = package.Version,
@@ -235,7 +264,7 @@
 			DependenciesChanged.InvokeAsync(Dependencies);
 		}
 	}
-	private void RemoveDependency(PackageDependency dep)
+	private void RemoveDependency(Services.PackageDependency dep)
 	{
 		Dependencies.Remove(dep);
 		DependenciesChanged.InvokeAsync(Dependencies);
@@ -272,4 +301,4 @@
 		string IconColor,
 		string[] Tags
 	);
-} *@
+}

@@ -1,0 +1,50 @@
+﻿@using Zhg.FlowForge.App.Shared.Services
+@if (Diagnostics.Any())
+{
+    <div class="space-y-1">
+        @foreach (var diagnostic in Diagnostics.OrderByDescending(d => d.Severity))
+        {
+            <button class="w-full rounded border-l-2 p-2 text-left transition-colors
+                                  hover:bg-slate-700 @GetBorderColor(diagnostic.Severity)"
+                    @onclick="() => OnDiagnosticClick.InvokeAsync(diagnostic)">
+                <div class="flex items-start gap-2">
+                    <i class="@GetDiagnosticIcon(diagnostic.Severity) mt-0.5 text-xs"></i>
+                    <div class="min-w-0 flex-1">
+                        <div class="mb-1 text-xs text-slate-200">
+                            @diagnostic.Code: @diagnostic.Message
+                        </div>
+                        <div class="text-xs text-slate-500">
+                            @diagnostic.File (@diagnostic.Line:@diagnostic.Column)
+                        </div>
+                    </div>
+                </div>
+            </button>
+        }
+    </div>
+}
+else
+{
+    <div class="py-8 text-center">
+        <i class="fas fa-check-circle mb-2 text-2xl text-emerald-500"></i>
+        <p class="text-xs text-slate-400">没有问题</p>
+    </div>
+}
+
+@code {
+    [Parameter] public List<Diagnostic> Diagnostics { get; set; } = new();
+    [Parameter] public EventCallback<Diagnostic> OnDiagnosticClick { get; set; }
+
+    private string GetDiagnosticIcon(string severity) => severity switch
+    {
+        "Error" => "fas fa-times-circle text-rose-500",
+        "Warning" => "fas fa-exclamation-triangle text-amber-500",
+        _ => "fas fa-info-circle text-blue-500"
+    };
+
+    private string GetBorderColor(string severity) => severity switch
+    {
+        "Error" => "border-rose-500",
+        "Warning" => "border-amber-500",
+        _ => "border-blue-500"
+    };
+}
