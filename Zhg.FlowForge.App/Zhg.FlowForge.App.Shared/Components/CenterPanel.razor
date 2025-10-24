@@ -1,7 +1,7 @@
 ﻿<!-- 中央画布面板 - 优化版 -->
 <div class="relative flex min-w-0 flex-1 flex-col bg-gradient-to-br from-white via-slate-50/30 to-blue-50/20 backdrop-blur-sm">
     <!-- 画布工具栏 -->
-    <div class="flex h-10 items-center justify-between border-b border-slate-200/60 bg-gradient-to-r from-slate-50 via-blue-50/50 to-purple-50/50 px-3 py-1.5 shadow-sm backdrop-blur-md">
+    <div class="flex h-10 items-center justify-between border border-slate-200 bg-gradient-to-r from-slate-50 via-blue-50/50 to-purple-50/50 px-3 py-1.5 shadow-sm backdrop-blur-md">
         <!-- 左侧 - 导入导出 -->
         <div class="flex items-center gap-1.5">
             <!-- 导入 -->
@@ -40,7 +40,7 @@
 
             <!-- 重置 100% -->
             <button class="@GetIconButtonClass("indigo")" @onclick="OnResetZoom" title="重置 100%">
-                <span class="text-[10px] font-bold">@((CurrentZoom * 100).ToString("0"))%</span>
+                <span class="font-bold text-[10px]">@((CurrentZoom * 100).ToString("0"))%</span>
             </button>
 
             <!-- 放大 -->

@@ -1,0 +1,215 @@
+﻿@using Zhg.FlowForge.App.Shared.Components.Buttons
+@using Zhg.FlowForge.App.Shared.Components.Display
+@using Zhg.FlowForge.App.Shared.Components.Layout
+<!-- Components/CodeGen/StepTemplateSelection.razor -->
+<div>
+    <div class="mb-6">
+        <h3 class="mb-2 text-base font-semibold text-slate-900">选择代码模板</h3>
+        <p class="text-sm text-slate-600">
+            选择一个模板作为代码生成的基础，不同模板适用于不同的应用场景
+        </p>
+    </div>
+
+    <Grid Cols="1" ColsMd="2" ColsLg="3" Gap="4">
+        @foreach (var template in Templates)
+        {
+            <div class="group relative cursor-pointer"
+                 @onclick="() => SelectTemplate(template.Id)">
+                <Card Variant="@(SelectedTemplate == template.Id ? "primary" : "default")"
+                      Hoverable="true"
+                      Clickable="true">
+                    
+                    <!-- 选中标记 -->
+                    @if (SelectedTemplate == template.Id)
+                    {
+                        <div class="absolute top-2 right-2 flex h-6 w-6 items-center
+                                    justify-center rounded-full bg-blue-500">
+                            <i class="fas fa-check text-xs text-white"></i>
+                        </div>
+                    }
+
+                    <!-- 模板图标 -->
+                    <div class="mx-auto mb-4 flex @template.IconBg
+                                h-16 w-16 items-center justify-center rounded-xl">
+                        <i class="@template.Icon @template.IconColor text-2xl"></i>
+                    </div>
+
+                    <!-- 模板信息 -->
+                    <h4 class="mb-2 text-center text-sm font-semibold text-slate-900">
+                        @template.Name
+                    </h4>
+                    <p class="mb-3 text-center text-xs text-slate-600">
+                        @template.Description
+                    </p>
+
+                    <!-- 标签 -->
+                    <div class="flex flex-wrap items-center justify-center gap-1.5">
+                        @foreach (var tag in template.Tags)
+                        {
+                            <Badge Variant="primary" Size="sm">@tag</Badge>
+                        }
+                    </div>
+
+                    <!-- 特性列表 -->
+                    <div class="mt-4 border-t border-slate-200 pt-4">
+                        <div class="space-y-1.5">
+                            @foreach (var feature in template.Features)
+                            {
+                                <div class="flex items-center gap-2 text-xs text-slate-600">
+                                    <i class="fas fa-check text-xs text-emerald-500"></i>
+                                    <span>@feature</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- 示例按钮 -->
+                    <div class="mt-4">
+                        <button class="h-7 w-full rounded-md border border-blue-200 bg-blue-50
+                                      text-xs font-medium text-blue-700 transition-colors
+                                      hover:bg-blue-100"
+                                @onclick:stopPropagation="true"
+                                @onclick="() => PreviewTemplate(template.Id)">
+                            <i class="fas fa-eye mr-1 text-xs"></i>
+                            预览模板
+                        </button>
+                    </div>
+                </Card>
+            </div>
+        }
+    </Grid>
+
+    <!-- 自定义模板 -->
+    <div class="mt-6">
+        <Card>
+            <div class="flex items-start gap-4">
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-purple-100">
+                    <i class="fas fa-magic text-xl text-purple-600"></i>
+                </div>
+                <div class="flex-1">
+                    <h4 class="mb-1 text-sm font-semibold text-slate-900">
+                        使用自定义模板
+                    </h4>
+                    <p class="mb-3 text-xs text-slate-600">
+                        上传您自己的 Scriban 模板文件，或从模板市场选择社区贡献的模板
+                    </p>
+                    <div class="flex items-center gap-2">
+                        <Button Variant="secondary"
+                                Size="sm"
+                                Icon="fas fa-upload"
+                                OnClick="UploadCustomTemplate">
+                            上传模板
+                        </Button>
+                        <Button Variant="secondary"
+                                Size="sm"
+                                Icon="fas fa-store"
+                                OnClick="BrowseMarketplace">
+                            浏览市场
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        </Card>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string SelectedTemplate { get; set; } = "";
+    [Parameter] public EventCallback<string> SelectedTemplateChanged { get; set; }
+
+    private List<TemplateInfo> Templates = new()
+    {
+        new(
+            "standard",
+            "标准模板",
+            "适用于大多数业务流程，包含完整的工作流引擎",
+            "fas fa-file-code",
+            "bg-blue-100",
+            "text-blue-600",
+            new[] { "推荐", "通用" },
+            new[] { "完整工作流引擎", "依赖注入", "异步支持", "日志记录" }
+        ),
+        new(
+            "minimal",
+            "最小模板",
+            "轻量级实现，适合简单流程",
+            "fas fa-feather",
+            "bg-green-100",
+            "text-green-600",
+            new[] { "轻量", "快速" },
+            new[] { "无外部依赖", "快速启动", "易于理解" }
+        ),
+        new(
+            "microservice",
+            "微服务模板",
+            "容器化微服务架构，支持 Kubernetes 部署",
+            "fas fa-cubes",
+            "bg-purple-100",
+            "text-purple-600",
+            new[] { "云原生", "K8s" },
+            new[] { "Docker 支持", "健康检查", "指标监控", "配置中心" }
+        ),
+        new(
+            "serverless",
+            "无服务器模板",
+            "AWS Lambda / Azure Functions 部署",
+            "fas fa-cloud",
+            "bg-cyan-100",
+            "text-cyan-600",
+            new[] { "Serverless" },
+            new[] { "按需扩展", "低成本", "事件驱动" }
+        ),
+        new(
+            "enterprise",
+            "企业级模板",
+            "包含完整的企业级特性和最佳实践",
+            "fas fa-building",
+            "bg-indigo-100",
+            "text-indigo-600",
+            new[] { "企业", "完整" },
+            new[] { "权限控制", "审计日志", "多租户", "高可用" }
+        ),
+        new(
+            "api",
+            "REST API 模板",
+            "生成 RESTful API 服务",
+            "fas fa-server",
+            "bg-amber-100",
+            "text-amber-600",
+            new[] { "API", "Web" },
+            new[] { "Swagger 文档", "版本控制", "限流", "CORS" }
+        )
+    };
+
+    private async Task SelectTemplate(string templateId)
+    {
+        SelectedTemplate = templateId;
+        await SelectedTemplateChanged.InvokeAsync(templateId);
+    }
+
+    private void PreviewTemplate(string templateId)
+    {
+        // 打开模板预览
+    }
+
+    private void UploadCustomTemplate()
+    {
+        // 上传自定义模板
+    }
+
+    private void BrowseMarketplace()
+    {
+        // 打开模板市场
+    }
+
+    record TemplateInfo(
+        string Id,
+        string Name,
+        string Description,
+        string Icon,
+        string IconBg,
+        string IconColor,
+        string[] Tags,
+        string[] Features
+    );
+}

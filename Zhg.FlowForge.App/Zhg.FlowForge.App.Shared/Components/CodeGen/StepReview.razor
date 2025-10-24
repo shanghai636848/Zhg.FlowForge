@@ -1,0 +1,169 @@
+﻿@* @using Zhg.FlowForge.App.Shared.Components.Display
+@using Zhg.FlowForge.App.Shared.Components.Feedback
+@using Zhg.FlowForge.App.Shared.Components.Layout
+<!-- Components/CodeGen/StepReview.razor -->
+<div class="max-w-3xl">
+    <div class="mb-6">
+        <h3 class="mb-2 text-base font-semibold text-slate-900">确认配置</h3>
+        <p class="text-sm text-slate-600">
+            请仔细检查以下配置，确认无误后点击"生成代码"按钮
+        </p>
+    </div>
+
+    <Stack Direction="vertical" Gap="4">
+        <!-- 项目信息 -->
+        <Card Title="项目信息" Icon="fas fa-project-diagram">
+            <div class="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                    <span class="text-slate-600">项目名称：</span>
+                    <span class="font-medium text-slate-900">@Config.ProjectName</span>
+                </div>
+                <div>
+                    <span class="text-slate-600">命名空间：</span>
+                    <span class="font-medium text-slate-900">@Config.Namespace</span>
+                </div>
+                <div>
+                    <span class="text-slate-600">版本号：</span>
+                    <span class="font-medium text-slate-900">@Config.Version</span>
+                </div>
+                <div>
+                    <span class="text-slate-600">目标框架：</span>
+                    <span class="font-medium text-slate-900">@Config.TargetFramework</span>
+                </div>
+            </div>
+        </Card>
+
+        <!-- 模板信息 -->
+        <Card Title="代码模板" Icon="fas fa-layer-group">
+            <div class="flex items-center gap-4">
+                <div class="flex h-16 w-16 items-center justify-center rounded-xl bg-blue-100">
+                    <i class="fas fa-file-code text-2xl text-blue-600"></i>
+                </div>
+                <div>
+                    <h4 class="text-sm font-semibold text-slate-900">@GetTemplateName(Template)</h4>
+                    <p class="mt-1 text-xs text-slate-600">@GetTemplateDescription(Template)</p>
+                </div>
+            </div>
+        </Card>
+
+        <!-- 代码选项 -->
+        <Card Title="代码选项" Icon="fas fa-cog">
+            <div class="grid grid-cols-2 gap-3">
+                <div class="flex items-center gap-2 text-xs">
+                    <i class="fas @(Options.UseFileScoped ? "fa-check-circle text-emerald-600" : "fa-times-circle text-slate-400")"></i>
+                    <span>文件范围命名空间</span>
+                </div>
+                <div class="flex items-center gap-2 text-xs">
+                    <i class="fas @(Options.GenerateAsyncMethods ? "fa-check-circle text-emerald-600" : "fa-times-circle text-slate-400")"></i>
+                    <span>异步方法</span>
+                </div>
+                <div class="flex items-center gap-2 text-xs">
+                    <i class="fas @(Options.GenerateLogging ? "fa-check-circle text-emerald-600" : "fa-times-circle text-slate-400")"></i>
+                    <span>日志记录</span>
+                </div>
+                <div class="flex items-center gap-2 text-xs">
+                    <i class="fas @(Options.GenerateXmlComments ? "fa-check-circle text-emerald-600" : "fa-times-circle text-slate-400")"></i>
+                    <span>XML 文档注释</span>
+                </div>
+                <div class="flex items-center gap-2 text-xs">
+                    <i class="fas @(Options.EnableAotOptimizations ? "fa-check-circle text-emerald-600" : "fa-times-circle text-slate-400")"></i>
+                    <span>AOT 优化</span>
+                </div>
+                <div class="flex items-center gap-2 text-xs">
+                    <i class="fas @(Options.GenerateExceptionHandling ? "fa-check-circle text-emerald-600" : "fa-times-circle text-slate-400")"></i>
+                    <span>异常处理</span>
+                </div>
+            </div>
+        </Card>
+
+        <!-- 依赖项 -->
+        <Card Title="项目依赖" Icon="fas fa-cube">
+            @if (Dependencies.Any())
+            {
+                <div class="space-y-2">
+                    @foreach (var dep in Dependencies)
+                    {
+                        <div class="flex items-center justify-between rounded bg-slate-50 p-2">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-cube text-xs text-blue-600"></i>
+                                <span class="text-xs font-medium text-slate-900">@dep.PackageId</span>
+                            </div>
+                            <Badge Variant="primary" Size="sm">v@dep.Version</Badge>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <p class="text-xs text-slate-600">无额外依赖</p>
+            }
+        </Card>
+
+        <!-- 预估信息 -->
+        <Card Variant="success">
+            <div class="flex items-start gap-4">
+                <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-100">
+                    <i class="fas fa-chart-bar text-xl text-emerald-600"></i>
+                </div>
+                <div class="flex-1">
+                    <h4 class="mb-3 text-sm font-semibold text-slate-900">生成预估</h4>
+                    <div class="grid grid-cols-3 gap-4 text-center">
+                        <div>
+                            <div class="text-xl font-bold text-slate-900">@EstimatedFiles</div>
+                            <div class="text-xs text-slate-600">文件数量</div>
+                        </div>
+                        <div>
+                            <div class="text-xl font-bold text-slate-900">@EstimatedLines</div>
+                            <div class="text-xs text-slate-600">代码行数</div>
+                        </div>
+                        <div>
+                            <div class="text-xl font-bold text-slate-900">@EstimatedTime</div>
+                            <div class="text-xs text-slate-600">预计耗时</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </Card>
+
+        <!-- 警告提示 -->
+        @if (HasWarnings)
+        {
+            <Alert Type="warning" ShowIcon="true" Closable="true">
+                <strong>注意：</strong>
+                以下配置可能需要您关注：
+                <ul class="mt-2 ml-4 space-y-1 text-xs">
+                    <li>• 已启用 AOT 编译，部分反射功能可能受限</li>
+                    <li>• 选择的依赖包版本可能存在兼容性问题</li>
+                </ul>
+            </Alert>
+        }
+    </Stack>
+</div>
+
+@code {
+    [Parameter] public ProjectConfig Config { get; set; } = new();
+    [Parameter] public string Template { get; set; } = "";
+    [Parameter] public CodeGenerationOptions Options { get; set; } = new();
+    [Parameter] public List<PackageDependency> Dependencies { get; set; } = new();
+
+    private int EstimatedFiles => 12 + Dependencies.Count;
+    private int EstimatedLines => 850;
+    private string EstimatedTime => "< 30秒";
+    private bool HasWarnings => Options.EnableAotOptimizations;
+
+    private string GetTemplateName(string template) => template switch
+    {
+        "standard" => "标准模板",
+        "minimal" => "最小模板",
+        "microservice" => "微服务模板",
+        _ => "标准模板"
+    };
+
+    private string GetTemplateDescription(string template) => template switch
+    {
+        "standard" => "适用于大多数业务流程，包含完整的工作流引擎",
+        "minimal" => "轻量级实现，适合简单流程",
+        "microservice" => "容器化微服务架构",
+        _ => ""
+    };
+} *@

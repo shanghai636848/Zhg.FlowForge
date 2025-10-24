@@ -1,0 +1,87 @@
+﻿@* @using Zhg.FlowForge.App.Shared.Components.Form
+@using Zhg.FlowForge.App.Shared.Components.Layout
+<!-- Components/CodeGen/StepProjectInfo.razor -->
+<div class="max-w-2xl">
+    <div class="mb-6">
+        <h3 class="mb-2 text-base font-semibold text-slate-900">项目基本信息</h3>
+        <p class="text-sm text-slate-600">
+            配置生成项目的基本信息，这些信息将用于生成代码文件和命名空间
+        </p>
+    </div>
+
+    <Stack Direction="vertical" Gap="4">
+        <FormGroup Title="项目配置" Icon="fas fa-project-diagram">
+            <Input Label="项目名称"
+                   Icon="fas fa-tag"
+                   Placeholder="MyWorkflowProject"
+                   Required="true"
+                   @bind-Value="Config.ProjectName"
+                   HelpText="项目名称将用作程序集名称" />
+
+            <Input Label="命名空间"
+                   Icon="fas fa-code"
+                   Placeholder="MyCompany.Workflows"
+                   Required="true"
+                   @bind-Value="Config.Namespace"
+                   HelpText="代码文件的根命名空间" />
+
+            <Input Label="版本号"
+                   Icon="fas fa-code-branch"
+                   Placeholder="1.0.0"
+                   @bind-Value="Config.Version"
+                   HelpText="项目版本号（语义化版本）" />
+
+            <Textarea Label="项目描述"
+                     Rows="3"
+                     Placeholder="简要描述项目的功能和用途..."
+                     @bind-Value="Config.Description"
+                     ShowCount="true"
+                     MaxLength="500" />
+        </FormGroup>
+
+        <FormGroup Title="目标框架" Icon="fas fa-bullseye" Variant="primary">
+            <Select Label="框架版本"
+                   Options="@FrameworkOptions"
+                   @bind-Value="Config.TargetFramework"
+                   HelpText="选择目标 .NET 框架版本" />
+
+            <div class="flex items-center gap-4">
+                <Checkbox @bind-Checked="Config.EnableNullable">
+                    启用可空引用类型
+                </Checkbox>
+                <Checkbox @bind-Checked="Config.ImplicitUsings">
+                    启用隐式 using
+                </Checkbox>
+            </div>
+        </FormGroup>
+
+        <FormGroup Title="作者信息" Icon="fas fa-user">
+            <Input Label="作者"
+                   Icon="fas fa-user"
+                   Placeholder="Your Name"
+                   @bind-Value="Config.Author" />
+
+            <Input Label="公司/组织"
+                   Icon="fas fa-building"
+                   Placeholder="Your Company"
+                   @bind-Value="Config.Company" />
+
+            <Input Label="版权信息"
+                   Icon="fas fa-copyright"
+                   Placeholder="Copyright © 2025"
+                   @bind-Value="Config.Copyright" />
+        </FormGroup>
+    </Stack>
+</div>
+
+@code {
+    [Parameter] public ProjectConfig Config { get; set; } = new();
+    [Parameter] public EventCallback<ProjectConfig> ConfigChanged { get; set; }
+
+    private List<Select.SelectOption> FrameworkOptions = new()
+    {
+        new("net10.0", ".NET 10.0 (推荐)"),
+        new("net9.0", ".NET 9.0"),
+        new("net8.0", ".NET 8.0 LTS")
+    };
+} *@

@@ -1,0 +1,275 @@
+﻿@* @using Zhg.FlowForge.App.Shared.Components.Buttons
+@using Zhg.FlowForge.App.Shared.Components.Display
+@using Zhg.FlowForge.App.Shared.Components.Feedback
+@using Zhg.FlowForge.App.Shared.Components.Form
+@using Zhg.FlowForge.App.Shared.Components.Layout
+<!-- Components/CodeGen/StepDependencies.razor -->
+<div>
+	<div class="mb-6 flex items-center justify-between">
+		<div>
+			<h3 class="mb-2 text-base font-semibold text-slate-900">项目依赖</h3>
+			<p class="text-sm text-slate-600">
+				选择项目所需的 NuGet 包，系统会自动添加到项目文件中
+			</p>
+		</div>
+
+		<Button Variant="primary"
+				Size="sm"
+				Icon="fas fa-plus"
+				OnClick="ShowAddDependencyDialog">
+			添加依赖
+		</Button>
+	</div><!-- 依赖分类标签 -->
+	<Tabs @bind-ActiveTab="ActiveCategory"
+		  Variant="pills"
+		  Size="sm"
+		  Tabs="@CategoryTabs">
+		@if (ActiveCategory == "selected")
+		{
+			<!-- 已选依赖 -->
+			@if (Dependencies.Any())
+			{
+				<div class="space-y-2">
+					@foreach (var dep in Dependencies)
+					{
+						<Card NoPadding="true">
+							<div class="flex items-center gap-3 p-3">
+								<div class="flex h-10 w-10 shrink-0 items-center justify-center
+						                                        rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600">
+									<i class="fas fa-cube text-white"></i>
+								</div>                            <div class="min-w-0 flex-1">
+									<div class="mb-1 flex items-center gap-2">
+										<h4 class="text-sm font-semibold text-slate-900">
+											@dep.PackageId
+										</h4>
+										<Badge Variant="primary" Size="sm">v@dep.Version</Badge>
+										@if (dep.IsRequired)
+										{
+											<Badge Variant="warning" Size="sm">必需</Badge>
+										}
+									</div>
+									<p class="truncate text-xs text-slate-600">
+										@dep.Description
+									</p>
+								</div>                            <div class="flex shrink-0 items-center gap-2">
+									<Select Options="@GetVersionOptions(dep.PackageId)"
+											Size="sm"
+											@bind-Value="dep.Version"
+											style="width: 120px;" />                                @if (!dep.IsRequired)
+									{
+										<IconButton Icon="fas fa-trash"
+													Size="sm"
+													Variant="ghost"
+													OnClick="() => RemoveDependency(dep)" />
+									}
+								</div>
+							</div>
+						</Card>
+					}
+				</div>
+			}
+			else
+			{
+				<div class="py-12 text-center">
+					<div class="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100">
+						<i class="fas fa-cube text-2xl text-slate-400"></i>
+					</div>
+					<p class="text-sm text-slate-600">
+						暂未选择依赖项
+					</p>
+				</div>
+			}
+		}
+		else
+		{
+			<!-- 推荐依赖 -->
+			<Grid Cols="1" ColsMd="2" Gap="3">
+				@foreach (var package in GetPackagesByCategory(ActiveCategory))
+				{
+					var isSelected = Dependencies.Any(d => d.PackageId == package.Id);
+					<Card Hoverable="true">
+						<div class="flex items-start gap-3">
+							<div class="flex h-12 w-12 @package.IconBg
+				                                    shrink-0 items-center justify-center rounded-lg">
+								<i class="@package.Icon @package.IconColor text-lg"></i>
+							</div>                        <div class="min-w-0 flex-1">
+								<div class="mb-1 flex items-start justify-between gap-2">
+									<h4 class="text-sm font-semibold text-slate-900">
+										@package.Name
+									</h4>
+									<Badge Variant="info" Size="sm">@package.Downloads</Badge>
+								</div>
+								<p class="mb-2 line-clamp-2 text-xs text-slate-600">
+									@package.Description
+								</p>                            <div class="flex items-center justify-between">
+									<div class="flex items-center gap-2">
+										<span class="text-xs text-slate-500">v@package.Version</span>
+										@foreach (var tag in package.Tags)
+										{
+											<Badge Variant="default" Size="sm">@tag</Badge>
+										}
+									</div>                                @if (isSelected)
+									{
+										<button class="flex h-7 items-center gap-1.5 rounded-md
+						                                                  bg-emerald-100 px-3 text-xs font-medium text-emerald-700"
+												@onclick="() => RemoveDependency(package.Id)">
+											<i class="fas fa-check text-xs"></i>
+											<span>已添加</span>
+										</button>
+									}
+														else
+									{
+										<button class="flex h-7 items-center gap-1.5 rounded-md border
+						                                                  border-blue-200 bg-blue-50 px-3 text-xs
+						                                                  font-medium text-blue-700 transition-colors hover:bg-blue-100"
+												@onclick="() => AddDependency(package)">
+											<i class="fas fa-plus text-xs"></i>
+											<span>添加</span>
+										</button>
+									}
+								</div>
+							</div>
+						</div>
+					</Card>
+				}
+			</Grid>
+		}
+	</Tabs><!-- 依赖统计 -->
+	<div class="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
+		<div class="grid grid-cols-3 gap-4 text-center">
+			<div>
+				<div class="text-2xl font-bold text-slate-900">@Dependencies.Count</div>
+				<div class="text-xs text-slate-600">已选依赖</div>
+			</div>
+			<div>
+				<div class="text-2xl font-bold text-slate-900">@EstimatedSize</div>
+				<div class="text-xs text-slate-600">预计大小</div>
+			</div>
+			<div>
+				<div class="text-2xl font-bold text-slate-900">@CompatibilityScore%</div>
+				<div class="text-xs text-slate-600">兼容性</div>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- 添加依赖对话框 -->
+<Modal @bind-IsOpen="ShowAddDialog"
+	   Title="添加 NuGet 包"
+	   Icon="fas fa-search"
+	   MaxWidth="lg">
+	<div class="space-y-4">
+		<Input Placeholder="搜索 NuGet 包..."
+			   PrefixIcon="fas fa-search"
+			   @bind-Value="@(SearchQuery)" />
+		@if (!string.IsNullOrEmpty(SearchQuery))
+		{
+			<div class="scrollable max-h-96 space-y-2 overflow-y-auto">
+				<!-- 搜索结果 -->
+			</div>
+		}
+	</div>
+	<FooterActions>
+		<Button Variant="secondary" OnClick="() => ShowAddDialog = false">
+			取消
+		</Button>
+	</FooterActions>
+</Modal>
+@code {
+	[Parameter] public List<PackageDependency> Dependencies { get; set; } = new();
+	[Parameter] public EventCallback<List<PackageDependency>> DependenciesChanged { get; set; }
+	private string ActiveCategory = "selected";
+	private bool ShowAddDialog = false;
+	private string SearchQuery = "";
+	private string EstimatedSize => $"{Dependencies.Sum(d => d.Size) / 1024.0:F1} MB";
+	private int CompatibilityScore => 95;
+	private List<Tabs.TabItem> CategoryTabs = new()
+{
+	new("selected", "已选择", "fas fa-check", 0),
+	new("core", "核心框架", "fas fa-star"),
+	new("database", "数据访问", "fas fa-database"),
+	new("logging", "日志记录", "fas fa-clipboard-list"),
+	new("testing", "测试工具", "fas fa-flask"),
+	new("serialization", "序列化", "fas fa-exchange-alt")
+};
+	private List<NuGetPackage> AvailablePackages = new()
+{
+	new("Microsoft.Extensions.DependencyInjection", "依赖注入", "8.0.0",
+		"Microsoft 官方依赖注入容器", "core", 50000, 2.5,
+		"fas fa-box", "bg-blue-100", "text-blue-600",
+		new[] { "核心", "推荐" }),    new("Microsoft.Extensions.Logging", "日志框架", "8.0.0",
+		"Microsoft 官方日志抽象层", "logging", 45000, 1.8,
+		"fas fa-file-alt", "bg-amber-100", "text-amber-600",
+		new[] { "核心", "推荐" }),    new("Serilog", "结构化日志", "3.1.1",
+		"强大的结构化日志库", "logging", 35000, 3.2,
+		"fas fa-stream", "bg-purple-100", "text-purple-600",
+		new[] { "流行", "社区" }),    new("Dapper", "轻量 ORM", "2.1.35",
+		"简单高效的 Micro-ORM", "database", 40000, 0.5,
+		"fas fa-database", "bg-emerald-100", "text-emerald-600",
+		new[] { "性能", "推荐" }),    new("FluentValidation", "验证框架", "11.9.0",
+		"流畅的验证规则定义", "core", 28000, 1.2,
+		"fas fa-check-circle", "bg-green-100", "text-green-600",
+		new[] { "验证", "推荐" }),    new("xUnit", "单元测试", "2.6.6",
+		".NET 标准单元测试框架", "testing", 38000, 1.5,
+		"fas fa-vial", "bg-cyan-100", "text-cyan-600",
+		new[] { "测试", "标准" }),    new("Newtonsoft.Json", "JSON 序列化", "13.0.3",
+		"功能强大的 JSON 库", "serialization", 50000, 2.1,
+		"fas fa-code", "bg-orange-100", "text-orange-600",
+		new[] { "JSON", "经典" })
+};
+	private void ShowAddDependencyDialog()
+	{
+		ShowAddDialog = true;
+	}
+	private void AddDependency(NuGetPackage package)
+	{
+		if (!Dependencies.Any(d => d.PackageId == package.Id))
+		{
+			Dependencies.Add(new PackageDependency
+			{
+				PackageId = package.Id,
+				Version = package.Version,
+				Description = package.Description,
+				Size = package.Size,
+				IsRequired = false
+			});
+			DependenciesChanged.InvokeAsync(Dependencies);
+		}
+	}
+	private void RemoveDependency(PackageDependency dep)
+	{
+		Dependencies.Remove(dep);
+		DependenciesChanged.InvokeAsync(Dependencies);
+	}
+	private void RemoveDependency(string packageId)
+	{
+		Dependencies.RemoveAll(d => d.PackageId == packageId);
+		DependenciesChanged.InvokeAsync(Dependencies);
+	}
+	private List<NuGetPackage> GetPackagesByCategory(string category)
+	{
+		return AvailablePackages.Where(p => p.Category == category).ToList();
+	}
+	private List<Select.SelectOption> GetVersionOptions(string packageId)
+	{
+		// 返回该包的可用版本
+		return new List<Select.SelectOption>
+		{
+			new("8.0.0", "8.0.0 (最新)"),
+			new("7.0.0", "7.0.0"),
+			new("6.0.0", "6.0.0")
+		};
+	}
+	record NuGetPackage(
+		string Id,
+		string Name,
+		string Version,
+		string Description,
+		string Category,
+		int Downloads,
+		double Size,
+		string Icon,
+		string IconBg,
+		string IconColor,
+		string[] Tags
+	);
+} *@

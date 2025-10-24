@@ -1,0 +1,339 @@
+﻿@* @page "/codegen/{ProcessId}"
+@layout EditorLayout
+@inject ICodeGenerationService CodeGenService
+@inject IBpmnService BpmnService
+@inject NavigationManager Navigation
+@inject IToastService ToastService
+@inject ILocalizationService Localization
+
+<PageTitle>代码生成 - FlowForge</PageTitle>
+
+<div class="flex h-screen bg-slate-50">
+    <!-- 左侧步骤导航 -->
+    <div class="flex w-64 flex-col border-r border-slate-200 bg-white">
+        <!-- 头部 -->
+        <div class="flex h-14 items-center justify-between border-b border-slate-200 px-4">
+            <h2 class="text-sm font-semibold text-slate-900">代码生成向导</h2>
+            <button class="flex h-7 w-7 items-center justify-center rounded-md hover:bg-slate-100"
+                    @onclick="() => Navigation.NavigateTo(\"/designer/\" + ProcessId)">
+                <i class="fas fa-times text-xs text-slate-600"></i>
+            </button>
+        </div>
+
+        <!-- 步骤列表 -->
+        <div class="scrollable flex-1 overflow-y-auto p-4">
+            <div class="space-y-1">
+                @for (int i = 0; i < WizardSteps.Count; i++)
+                {
+                    var step = WizardSteps[i];
+                    var stepIndex = i;
+                    var isActive = CurrentStep == stepIndex;
+                    var isCompleted = stepIndex < CurrentStep;
+
+                    <button class="flex w-full items-start gap-3 rounded-lg p-3 text-left transition-all
+                                  @(isActive ? "bg-blue-50 border-2 border-blue-500" : 
+                                    isCompleted ? "bg-emerald-50 hover:bg-emerald-100" : 
+                                    "hover:bg-slate-50")"
+                            @onclick="() => GoToStep(stepIndex)"
+                            disabled="@(stepIndex > CurrentStep)">
+                        <!-- 步骤图标 -->
+                        <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full
+                                  @(isActive ? "bg-blue-500 text-white" :
+                                    isCompleted ? "bg-emerald-500 text-white" :
+                                    "bg-slate-200 text-slate-500")">
+                            @if (isCompleted)
+                            {
+                                <i class="fas fa-check text-xs"></i>
+                            }
+                            else
+                            {
+                                <span class="text-xs font-semibold">@(stepIndex + 1)</span>
+                            }
+                        </div>
+
+                        <!-- 步骤信息 -->
+                        <div class="min-w-0 flex-1">
+                            <div class="text-xs font-semibold @(isActive ? "text-blue-900" : "text-slate-900")">
+                                @step.Title
+                            </div>
+                            <div class="mt-0.5 text-xs text-slate-600">
+                                @step.Description
+                            </div>
+                        </div>
+                    </button>
+                }
+            </div>
+        </div>
+
+        <!-- 底部操作 -->
+        <div class="space-y-2 border-t border-slate-200 p-4">
+            <Progress Value="@ProgressPercentage" 
+                     ShowPercentage="true"
+                     Color="primary"
+                     Size="sm" />
+            
+            <div class="text-center text-xs text-slate-600">
+                步骤 @(CurrentStep + 1) / @WizardSteps.Count
+            </div>
+        </div>
+    </div>
+
+    <!-- 右侧主内容区 -->
+    <div class="flex flex-1 flex-col">
+        <!-- 顶部工具栏 -->
+        <div class="flex h-14 items-center justify-between border-b border-slate-200 bg-white px-6">
+            <div class="flex items-center gap-3">
+                <i class="@WizardSteps[CurrentStep].Icon text-blue-600"></i>
+                <h3 class="text-sm font-semibold text-slate-900">
+                    @WizardSteps[CurrentStep].Title
+                </h3>
+            </div>
+
+            <div class="flex items-center gap-2">
+                @if (CurrentStep > 0)
+                {
+                    <Button Variant="secondary"
+                            Size="sm"
+                            Icon="fas fa-arrow-left"
+                            OnClick="PreviousStep">
+                        上一步
+                    </Button>
+                }
+
+                @if (CurrentStep < WizardSteps.Count - 1)
+                {
+                    <Button Variant="primary"
+                            Size="sm"
+                            Icon="fas fa-arrow-right"
+                            OnClick="NextStep"
+                            Disabled="@(!CanProceed)">
+                        下一步
+                    </Button>
+                }
+                else
+                {
+                    <Button Variant="success"
+                            Size="sm"
+                            Icon="fas fa-code"
+                            Loading="@IsGenerating"
+                            OnClick="GenerateCode">
+                        生成代码
+                    </Button>
+                }
+            </div>
+        </div>
+
+        <!-- 步骤内容 -->
+        <div class="scrollable flex-1 overflow-y-auto p-6">
+            @switch (CurrentStep)
+            {
+                case 0:
+                    <StepProjectInfo @bind-Config="GenerationConfig" />
+                    break;
+                case 1:
+                    <StepTemplateSelection @bind-SelectedTemplate="SelectedTemplate" />
+                    break;
+                case 2:
+                    <StepCodeOptions @bind-Options="CodeOptions" />
+                    break;
+                case 3:
+                    <StepDependencies @bind-Dependencies="Dependencies" />
+                    break;
+                case 4:
+                    <StepReview Config="@GenerationConfig"
+                               Template="@SelectedTemplate"
+                               Options="@CodeOptions"
+                               Dependencies="@Dependencies" />
+                    break;
+            }
+        </div>
+    </div>
+
+    <!-- 右侧预览面板（可选） -->
+    @if (ShowPreview)
+    {
+        <div class="flex w-96 flex-col border-l border-slate-200 bg-white">
+            <div class="flex h-14 items-center justify-between border-b border-slate-200 px-4">
+                <h3 class="text-sm font-semibold text-slate-900">预览</h3>
+                <IconButton Icon="fas fa-times"
+                           Size="sm"
+                           Variant="ghost"
+                           OnClick="() => ShowPreview = false" />
+            </div>
+
+            <div class="scrollable flex-1 overflow-y-auto p-4">
+                <!-- 预览内容 -->
+                <CodePreview ProcessId="@ProcessId" Config="@GenerationConfig" />
+            </div>
+        </div>
+    }
+</div>
+
+<!-- 生成完成模态框 -->
+<Modal @bind-IsOpen="ShowSuccessModal"
+       Title="代码生成成功"
+       Icon="fas fa-check-circle"
+       IconColorClass="text-emerald-600"
+       MaxWidth="md"
+       HideClose="true">
+    
+    <div class="py-6 text-center">
+        <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
+            <i class="fas fa-check text-2xl text-emerald-600"></i>
+        </div>
+        <h3 class="mb-2 text-base font-semibold text-slate-900">
+            代码生成成功！
+        </h3>
+        <p class="mb-6 text-sm text-slate-600">
+            已为您生成 @GeneratedFileCount 个文件，共 @GeneratedLinesCount 行代码
+        </p>
+
+        <div class="space-y-3">
+            <Alert Type="success" ShowIcon="true">
+                项目已保存到工作区，您现在可以开始编辑和编译代码
+            </Alert>
+
+            <div class="flex items-center gap-2">
+                <Button Variant="secondary"
+                        FullWidth="true"
+                        Icon="fas fa-folder-open"
+                        OnClick="ViewInExplorer">
+                    在资源管理器中查看
+                </Button>
+                <Button Variant="primary"
+                        FullWidth="true"
+                        Icon="fas fa-code"
+                        OnClick="OpenInEditor">
+                    打开编辑器
+                </Button>
+            </div>
+        </div>
+    </div>
+</Modal>
+
+@code {
+    [Parameter] public string ProcessId { get; set; } = "";
+
+    private int CurrentStep = 0;
+    private bool ShowPreview = false;
+    private bool IsGenerating = false;
+    private bool ShowSuccessModal = false;
+    private int GeneratedFileCount = 0;
+    private int GeneratedLinesCount = 0;
+
+    private ProjectConfig GenerationConfig = new();
+    private string SelectedTemplate = "standard";
+    private CodeGenerationOptions CodeOptions = new();
+    private List<PackageDependency> Dependencies = new();
+
+    private List<WizardStep> WizardSteps = new()
+    {
+        new("项目信息", "配置项目基本信息", "fas fa-info-circle"),
+        new("选择模板", "选择代码生成模板", "fas fa-layer-group"),
+        new("代码选项", "配置代码生成选项", "fas fa-cog"),
+        new("依赖管理", "添加项目依赖", "fas fa-cube"),
+        new("确认生成", "检查配置并生成", "fas fa-check-circle")
+    };
+
+    private int ProgressPercentage => (int)((CurrentStep + 1) * 100.0 / WizardSteps.Count);
+
+    private bool CanProceed
+    {
+        get
+        {
+            return CurrentStep switch
+            {
+                0 => !string.IsNullOrEmpty(GenerationConfig.ProjectName),
+                1 => !string.IsNullOrEmpty(SelectedTemplate),
+                _ => true
+            };
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // 加载 BPMN 流程信息
+        var process = await BpmnService.GetProcessAsync(ProcessId);
+        if (process != null)
+        {
+            GenerationConfig.ProjectName = process.Name;
+            GenerationConfig.Namespace = $"FlowForge.Generated.{process.Name.Replace(" ", "")}";
+        }
+    }
+
+    private void GoToStep(int step)
+    {
+        if (step <= CurrentStep)
+        {
+            CurrentStep = step;
+        }
+    }
+
+    private void PreviousStep()
+    {
+        if (CurrentStep > 0)
+        {
+            CurrentStep--;
+        }
+    }
+
+    private void NextStep()
+    {
+        if (CanProceed && CurrentStep < WizardSteps.Count - 1)
+        {
+            CurrentStep++;
+        }
+    }
+
+    private async Task GenerateCode()
+    {
+        IsGenerating = true;
+
+        try
+        {
+            var result = await CodeGenService.GenerateAsync(new GenerationRequest
+            {
+                ProcessId = ProcessId,
+                Config = GenerationConfig,
+                Template = SelectedTemplate,
+                Options = CodeOptions,
+                Dependencies = Dependencies
+            });
+
+            if (result.Success)
+            {
+                GeneratedFileCount = result.Files.Count;
+                GeneratedLinesCount = result.TotalLines;
+                ShowSuccessModal = true;
+
+                ToastService.Success("代码生成成功！");
+            }
+            else
+            {
+                ToastService.Error($"代码生成失败: {result.Error}");
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.Error($"生成异常: {ex.Message}");
+        }
+        finally
+        {
+            IsGenerating = false;
+        }
+    }
+
+    private void ViewInExplorer()
+    {
+        ShowSuccessModal = false;
+        Navigation.NavigateTo($"/files/{ProcessId}");
+    }
+
+    private void OpenInEditor()
+    {
+        ShowSuccessModal = false;
+        Navigation.NavigateTo($"/editor/{ProcessId}");
+    }
+
+    record WizardStep(string Title, string Description, string Icon);
+} *@

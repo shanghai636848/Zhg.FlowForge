@@ -1,0 +1,140 @@
+﻿@* @using Zhg.FlowForge.App.Shared.Components.Form
+@using Zhg.FlowForge.App.Shared.Components.Layout
+<!-- Components/CodeGen/StepCodeOptions.razor -->
+<div class="max-w-2xl">
+    <div class="mb-6">
+        <h3 class="mb-2 text-base font-semibold text-slate-900">代码生成选项</h3>
+        <p class="text-sm text-slate-600">
+            配置代码生成的详细选项，包括命名规范、代码风格和优化设置
+        </p>
+    </div>
+
+    <Stack Direction="vertical" Gap="4">
+        <FormGroup Title="命名规范" Icon="fas fa-signature">
+            <Select Label="命名风格"
+                   Options=@(NamingStyleOptions)
+                   @bind-Value=@(Options.NamingStyle) />
+
+            <div class="grid grid-cols-2 gap-3">
+                <Input Label="类名前缀"
+                       Placeholder=@(Workflow)
+                       @bind-Value=@(Options.ClassPrefix) />
+
+                <Input Label="接口前缀"
+                       Placeholder="I"
+                       @bind-Value=@(Options.InterfacePrefix) />
+            </div>
+        </FormGroup>
+
+        <FormGroup Title="代码风格" Icon="fas fa-paint-brush" Variant="primary">
+            <div class="space-y-3">
+                <Checkbox @bind-Checked="Options.UseFileScoped">
+                    使用文件范围命名空间
+                </Checkbox>
+
+                <Checkbox @bind-Checked="Options.UseRecordTypes">
+                    优先使用 Record 类型
+                </Checkbox>
+
+                <Checkbox @bind-Checked="Options.UseExpressionBodies">
+                    使用表达式主体
+                </Checkbox>
+
+                <Checkbox @bind-Checked="Options.UsePatternMatching">
+                    使用模式匹配
+                </Checkbox>
+            </div>
+        </FormGroup>
+
+        <FormGroup Title="异步编程" Icon="fas fa-sync">
+            <Checkbox @bind-Checked="Options.GenerateAsyncMethods">
+                生成异步方法
+            </Checkbox>
+
+            @if (Options.GenerateAsyncMethods)
+            {
+                <div class="ml-6 space-y-2">
+                    <Checkbox @bind-Checked="Options.UseConfigureAwait">
+                        使用 ConfigureAwait(false)
+                    </Checkbox>
+
+                    <Checkbox @bind-Checked="Options.UseValueTask">
+                        使用 ValueTask（高性能场景）
+                    </Checkbox>
+                </div>
+            }
+        </FormGroup>
+
+        <FormGroup Title="日志和错误处理" Icon="fas fa-clipboard-list" Variant="warning">
+            <Checkbox @bind-Checked="Options.GenerateLogging">
+                生成日志代码
+            </Checkbox>
+
+            @if (Options.GenerateLogging)
+            {
+                <Select Label="日志框架"
+                       Options="@LoggingFrameworkOptions"
+                       @bind-Value="Options.LoggingFramework" />
+            }
+
+            <Checkbox @bind-Checked="Options.GenerateExceptionHandling">
+                生成异常处理代码
+            </Checkbox>
+
+            @if (Options.GenerateExceptionHandling)
+            {
+                <Checkbox @bind-Checked="Options.UseCustomExceptions" class="ml-6">
+                    生成自定义异常类
+                </Checkbox>
+            }
+        </FormGroup>
+
+        <FormGroup Title="文档注释" Icon="fas fa-comment-dots" Variant="success">
+            <Checkbox @bind-Checked="Options.GenerateXmlComments">
+                生成 XML 文档注释
+            </Checkbox>
+
+            @if (Options.GenerateXmlComments)
+            {
+                <div class="ml-6">
+                    <Checkbox @bind-Checked="Options.IncludeExamples">
+                        包含使用示例
+                    </Checkbox>
+                </div>
+            }
+        </FormGroup>
+
+        <FormGroup Title="优化选项" Icon="fas fa-rocket">
+            <Checkbox @bind-Checked="Options.EnableAotOptimizations">
+                启用 AOT 优化
+            </Checkbox>
+
+            <Checkbox @bind-Checked="Options.EnableTrimming">
+                启用代码裁剪
+            </Checkbox>
+
+            <Checkbox @bind-Checked="Options.GenerateSourceGenerators">
+                生成源代码生成器
+            </Checkbox>
+        </FormGroup>
+    </Stack>
+</div>
+
+@code {
+    [Parameter] public CodeGenerationOptions Options { get; set; } = new();
+    [Parameter] public EventCallback<CodeGenerationOptions> OptionsChanged { get; set; }
+
+    private List<Select.SelectOption> NamingStyleOptions = new()
+    {
+        new("pascalCase", "PascalCase (推荐)"),
+        new("camelCase", "camelCase"),
+        new("snake_case", "snake_case")
+    };
+
+    private List<Select.SelectOption> LoggingFrameworkOptions = new()
+    {
+        new("microsoft", "Microsoft.Extensions.Logging (推荐)"),
+        new("serilog", "Serilog"),
+        new("nlog", "NLog")
+    };
+} *@

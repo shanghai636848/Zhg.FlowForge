@@ -4,7 +4,7 @@
 @implements IAsyncDisposable
 
 <!-- BPMN 编辑器 - 修复版 -->
-<div class="flex h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-purple-50/20 to-pink-50/20">
+<div class="flex h-screen gap-1 overflow-hidden bg-gradient-to-br from-slate-50 via-purple-50/20 to-pink-50/20">
 	<!-- 左侧工具面板 -->
 	<LeftPanel IsOpen="@leftPanelOpen"
 			   IsOpenChanged="@((bool value) => { leftPanelOpen = value; StateHasChanged(); })"
@@ -351,11 +351,18 @@
 
 	public async ValueTask DisposeAsync()
 	{
-		if (_jsModule is not null)
+		try
 		{
-			await _jsModule.InvokeVoidAsync("disposeBpmnModeler");
-			await _jsModule.DisposeAsync();
+			if (_jsModule is not null)
+			{
+				await _jsModule.InvokeVoidAsync("disposeBpmnModeler");
+				await _jsModule.DisposeAsync();
+			}
 		}
+		catch (Exception)
+		{
+		}
+
 		_dotnetHelper?.Dispose();
 	}
 
