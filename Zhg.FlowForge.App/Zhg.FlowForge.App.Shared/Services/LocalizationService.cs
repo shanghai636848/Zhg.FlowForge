@@ -76,6 +76,7 @@ public class LocalizationService : ILocalizationService
             // 通用
             ["common.home"] = "首页",
             ["common.designer"] = "流程设计",
+            ["common.editor"] = "代码编辑",
             ["common.templates"] = "模板库",
             ["common.projects"] = "我的项目",
             ["common.docs"] = "文档",
@@ -156,6 +157,7 @@ public class LocalizationService : ILocalizationService
             // Common
             ["common.home"] = "Home",
             ["common.designer"] = "Designer",
+            ["common.editor"] = "CodeEditor",
             ["common.templates"] = "Templates",
             ["common.projects"] = "Projects",
             ["common.docs"] = "Docs",

@@ -14,7 +14,7 @@
 
 <PageTitle>代码编辑器 - FlowForge</PageTitle>
 
-<div class="flex h-screen bg-slate-900">
+<div class="flex flex-1 w-full bg-slate-900">
 	<!-- 左侧文件树 -->
 	<div class="flex w-64 flex-col border-r border-slate-700 bg-slate-800">
 		<!-- 文件树头部 -->
@@ -66,9 +66,9 @@
 				@foreach (var file in OpenedFiles)
 				{
 					<div class="group flex h-8 items-center gap-2 rounded-t-lg px-3 transition-colors
-	                              @(CurrentFile?.Path == file.Path ?
-											 "bg-slate-900 text-white" :
-											 "bg-slate-700/50 text-slate-300 hover:bg-slate-700")"
+		                              @(CurrentFile?.Path == file.Path ?
+												 		 "bg-slate-900 text-white" :
+												 		 "bg-slate-700/50 text-slate-300 hover:bg-slate-700")"
 						 @onclick="() => SwitchToFile(file)">
 						<i class="@GetFileIcon(file.Path) text-xs"></i>
 						<span class="text-xs font-medium">@Path.GetFileName(file.Path)</span>
@@ -77,7 +77,7 @@
 							<i class="fas fa-circle text-[0.375rem] text-amber-500"></i>
 						}
 						<button class="flex h-4 w-4 items-center justify-center rounded opacity-0 transition-all
-	                                      group-hover:opacity-100 hover:bg-slate-600"
+		                                      group-hover:opacity-100 hover:bg-slate-600"
 								@onclick:stopPropagation="true"
 								@onclick="() => CloseFile(file)">
 							<i class="fas fa-times text-xs"></i>
@@ -216,7 +216,7 @@
 						<span>@_AnalysisState.ErrorCount 个错误</span>
 					</button>
 				}
-@if (_AnalysisState.HasWarnings)
+				@if (_AnalysisState.HasWarnings)
 				{
 					<button class="flex items-center gap-2 hover:text-amber-400"
 							@onclick="ShowProblemsPanel">
@@ -236,22 +236,22 @@
 		<div class="flex h-12 items-center gap-2 border-b border-slate-700 px-3">
 			<button class="h-8 flex-1 rounded text-xs font-medium transition-colors
                       @(ActivePanel == "outline" ?
-								   "bg-slate-700 text-white" :
-								   "text-slate-400 hover:text-white hover:bg-slate-700/50")"
+								   		   "bg-slate-700 text-white" :
+								   		   "text-slate-400 hover:text-white hover:bg-slate-700/50")"
 					@onclick="@(() => ActivePanel = "outline")">
 				大纲
 			</button>
 			<button class="h-8 flex-1 rounded text-xs font-medium transition-colors
                       @(ActivePanel == "problems" ?
-								   "bg-slate-700 text-white" :
-								   "text-slate-400 hover:text-white hover:bg-slate-700/50")"
+								   		   "bg-slate-700 text-white" :
+								   		   "text-slate-400 hover:text-white hover:bg-slate-700/50")"
 					@onclick="@(() => ActivePanel = "problems")">
 				问题
 			</button>
 			<button class="h-8 flex-1 rounded text-xs font-medium transition-colors
                       @(ActivePanel == "search" ?
-								   "bg-slate-700 text-white" :
-								   "text-slate-400 hover:text-white hover:bg-slate-700/50")"
+								   		   "bg-slate-700 text-white" :
+								   		   "text-slate-400 hover:text-white hover:bg-slate-700/50")"
 					@onclick="@(() => ActivePanel = "search")">
 				搜索
 			</button>
@@ -268,7 +268,7 @@
 					<ProblemsPanel Diagnostics="@Diagnostics" OnDiagnosticClick="JumpToDiagnostic" />
 					break;
 				case "search":
-@* 					<SearchInFilesPanel OnSearchPerformed="PerformSearch" />
+					@* 					<SearchInFilesPanel OnSearchPerformed="PerformSearch" />
  *@					break;
 			}
 		</div>
@@ -281,7 +281,7 @@
 </style>
 
 
-@code{
+@code {
 	class EditorState
 	{
 		public int Line { get; set; } = 1;
@@ -520,7 +520,7 @@
 
 	private void NewFile() { }
 	private void NewFolder() { }
-	private async Task RefreshFiles() => await  LoadProject();
+	private async Task RefreshFiles() => await LoadProject();
 	private void RenameFile(Services.ProjectFile file) { }
 	private void DeleteFile(Services.ProjectFile file) { }
 	private void PerformSearch(string query) { }
@@ -565,5 +565,5 @@
 		};
 	}
 
-	
+
 }
