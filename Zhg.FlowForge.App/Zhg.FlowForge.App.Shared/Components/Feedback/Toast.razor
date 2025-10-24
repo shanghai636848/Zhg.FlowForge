@@ -1,4 +1,5 @@
-﻿@inject IToastService ToastService
+﻿@using Zhg.FlowForge.App.Shared.Services
+@inject IToastService ToastService
 
 <div class="pointer-events-none fixed top-3 right-3 z-[70] flex flex-col gap-2">
     @foreach (var toast in Toasts)

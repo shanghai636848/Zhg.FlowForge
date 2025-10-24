@@ -38,30 +38,30 @@
                 <!-- 基本属性 -->
                 <PropertySection Title="基本属性" Icon="fa-cog" IsVisible="true" Color="blue">
                     <div class="flex flex-col space-y-2">
-                        <FormGroup Label="元素类型" Icon="fa-shapes" Color="violet">
+                        <FormGroup_2 Label="元素类型" Icon="fa-shapes" Color="violet">
                             <input type="text"
                                    class="w-full rounded-md border border-violet-200 bg-gradient-to-r from-violet-50 to-purple-50 px-2 py-1.5 text-xs font-medium text-violet-700 transition-all focus:border-violet-400 focus:ring-1 focus:ring-violet-100 focus:outline-none"
                                    value="@SelectedElementType" disabled />
-                        </FormGroup>
+                        </FormGroup_2>
 
-                        <FormGroup Label="ID" Icon="fa-id-card" Color="cyan">
+                        <FormGroup_2 Label="ID" Icon="fa-id-card" Color="cyan">
                             <input type="text"
                                    class="w-full rounded-md border border-cyan-200 bg-white px-2 py-1.5 text-xs text-slate-700 transition-all hover:border-cyan-300 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-100 focus:outline-none"
                                    value="@SelectedElementId"
                                    @oninput="@(async (e) => await OnUpdateProperty.InvokeAsync(("id", e.Value?.ToString())))" />
-                        </FormGroup>
+                        </FormGroup_2>
 
-                        <FormGroup Label="名称" Icon="fa-font" Color="indigo">
+                        <FormGroup_2 Label="名称" Icon="fa-font" Color="indigo">
                             <input type="text"
                                    class="w-full rounded-md border border-indigo-200 bg-white px-2 py-1.5 text-xs text-slate-700 transition-all hover:border-indigo-300 focus:border-indigo-400 focus:ring-1 focus:ring-indigo-100 focus:outline-none"
                                    value="@SelectedElementName"
                                    @oninput="@(async (e) => await OnUpdateProperty.InvokeAsync(("name", e.Value?.ToString())))" />
-                        </FormGroup>
+                        </FormGroup_2>
 
-                        <FormGroup Label="文档说明" Icon="fa-file-alt" Color="amber">
+                        <FormGroup_2 Label="文档说明" Icon="fa-file-alt" Color="amber">
                             <textarea class="min-h-[60px] w-full resize-y rounded-md border border-amber-200 bg-white px-2 py-1.5 text-xs leading-relaxed text-slate-700 transition-all hover:border-amber-300 focus:border-amber-400 focus:ring-1 focus:ring-amber-100 focus:outline-none"
                                       @oninput="@(async (e) => await OnUpdateDocumentation.InvokeAsync(e.Value?.ToString()))"></textarea>
-                        </FormGroup>
+                        </FormGroup_2>
                     </div>
                 </PropertySection>
 
@@ -70,7 +70,7 @@
                 {
                     <PropertySection Title="连线属性" Icon="fa-link" IsVisible="true" Color="emerald">
                         <div class="flex flex-col space-y-2">
-                            <FormGroup Label="条件表达式" Icon="fa-code" Color="emerald">
+                            <FormGroup_2 Label="条件表达式" Icon="fa-code" Color="emerald">
                                 <div class="flex flex-col space-y-1.5">
                                     <!-- 左值 -->
                                     <div class="flex flex-col">
@@ -124,7 +124,7 @@
                                         </datalist>
                                     </div>
                                 </div>
-                            </FormGroup>
+                            </FormGroup_2>
                         </div>
                     </PropertySection>
                 }
@@ -134,12 +134,12 @@
                 {
                     <PropertySection Title="任务配置" Icon="fa-cogs" IsVisible="true" Color="purple">
                         <div class="flex flex-col space-y-2">
-                            <FormGroup Label="处理类" Icon="fa-code" Color="purple">
+                            <FormGroup_2 Label="处理类" Icon="fa-code" Color="purple">
                                 <input type="text"
                                        class="w-full rounded-md border border-purple-200 bg-white px-2 py-1.5 text-xs text-slate-700 transition-all hover:border-purple-300 focus:border-purple-400 focus:ring-1 focus:ring-purple-100 focus:outline-none"
                                        placeholder="com.example.Handler"
                                        @oninput="async (e) => await OnUpdateServiceClass.InvokeAsync(e.Value?.ToString())" />
-                            </FormGroup>
+                            </FormGroup_2>
 
                             <!-- 输入参数 -->
                             <div class="flex flex-col space-y-1.5">

@@ -32,7 +32,7 @@ public class ThemeService : IThemeService
         // await JS.InvokeVoidAsync("localStorage.setItem", StorageKey, themeId);
 
         // 更新 DOM
-        // await JS.InvokeVoidAsync("document.documentElement.setAttribute", "data-theme", themeId);
+        //await JS.InvokeVoidAsync("document.documentElement.setAttribute", "data-theme", themeId);
 
         // 触发事件
         OnThemeChanged?.Invoke(themeId);
