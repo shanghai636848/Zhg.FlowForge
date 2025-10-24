@@ -9,6 +9,7 @@
 @inject ICodeAnalysisService AnalysisService
 @inject IToastService ToastService
 @inject NavigationManager Navigation
+@inject IThemeService ThemeService
 
 <PageTitle>代码编辑器 - FlowForge</PageTitle>
 
@@ -39,11 +40,11 @@
 
 		<!-- 文件树 -->
 		<div class="scrollable flex-1 overflow-y-auto p-2">
-			@* <FileTree File="@ProjectFiles.FirstOrDefault()"
+			<FileTree Files="@ProjectFiles"
 					  SelectedFile="@CurrentFile"
 					  OnFileSelected="OpenFile"
 					  OnFileRenamed="RenameFile"
-					  OnFileDeleted="DeleteFile" /> *@
+					  OnFileDeleted="DeleteFile" />
 		</div>
 
 		<!-- 文件统计 -->
@@ -317,10 +318,41 @@
 	private List<Zhg.FlowForge.App.Shared.Services.CodeSymbol> CodeSymbols = new();
 	private List<Zhg.FlowForge.App.Shared.Services.Diagnostic> Diagnostics = new();
 
+	[Inject] private IJSRuntime JSRuntime { get; set; } = default!;
+
+	private IJSObjectReference? _jsModule;
+	private DotNetObjectReference<CodeEditor>? _dotnetHelper;
+
+
+	private async Task InitializeJs()
+	{
+		if (_jsModule is not null) return;
+
+		try
+		{
+			_jsModule = await JSRuntime.InvokeAsync<IJSObjectReference>(
+				"import", "./_content/Zhg.FlowForge.App.Shared/js/monaco.js");
+			_dotnetHelper = DotNetObjectReference.Create(this);
+
+			// var success = await _jsModule.InvokeAsync<bool>(
+			// 	"initBpmnModeler", _dotnetHelper, "canvas");
+
+			// if (success)
+			// {
+			// 	Console.WriteLine("BPMN.js initialized successfully");
+			// }
+		}
+		catch (JSException ex)
+		{
+			Console.WriteLine($"BPMN.js init failed: {ex.Message}");
+		}
+	}
+
 	protected override async Task OnAfterRenderAsync(bool firstRender)
 	{
 		if (firstRender)
 		{
+			await InitializeJs();
 			await InitializeMonaco();
 			await LoadProject();
 		}
