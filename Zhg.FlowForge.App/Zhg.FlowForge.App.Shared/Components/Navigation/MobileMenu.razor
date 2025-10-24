@@ -1,4 +1,5 @@
-﻿@using Zhg.FlowForge.App.Shared.Components.Buttons
+﻿@using System.Threading.Tasks
+@using Zhg.FlowForge.App.Shared.Components.Buttons
 @using Zhg.FlowForge.App.Shared.Components.Display
 @inject NavigationManager Navigation
 @inject ILocalizationService Localization
@@ -12,14 +13,14 @@
 
 		<!-- 侧边菜单 -->
 		<div class="absolute inset-y-0 left-0 flex w-80 max-w-[85vw] animate-[slideInLeft_0.3s_ease-out]
-	                    flex-col bg-white shadow-2xl"
+		                    flex-col bg-white shadow-2xl"
 			 @onclick:stopPropagation="true">
 
 			<!-- 菜单头部 -->
 			<div class="flex h-14 items-center justify-between border-b border-slate-200 px-4">
 				<div class="flex items-center gap-2">
 					<div class="flex h-8 w-8 items-center justify-center rounded-lg
-	                                bg-gradient-to-br from-blue-500 to-purple-600">
+		                                bg-gradient-to-br from-blue-500 to-purple-600">
 						<i class="fas fa-code-branch text-sm text-white"></i>
 					</div>
 					<div>
@@ -94,10 +95,10 @@
 					</div>
 					<div class="space-y-1">
 						<button class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5
-	                                      text-left text-slate-700 transition-colors hover:bg-slate-50"
+		                                      text-left text-slate-700 transition-colors hover:bg-slate-50"
 								@onclick="CreateProject">
 							<div class="flex h-9 w-9 shrink-0 items-center justify-center
-	                                        rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600">
+		                                        rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600">
 								<i class="fas fa-plus text-sm text-white"></i>
 							</div>
 							<div class="flex-1">
@@ -107,10 +108,10 @@
 						</button>
 
 						<button class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5
-	                                      text-left text-slate-700 transition-colors hover:bg-slate-50"
+		                                      text-left text-slate-700 transition-colors hover:bg-slate-50"
 								@onclick="ImportProject">
 							<div class="flex h-9 w-9 shrink-0 items-center justify-center
-	                                        rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600">
+		                                        rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600">
 								<i class="fas fa-upload text-sm text-white"></i>
 							</div>
 							<div class="flex-1">
@@ -130,7 +131,7 @@
 						@foreach (var project in RecentProjects)
 						{
 							<button class="flex w-full items-center gap-2.5 rounded-lg px-3 py-2
-		                                          text-left text-slate-700 transition-colors hover:bg-slate-50"
+				                                          text-left text-slate-700 transition-colors hover:bg-slate-50"
 									@onclick="() => OpenProject(project.Id)">
 								<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-blue-100">
 									<i class="fas fa-project-diagram text-xs text-blue-600"></i>
@@ -162,10 +163,10 @@
 								@foreach (var theme in AvailableThemes)
 								{
 									<button class="flex flex-col items-center gap-1 rounded-lg border p-2
-		                                                  @(CurrentTheme == theme.Id ?
-																		   "border-blue-500 bg-blue-50" :
-																		   "border-slate-200 hover:border-slate-300")
-		                                                  transition-colors"
+				                                                  @(CurrentTheme == theme.Id ?
+																				   			   "border-blue-500 bg-blue-50" :
+																				   			   "border-slate-200 hover:border-slate-300")
+				                                                  transition-colors"
 											@onclick="() => SelectTheme(theme.Id)">
 										<div class="h-6 w-6 rounded-full"
 											 style="background: @theme.Color"></div>
@@ -183,7 +184,7 @@
 								</span>
 							</div>
 							<select class="h-8 w-full rounded-md border border-slate-200 bg-white px-2
-	                                          text-xs text-slate-700 focus:border-blue-400 focus:outline-none"
+		                                          text-xs text-slate-700 focus:border-blue-400 focus:outline-none"
 									@bind="CurrentLanguage"
 									@bind:event="onchange">
 								@foreach (var lang in Localization.AvailableLanguages)
@@ -200,15 +201,15 @@
 			<div class="border-t border-slate-200 bg-slate-50 p-3">
 				<div class="flex items-center gap-2">
 					<button class="flex h-9 flex-1 items-center justify-center gap-1.5
-	                                  rounded-lg border border-slate-300 bg-white
-	                                  text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50"
+		                                  rounded-lg border border-slate-300 bg-white
+		                                  text-xs font-medium text-slate-700 transition-colors hover:bg-slate-50"
 							@onclick="GoToSettings">
 						<i class="fas fa-cog text-xs"></i>
 						<span>@Localization["common.settings"]</span>
 					</button>
 					<button class="flex h-9 flex-1 items-center justify-center
-	                                  gap-1.5 rounded-lg bg-rose-500
-	                                  text-xs font-medium text-white transition-colors hover:bg-rose-600"
+		                                  gap-1.5 rounded-lg bg-rose-500
+		                                  text-xs font-medium text-white transition-colors hover:bg-rose-600"
 							@onclick="Logout">
 						<i class="fas fa-sign-out-alt text-xs"></i>
 						<span>@Localization["common.logout"]</span>
@@ -254,10 +255,23 @@
 
 	private void GoToProfile() => Navigation.NavigateTo("/profile");
 	private void GoToSettings() => Navigation.NavigateTo("/settings");
-	private void CreateProject() { Close(); Navigation.NavigateTo("/designer"); }
-	private void ImportProject() { Close(); }
-	private void OpenProject(string id) { Close(); Navigation.NavigateTo($"/project/{id}"); }
-	private void Logout() { Close(); Navigation.NavigateTo("/logout"); }
+	private async Task CreateProject()
+	{
+		await Close();
+		Navigation.NavigateTo("/designer");
+	}
+	private async Task ImportProject()
+	{
+		await Close();
+	}
+	private async Task OpenProject(string id)
+	{
+		await Close(); Navigation.NavigateTo($"/project/{id}");
+	}
+	private async Task Logout()
+	{
+		await Close(); Navigation.NavigateTo("/logout");
+	}
 
 	record ThemeInfo(string Id, string Name, string Color);
 	record RecentProject(string Id, string Name, string UpdatedAt);

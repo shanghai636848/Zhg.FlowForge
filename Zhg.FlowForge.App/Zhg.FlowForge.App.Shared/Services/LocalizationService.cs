@@ -19,14 +19,14 @@ public record LanguageInfo(string Code, string Name, string NativeName, string F
 public class LocalizationService : ILocalizationService
 {
     private string _currentLanguage = "zh-CN";
-    private Dictionary<string, Dictionary<string, string>> _translations = new();
+    private readonly Dictionary<string, Dictionary<string, string>> _translations = [];
 
     public event Action? OnLanguageChanged;
 
     public string CurrentLanguage => _currentLanguage;
 
-    public List<LanguageInfo> AvailableLanguages { get; } = new()
-    {
+    public List<LanguageInfo> AvailableLanguages { get; } =
+    [
         new("zh-CN", "Chinese", "简体中文", "🇨🇳"),
         new("zh-TW", "Chinese Traditional", "繁體中文", "🇹🇼"),
         new("en-US", "English", "English", "🇺🇸"),
@@ -35,7 +35,7 @@ public class LocalizationService : ILocalizationService
         new("es-ES", "Spanish", "Español", "🇪🇸"),
         new("fr-FR", "French", "Français", "🇫🇷"),
         new("de-DE", "German", "Deutsch", "🇩🇪")
-    };
+    ];
 
     public LocalizationService()
     {

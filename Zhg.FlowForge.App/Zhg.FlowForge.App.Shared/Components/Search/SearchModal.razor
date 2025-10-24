@@ -1,4 +1,5 @@
-﻿@using Zhg.FlowForge.App.Shared.Components.Display
+﻿@using System.Threading.Tasks
+@using Zhg.FlowForge.App.Shared.Components.Display
 @inject NavigationManager Navigation
 @inject ILocalizationService Localization
 
@@ -196,10 +197,10 @@
 	new("doc", "代码生成指南", "自动生成高质量代码", "/docs/code-generation", "")
 }; private IEnumerable<SearchResult> FilteredResults =>
 	string.IsNullOrEmpty(searchQuery)
-		? Enumerable.Empty<SearchResult>()
-		: SearchResults.Where(r =>
-			r.Title.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
-			r.Description.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)); private async Task Close()
+	? Enumerable.Empty<SearchResult>()
+	: SearchResults.Where(r =>
+		r.Title.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) ||
+		r.Description.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)); private async Task Close()
 	{
 		IsOpen = false;
 		await IsOpenChanged.InvokeAsync(false);
@@ -218,11 +219,11 @@
 		Navigation.NavigateTo(result.Url);
 		await Close();
 	}
-	private void HandleKeyDown(KeyboardEventArgs e)
+	private async Task HandleKeyDown(KeyboardEventArgs e)
 	{
 		if (e.Key == "Escape")
 		{
-			Close();
+			await Close();
 		}
 		else if (e.Key == "ArrowDown")
 		{
@@ -234,7 +235,7 @@
 		}
 		else if (e.Key == "Enter" && SelectedIndex >= 0)
 		{
-			SelectResult(SearchResults[SelectedIndex]);
+			await SelectResult(SearchResults[SelectedIndex]);
 		}
 	}
 	private string GetTypeIcon(string type) => type switch
