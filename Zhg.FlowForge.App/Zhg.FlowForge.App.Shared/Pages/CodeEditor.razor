@@ -19,7 +19,7 @@
 
 <PageTitle>代码编辑器 - FlowForge</PageTitle>
 
-<div class="flex w-full flex-1 bg-slate-900">
+<div class="flex h-screen w-full flex-1 bg-slate-900">
 	<!-- 左侧文件树 -->
 	<div class="flex w-64 flex-col border-r border-slate-700 bg-slate-800">
 		<!-- 文件树头部 -->
@@ -59,6 +59,7 @@
 						  OnFileSelected="OpenFile"
 						  OnFileRenamed="RenameFile"
 						  OnFileDeleted="DeleteFile"
+						  OnNewFileInFolder="HandleNewFileInFolder"
 						  @ref="_fileTreeRef" />
 			}
 			else
@@ -69,8 +70,8 @@
 					<Button Variant="primary"
 							Size="sm"
 							Icon="fas fa-file-plus"
-							OnClick="NewFile">
-						@* class="mt-3" *@
+							OnClick="NewFile"
+							>
 						创建第一个文件
 					</Button>
 				</div>
@@ -83,6 +84,13 @@
 				<span>@GetTotalFileCount() 个文件</span>
 				<span>@TotalLines 行</span>
 			</div>
+			@if (_currentProject != null && _currentProject.IsSavedToLocal)
+			{
+				<div class="mt-2 flex items-center gap-1 text-emerald-500">
+					<i class="fas fa-check-circle text-xs"></i>
+					<span>已同步到本地</span>
+				</div>
+			}
 		</div>
 	</div>
 
@@ -178,6 +186,27 @@
 
 				<div class="mx-1 h-6 w-px bg-slate-700"></div>
 
+				<!-- 本地文件系统操作 -->
+				<IconButton Icon="fas fa-save"
+							Size="sm"
+							Variant="ghost-light"
+							Title="保存到本地 (C:\FlowForge\Projects)"
+							OnClick="SaveProjectToLocal" />
+
+				<IconButton Icon="fas fa-folder-open"
+							Size="sm"
+							Variant="ghost-light"
+							Title="从本地打开"
+							OnClick="OpenProjectFromLocal" />
+
+				<IconButton Icon="fas fa-info-circle"
+							Size="sm"
+							Variant="ghost-light"
+							Title="本地路径信息"
+							OnClick="ShowLocalPathInfo" />
+
+				<div class="mx-1 h-6 w-px bg-slate-700"></div>
+
 				<!-- 编译 -->
 				<Button Variant="success"
 						Size="sm"
@@ -215,7 +244,7 @@
 							<Button Variant="secondary"
 									Size="sm"
 									Icon="fas fa-folder-open"
-									OnClick="@(() => Navigation.NavigateTo("/"))">
+									OnClick="@(() => Navigation.NavigateTo("/projects"))">
 								打开项目
 							</Button>
 						</div>
@@ -437,7 +466,7 @@
 				   Value="@_EditorSettings.TabSize.ToString()"
 				   Min="2"
 				   Max="8"
-				   @onchange="@((e) => ChangeTabSize(int.Parse(e.Value?.ToString() ?? "4")))" />
+				   ValueChanged="@((value) => ChangeTabSize(int.TryParse(value, out var size) ? size : 4))" />
 
 			<Checkbox Checked="@_EditorSettings.WordWrap"
 					  CheckedChanged="@((value) => ToggleWordWrap(value))">
@@ -468,6 +497,30 @@
 		width: 100%;
 		height: 100%;
 	}
+
+	.scrollable {
+		overflow-y: auto;
+		scrollbar-width: thin;
+		scrollbar-color: rgba(148, 163, 184, 0.5) transparent;
+	}
+
+		.scrollable::-webkit-scrollbar {
+			width: 6px;
+			height: 6px;
+		}
+
+		.scrollable::-webkit-scrollbar-track {
+			background: transparent;
+		}
+
+		.scrollable::-webkit-scrollbar-thumb {
+			background: rgba(148, 163, 184, 0.5);
+			border-radius: 3px;
+		}
+
+			.scrollable::-webkit-scrollbar-thumb:hover {
+				background: rgba(148, 163, 184, 0.7);
+			}
 </style>
 
 @code {
@@ -506,6 +559,7 @@
 	private List<ProjectFile> ProjectFiles = new();
 	private List<ProjectFile> OpenedFiles = new();
 	private ProjectFile? CurrentFile = null;
+	private Project? _currentProject = null;
 	private FileTree? _fileTreeRef;
 	private string ActivePanel = "outline";
 	private bool HasUnsavedChanges => OpenedFiles.Any(f => f.IsDirty);
@@ -543,6 +597,10 @@
 	{
 		try
 		{
+			// 加载当前项目信息
+			_currentProject = await ProjectService.GetProjectAsync(ProjectId);
+
+			// 加载主题设置
 			var theme = await ThemeService.GetCurrentThemeAsync();
 			if (!string.IsNullOrEmpty(theme))
 			{
@@ -551,7 +609,7 @@
 		}
 		catch (Exception ex)
 		{
-			Console.WriteLine($"加载主题失败: {ex.Message}");
+			Console.WriteLine($"初始化失败: {ex.Message}");
 		}
 	}
 
@@ -719,9 +777,7 @@
 		}
 		return count;
 	}
-
 	#endregion
-
 	#region 文件操作
 
 	private async Task OpenFile(ProjectFile file)
@@ -794,6 +850,7 @@
 				var currentContent = await JS.InvokeAsync<string>("getMonacoContent");
 				_fileContents[CurrentFile.Path] = currentContent;
 			}
+
 			CurrentFile = file;
 			var content = _fileContents.GetValueOrDefault(file.Path, "");
 			await JS.InvokeVoidAsync("setMonacoContent", content, GetLanguage(file.Path));
@@ -909,6 +966,10 @@
 			}
 
 			ToastService.Success($"已保存 {savedCount} 个文件");
+
+			// 刷新项目信息以更新同步状态
+			_currentProject = await ProjectService.GetProjectAsync(ProjectId);
+			StateHasChanged();
 		}
 		catch (Exception ex)
 		{
@@ -972,12 +1033,79 @@
 			await ProjectService.CreateFileAsync(ProjectId, placeholderFile, "");
 
 			await RefreshFiles();
+
+			// 展开新建的文件夹
+			_fileTreeRef?.ExpandToFile(folderName);
+
 			ToastService.Success($"已创建文件夹: {folderName}");
 		}
 		catch (Exception ex)
 		{
 			Console.WriteLine($"创建文件夹失败: {ex.Message}");
 			ToastService.Error($"创建文件夹失败: {ex.Message}");
+		}
+	}
+
+	// 新增：在文件夹内创建文件
+	private async Task HandleNewFileInFolder((string folderPath, bool isFile) args)
+	{
+		try
+		{
+			if (args.isFile)
+			{
+				// 在文件夹内创建文件
+				var fileName = await JS.InvokeAsync<string>("prompt", "请输入文件名", "NewFile.cs");
+				if (string.IsNullOrWhiteSpace(fileName))
+				{
+					return;
+				}
+
+				if (!Path.HasExtension(fileName))
+				{
+					fileName += ".cs";
+				}
+
+				var fullPath = $"{args.folderPath}/{fileName}";
+				var initialContent = GetInitialFileContent(fileName);
+				var newFile = await ProjectService.CreateFileAsync(ProjectId, fullPath, initialContent);
+
+				await RefreshFiles();
+
+				// 展开文件夹并打开文件
+				_fileTreeRef?.ExpandToFile(fullPath);
+				var fileInList = FindFileByPath(ProjectFiles, fullPath);
+				if (fileInList != null)
+				{
+					await OpenFile(fileInList);
+				}
+
+				ToastService.Success($"已在 {args.folderPath} 中创建文件: {fileName}");
+			}
+			else
+			{
+				// 在文件夹内创建子文件夹
+				var folderName = await JS.InvokeAsync<string>("prompt", "请输入文件夹名", "NewFolder");
+				if (string.IsNullOrWhiteSpace(folderName))
+				{
+					return;
+				}
+
+				var fullPath = $"{args.folderPath}/{folderName}";
+				var placeholderFile = $"{fullPath}/.gitkeep";
+				await ProjectService.CreateFileAsync(ProjectId, placeholderFile, "");
+
+				await RefreshFiles();
+
+				// 展开到新文件夹
+				_fileTreeRef?.ExpandToFile(fullPath);
+
+				ToastService.Success($"已在 {args.folderPath} 中创建文件夹: {folderName}");
+			}
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($"创建失败: {ex.Message}");
+			ToastService.Error($"创建失败: {ex.Message}");
 		}
 	}
 
@@ -1162,7 +1290,6 @@
 	private async Task ChangeTabSize(int size)
 	{
 		_EditorSettings.TabSize = size;
-		// 重新初始化 Monaco 以应用新的 Tab 大小
 		StateHasChanged();
 	}
 
@@ -1187,6 +1314,73 @@
 		}
 
 		Navigation.NavigateTo($"/compile/{ProjectId}");
+	}
+
+	#endregion
+
+	#region 本地文件系统操作
+
+	private async Task SaveProjectToLocal()
+	{
+		try
+		{
+			var success = await ProjectService.SaveProjectToLocalAsync(ProjectId, "");
+			if (success)
+			{
+				var path = await ProjectService.GetProjectRootPathAsync(ProjectId);
+				_currentProject = await ProjectService.GetProjectAsync(ProjectId);
+				ToastService.Success($"项目已保存到本地: {path}");
+				StateHasChanged();
+			}
+			else
+			{
+				ToastService.Error("保存到本地失败");
+			}
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($"保存到本地失败: {ex.Message}");
+			ToastService.Error($"保存失败: {ex.Message}");
+		}
+	}
+
+	private async Task OpenProjectFromLocal()
+	{
+		try
+		{
+			var localPath = await JS.InvokeAsync<string>("promptDirectory", "选择项目目录");
+
+			if (!string.IsNullOrWhiteSpace(localPath))
+			{
+				var project = await ProjectService.LoadProjectFromLocalAsync(localPath);
+				Navigation.NavigateTo($"/editor/{project.Id}");
+				ToastService.Success($"已从本地加载项目: {project.Name}");
+			}
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($"从本地加载失败: {ex.Message}");
+			ToastService.Error($"加载失败: {ex.Message}");
+		}
+	}
+
+	private async Task ShowLocalPathInfo()
+	{
+		try
+		{
+			var path = await ProjectService.GetProjectRootPathAsync(ProjectId);
+			var exists = await ProjectService.ExistsInLocalAsync(ProjectId);
+
+			var message = exists
+				? $"项目已保存在:\n{path}\n\n您可以使用 VS Code 或 Visual Studio 打开此目录"
+				: $"项目尚未保存到本地\n\n建议路径:\n{path}\n\n点击工具栏的保存按钮将项目保存到本地";
+
+			await JS.InvokeVoidAsync("alert", message);
+		}
+		catch (Exception ex)
+		{
+			ToastService.Error($"获取路径信息失败: {ex.Message}");
+		}
 	}
 
 	#endregion
@@ -1442,7 +1636,8 @@ public class {nameWithoutExt}
 			".xml" => @"<?xml version=""1.0"" encoding=""utf-8""?>
 <root>
 </root>",
-			".md" => $@"# {nameWithoutExt}描述
+			".md" => $@"# {nameWithoutExt}
+描述
 TODO: 添加描述
 ",
 			_ => ""

@@ -4,7 +4,7 @@
   <Project Path="Zhg.FlowForge.App/Zhg.FlowForge.App.Web.Client/Zhg.FlowForge.App.Web.Client.csproj" />
   <Project Path="Zhg.FlowForge.App/Zhg.FlowForge.App.Web/Zhg.FlowForge.App.Web.csproj" />
   <Project Path="Zhg.FlowForge.App/Zhg.FlowForge.App/Zhg.FlowForge.App.csproj">
-    <Deploy Solution="Debug|*" />
+    <Deploy />
   </Project>
   <Project Path="Zhg.FlowForge.Application.Contract/Zhg.FlowForge.Application.Contract.csproj" Id="aadd2b7e-0e6c-4d90-b903-3f0bdb9b16e6" />
   <Project Path="Zhg.FlowForge.Application/Zhg.FlowForge.Application.csproj" Id="c24d939e-05f7-470d-8cd6-4dbbfa25eb28" />

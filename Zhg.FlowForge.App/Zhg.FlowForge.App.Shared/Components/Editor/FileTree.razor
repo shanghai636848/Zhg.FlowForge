@@ -17,6 +17,54 @@
     }
 </div>
 
+<!-- 右键菜单 -->
+@if (_showContextMenu)
+{
+    <div class="fixed z-50 rounded-lg border border-slate-600 bg-slate-700 py-1 shadow-xl"
+         style="left: @(_menuX)px; top: @(_menuY)px; min-width: 160px;"
+         @onclick:stopPropagation="true">
+
+        @if (_contextMenuFile?.IsFolder ?? false)
+        {
+            <!-- 文件夹菜单 -->
+            <button class="flex w-full items-center gap-2 px-3 py-2 text-left text-xs text-slate-200 transition-colors hover:bg-slate-600"
+                    @onclick="NewFileInFolder">
+                <i class="fas fa-file-plus w-4 text-blue-400"></i>
+                <span>新建文件</span>
+            </button>
+            <button class="flex w-full items-center gap-2 px-3 py-2 text-left text-xs text-slate-200 transition-colors hover:bg-slate-600"
+                    @onclick="NewFolderInFolder">
+                <i class="fas fa-folder-plus w-4 text-amber-400"></i>
+                <span>新建文件夹</span>
+            </button>
+            <div class="my-1 h-px bg-slate-600"></div>
+        }
+
+        <button class="flex w-full items-center gap-2 px-3 py-2 text-left text-xs text-slate-200 transition-colors hover:bg-slate-600"
+                @onclick="RenameContextFile">
+            <i class="fas fa-edit w-4 text-green-400"></i>
+            <span>重命名</span>
+        </button>
+
+        @if (!(_contextMenuFile?.IsFolder ?? false))
+        {
+            <button class="flex w-full items-center gap-2 px-3 py-2 text-left text-xs text-slate-200 transition-colors hover:bg-slate-600"
+                    @onclick="DuplicateContextFile">
+                <i class="fas fa-copy w-4 text-purple-400"></i>
+                <span>复制</span>
+            </button>
+        }
+
+        <div class="my-1 h-px bg-slate-600"></div>
+
+        <button class="flex w-full items-center gap-2 px-3 py-2 text-left text-xs text-rose-400 transition-colors hover:bg-slate-600"
+                @onclick="DeleteContextFile">
+            <i class="fas fa-trash w-4"></i>
+            <span>删除</span>
+        </button>
+    </div>
+}
+
 @code {
     [Parameter, EditorRequired]
     public List<ProjectFile> Files { get; set; } = new();
@@ -33,13 +81,29 @@
     [Parameter]
     public EventCallback<ProjectFile> OnFileDeleted { get; set; }
 
+    [Parameter]
+    public EventCallback<(string folderPath, bool isFile)> OnNewFileInFolder { get; set; }
+
     private Dictionary<string, bool> _expandedFolders = new();
+    private bool _showContextMenu = false;
+    private ProjectFile? _contextMenuFile = null;
+    private double _menuX = 0;
+    private double _menuY = 0;
+
+    protected override void OnInitialized()
+    {
+        // 点击页面其他地方关闭菜单
+        JSRuntime.InvokeVoidAsync("eval", @"
+            document.addEventListener('click', () => {
+                DotNet.invokeMethodAsync('Zhg.FlowForge.App.Shared', 'CloseContextMenu');
+            });
+        ");
+    }
 
     private RenderFragment RenderFiles(List<ProjectFile> files, int level) => builder =>
     {
         if (files == null || !files.Any()) return;
 
-        // 按类型和名称排序：文件夹在前，文件在后
         var sortedFiles = files
             .OrderByDescending(f => f.IsFolder)
             .ThenBy(f => f.Name, StringComparer.OrdinalIgnoreCase)
@@ -50,26 +114,21 @@
         {
             var isExpanded = _expandedFolders.GetValueOrDefault(file.Path, false);
 
-            // 文件项容器
             builder.OpenElement(sequence++, "div");
             builder.AddAttribute(sequence++, "class", "file-item");
 
             // 文件项按钮
             builder.OpenElement(sequence++, "button");
             builder.AddAttribute(sequence++, "class", GetFileItemClass(file, level));
+            builder.AddAttribute(sequence++, "style", $"padding-left: {(level * 16 + 8)}px");
             builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this,
                 async () => await HandleFileClick(file)));
+            builder.AddAttribute(sequence++, "oncontextmenu", EventCallback.Factory.Create<MouseEventArgs>(this,
+                async (e) => await ShowContextMenu(file, e)));
+            builder.AddAttribute(sequence++, "oncontextmenu:preventDefault", true);
             builder.AddAttribute(sequence++, "title", file.Path);
 
-            // 缩进空间
-            if (level > 0)
-            {
-                builder.OpenElement(sequence++, "span");
-                builder.AddAttribute(sequence++, "class", $"inline-block w-{level * 4}");
-                builder.CloseElement();
-            }
-
-            // 展开/折叠图标 (仅文件夹)
+            // 展开/折叠图标
             if (file.IsFolder)
             {
                 builder.OpenElement(sequence++, "i");
@@ -79,7 +138,6 @@
             }
             else
             {
-                // 文件占位空间
                 builder.OpenElement(sequence++, "span");
                 builder.AddAttribute(sequence++, "class", "inline-block w-3");
                 builder.CloseElement();
@@ -89,6 +147,7 @@
             builder.OpenElement(sequence++, "i");
             builder.AddAttribute(sequence++, "class", GetFileIcon(file));
             builder.CloseElement();
+
             // 文件名
             builder.OpenElement(sequence++, "span");
             builder.AddAttribute(sequence++, "class", "flex-1 truncate text-left");
@@ -104,31 +163,15 @@
                 builder.CloseElement();
             }
 
-            // 操作按钮
-            if (!file.IsFolder)
-            {
-                builder.OpenElement(sequence++, "button");
-                builder.AddAttribute(sequence++, "class", "opacity-0 group-hover:opacity-100 w-6 h-6 rounded hover:bg-slate-600 flex items-center justify-center transition-opacity");
-                builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, () => HandleFileMenu(file)));
-                builder.AddAttribute(sequence++, "onclick:stopPropagation", true); // 修复：使用正确的阻止事件冒泡方式
-                builder.AddAttribute(sequence++, "title", "更多操作");
+            builder.CloseElement(); // button
 
-                builder.OpenElement(sequence++, "i");
-                builder.AddAttribute(sequence++, "class", "fas fa-ellipsis-v text-xs");
-                builder.CloseElement();
-
-                builder.CloseElement(); // button
-            }
-
-            builder.CloseElement(); // button (file item)
-
-            // 子文件 (仅展开的文件夹)
+            // 子文件
             if (file.IsFolder && isExpanded && file.SubFiles != null && file.SubFiles.Any())
             {
                 builder.AddContent(sequence++, RenderFiles(file.SubFiles, level + 1));
             }
 
-            builder.CloseElement(); // div (file-item)
+            builder.CloseElement(); // div
         }
     };
 
@@ -136,60 +179,84 @@
     {
         if (file.IsFolder)
         {
-            // 切换展开/折叠
             var currentState = _expandedFolders.GetValueOrDefault(file.Path, false);
             _expandedFolders[file.Path] = !currentState;
             StateHasChanged();
         }
         else
         {
-            // 打开文件
             await OnFileSelected.InvokeAsync(file);
         }
     }
 
-    private void HandleFileMenu(ProjectFile file)
+    private async Task ShowContextMenu(ProjectFile file, MouseEventArgs e)
     {
-        _ = ShowFileMenu(file);
+        _contextMenuFile = file;
+        _menuX = e.ClientX;
+        _menuY = e.ClientY;
+        _showContextMenu = true;
+        StateHasChanged();
+
+        await Task.CompletedTask;
     }
 
-    private async Task ShowFileMenu(ProjectFile file)
+    [JSInvokable]
+    public void CloseContextMenu()
     {
-        try
+        _showContextMenu = false;
+        _contextMenuFile = null;
+        StateHasChanged();
+    }
+
+    private async Task NewFileInFolder()
+    {
+        _showContextMenu = false;
+        if (_contextMenuFile != null)
         {
-            // 使用原生的 confirm 和 prompt
-            var menuOptions = new[] { "重命名", "删除", "取消" };
-            var action = await JSRuntime.InvokeAsync<string>("prompt",
-                $"对文件 '{file.Name}' 执行操作 (重命名/删除/取消):", "取消");
-
-            if (string.IsNullOrWhiteSpace(action) || action == "取消")
-            {
-                return;
-            }
-
-            if (action.Contains("重命名") || action.StartsWith("r", StringComparison.OrdinalIgnoreCase))
-            {
-                await OnFileRenamed.InvokeAsync(file);
-            }
-            else if (action.Contains("删除") || action.StartsWith("d", StringComparison.OrdinalIgnoreCase))
-            {
-                var confirmed = await JSRuntime.InvokeAsync<bool>("confirm",
-                    $"确定要删除文件 '{file.Name}' 吗？");
-                if (confirmed)
-                {
-                    await OnFileDeleted.InvokeAsync(file);
-                }
-            }
+            await OnNewFileInFolder.InvokeAsync((_contextMenuFile.Path, true));
         }
-        catch (Exception ex)
+    }
+
+    private async Task NewFolderInFolder()
+    {
+        _showContextMenu = false;
+        if (_contextMenuFile != null)
         {
-            Console.WriteLine($"文件菜单操作失败: {ex.Message}");
+            await OnNewFileInFolder.InvokeAsync((_contextMenuFile.Path, false));
+        }
+    }
+
+    private async Task RenameContextFile()
+    {
+        _showContextMenu = false;
+        if (_contextMenuFile != null)
+        {
+            await OnFileRenamed.InvokeAsync(_contextMenuFile);
+        }
+    }
+
+    private async Task DuplicateContextFile()
+    {
+        _showContextMenu = false;
+        if (_contextMenuFile != null && !_contextMenuFile.IsFolder)
+        {
+            // TODO: 实现文件复制
+            await JSRuntime.InvokeVoidAsync("alert", "文件复制功能即将推出");
+        }
+    }
+
+    private async Task DeleteContextFile()
+    {
+        _showContextMenu = false;
+        if (_contextMenuFile != null)
+        {
+            await OnFileDeleted.InvokeAsync(_contextMenuFile);
         }
     }
 
     private string GetFileItemClass(ProjectFile file, int level)
     {
-        var baseClass = "group flex items-center gap-2 px-2 py-1.5 rounded text-xs transition-colors cursor-pointer w-full text-left";
+        var baseClass = "group flex items-center gap-2 py-1.5 rounded text-xs transition-colors cursor-pointer w-full text-left";
         var selectedClass = SelectedFile?.Path == file.Path
             ? "bg-slate-700 text-white"
             : "text-slate-300 hover:bg-slate-700/50";
@@ -201,7 +268,10 @@
     {
         if (file.IsFolder)
         {
-            return "fas fa-folder text-amber-400 text-xs";
+            var isExpanded = _expandedFolders.GetValueOrDefault(file.Path, false);
+            return isExpanded
+                ? "fas fa-folder-open text-amber-400 text-xs"
+                : "fas fa-folder text-amber-400 text-xs";
         }
 
         var ext = Path.GetExtension(file.Name ?? file.Path).ToLower();
@@ -220,7 +290,6 @@
         };
     }
 
-    // 公共方法：展开到指定文件
     public void ExpandToFile(string filePath)
     {
         var parts = filePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
@@ -235,14 +304,12 @@
         StateHasChanged();
     }
 
-    // 公共方法：折叠所有文件夹
     public void CollapseAll()
     {
         _expandedFolders.Clear();
         StateHasChanged();
     }
 
-    // 公共方法：展开所有文件夹
     public void ExpandAll()
     {
         ExpandAllRecursive(Files);
@@ -261,3 +328,16 @@
         }
     }
 }
+
+<style>
+    .file-tree {
+        user-select: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+    }
+
+    .file-item {
+        position: relative;
+    }
+</style>

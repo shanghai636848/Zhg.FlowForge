@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 
 namespace Zhg.FlowForge.App.Shared.Services;
 
+// IProjectService.cs
 public interface IProjectService
 {
     // 项目管理
@@ -30,8 +31,15 @@ public interface IProjectService
 
     // 搜索
     Task<List<Project>> SearchProjectsAsync(string query);
+
+    // 本地文件系统操作
+    Task<string> GetProjectRootPathAsync(string projectId);
+    Task<bool> SaveProjectToLocalAsync(string projectId, string localPath);
+    Task<Project> LoadProjectFromLocalAsync(string localPath);
+    Task<bool> ExistsInLocalAsync(string projectId);
 }
 
+// 扩展模型
 public class ProjectFile
 {
     public string Path { get; set; } = "";
@@ -43,7 +51,9 @@ public class ProjectFile
     public DateTime LastModified { get; set; }
     public List<ProjectFile> SubFiles { get; set; } = new();
 
-    // 便捷属性
+    // 新增：本地文件路径
+    public string? LocalPath { get; set; }
+
     public string Extension => IsFolder ? "" : System.IO.Path.GetExtension(Path);
     public string SizeFormatted => FormatFileSize(Size);
 
@@ -63,7 +73,6 @@ public class ProjectFile
     }
 }
 
-// 请求模型
 public class CreateProjectRequest
 {
     public string Name { get; set; } = "";
@@ -71,6 +80,8 @@ public class CreateProjectRequest
     public string Namespace { get; set; } = "";
     public string TargetFramework { get; set; } = "net10.0";
     public string Template { get; set; } = "standard";
+    public bool SaveToLocal { get; set; } = true; // 新增：是否保存到本地
+    public string? LocalPath { get; set; } // 新增：本地路径
 }
 
 public class UpdateProjectRequest
@@ -80,7 +91,6 @@ public class UpdateProjectRequest
     public ProjectStatus? Status { get; set; }
 }
 
-// 统计模型
 public class ProjectStatistics
 {
     public int TotalFiles { get; set; }
@@ -92,18 +102,6 @@ public class ProjectStatistics
     public Dictionary<string, int> FileTypeDistribution { get; set; } = new();
 }
 
-
-public class ProjectStats
-{
-    public int FileCount { get; set; }
-    public int TotalLines { get; set; }
-    public long TotalSize { get; set; }
-    public DateTime LastModified { get; set; }
-}
-
-/// <summary>
-/// 项目实体
-/// </summary>
 public class Project
 {
     public string Id { get; set; } = Guid.NewGuid().ToString();
@@ -117,18 +115,26 @@ public class Project
     public DateTime UpdatedAt { get; set; } = DateTime.Now;
     public string CreatedBy { get; set; } = "";
     public Dictionary<string, string> Metadata { get; set; } = new();
+
+    // 新增：本地存储信息
+    public string? LocalPath { get; set; }
+    public bool IsSavedToLocal { get; set; }
 }
 
-
-
-/// <summary>
-/// 项目状态
-/// </summary>
 public enum ProjectStatus
 {
     Developing,
     Completed,
     Deployed,
     Archived
+}
+
+
+public class ProjectStats
+{
+    public int FileCount { get; set; }
+    public int TotalLines { get; set; }
+    public long TotalSize { get; set; }
+    public DateTime LastModified { get; set; }
 }
 

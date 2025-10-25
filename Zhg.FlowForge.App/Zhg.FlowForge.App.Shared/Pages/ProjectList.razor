@@ -1,0 +1,310 @@
+﻿<!-- Pages/ProjectList.razor -->
+@page "/projects"
+@using Zhg.FlowForge.App.Shared.Components.Buttons
+@using Zhg.FlowForge.App.Shared.Components.Display
+@using Zhg.FlowForge.App.Shared.Services
+@inject IProjectService ProjectService
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+@inject IToastService ToastService
+
+<PageTitle>项目列表 - FlowForge</PageTitle>
+
+<div class="p-6">
+    <!-- 头部 -->
+    <div class="mb-6 flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900">我的项目</h1>
+            <p class="mt-1 text-sm text-slate-600">管理和编辑您的工作流项目</p>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <Button Variant="secondary"
+                    Icon="fas fa-folder-open"
+                    OnClick="OpenFromLocal">
+                从本地打开
+            </Button>
+
+            <Button Variant="primary"
+                    Icon="fas fa-plus"
+                    OnClick="CreateNewProject">
+                新建项目
+            </Button>
+        </div>
+    </div>
+
+    <!-- 项目网格 -->
+    @if (_isLoading)
+    {
+        <div class="flex items-center justify-center py-12">
+            <i class="fas fa-spinner fa-spin text-3xl text-slate-400"></i>
+        </div>
+    }
+    else if (_projects.Any())
+    {
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            @foreach (var project in _projects)
+            {
+                <Card Hoverable="true">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <h3 class="mb-1 text-base font-semibold text-slate-900">
+                                @project.Name
+                            </h3>
+                            <p class="mb-3 line-clamp-2 text-sm text-slate-600">
+                                @project.Description
+                            </p>
+
+                            <!-- 项目元信息 -->
+                            <div class="mb-3 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                                <span class="flex items-center gap-1">
+                                    <i class="fas fa-clock"></i>
+                                    @project.UpdatedAt.ToString("yyyy-MM-dd HH:mm")
+                                </span>
+
+                                @if (project.IsSavedToLocal)
+                                {
+                                    <span class="flex items-center gap-1 text-emerald-600">
+                                        <i class="fas fa-check-circle"></i>
+                                        已保存到本地
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="flex items-center gap-1 text-amber-600">
+                                        <i class="fas fa-exclamation-circle"></i>
+                                        仅内存
+                                    </span>
+                                }
+
+                                <Badge Variant="@GetStatusVariant(project.Status)" Size="sm">
+                                    @GetStatusText(project.Status)
+                                </Badge>
+                            </div>
+
+                            <!-- 本地路径 -->
+                            @if (project.IsSavedToLocal && !string.IsNullOrEmpty(project.LocalPath))
+                            {
+                                <div class="mb-3 rounded bg-slate-50 p-2">
+                                    <div class="flex items-center gap-2 text-xs text-slate-600">
+                                        <i class="fas fa-folder"></i>
+                                        <span class="truncate font-mono" title="@project.LocalPath">
+                                            @project.LocalPath
+                                        </span>
+                                        <button class="ml-auto text-blue-600 hover:text-blue-700"
+                                                @onclick="() => CopyPath(project.LocalPath)"
+                                                title="复制路径">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- 操作按钮 -->
+                    <div class="flex items-center gap-2 border-t border-slate-200 pt-3">
+                        <Button Variant="primary"
+                                Size="sm"
+                                Icon="fas fa-code"
+                                FullWidth="true"
+                                OnClick="() => OpenInEditor(project.Id)">
+                            打开编辑器
+                        </Button>
+
+                        @if (!project.IsSavedToLocal)
+                        {
+                            <IconButton Icon="fas fa-save"
+                                        Size="sm"
+                                        Variant="secondary"
+                                        Title="保存到本地"
+                                        OnClick="() => SaveToLocal(project.Id)" />
+                        }
+                        else
+                        {
+                            <IconButton Icon="fas fa-external-link-alt"
+                                        Size="sm"
+                                        Variant="secondary"
+                                        Title="在文件管理器中打开"
+                                        OnClick="() => OpenInExplorer(project.LocalPath)" />
+                        }
+
+                        <IconButton Icon="fas fa-trash"
+                                    Size="sm"
+                                    Variant="danger"
+                                    Title="删除项目"
+                                    OnClick="() => DeleteProject(project.Id)" />
+                    </div>
+                </Card>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="flex flex-col items-center justify-center py-12">
+            <div class="mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-slate-100">
+                <i class="fas fa-folder-open text-4xl text-slate-400"></i>
+            </div>
+            <h3 class="mb-2 text-lg font-semibold text-slate-900">还没有项目</h3>
+            <p class="mb-6 text-sm text-slate-600">创建一个新项目或从本地打开现有项目</p>
+            <div class="flex items-center gap-2">
+                <Button Variant="primary"
+                        Icon="fas fa-plus"
+                        OnClick="CreateNewProject">
+                    新建项目
+                </Button>
+                <Button Variant="secondary"
+                        Icon="fas fa-folder-open"
+                        OnClick="OpenFromLocal">
+                    从本地打开
+                </Button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<Project> _projects = new();
+    private bool _isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProjects();
+    }
+
+    private async Task LoadProjects()
+    {
+        _isLoading = true;
+        try
+        {
+            _projects = await ProjectService.GetProjectsAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"加载项目列表失败: {ex.Message}");
+            ToastService.Error("加载项目列表失败");
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void CreateNewProject()
+    {
+        Navigation.NavigateTo("/projects/new");
+    }
+
+    private async Task OpenFromLocal()
+    {
+        try
+        {
+            var localPath = await JS.InvokeAsync<string>("promptDirectory", "选择项目目录");
+
+            if (!string.IsNullOrWhiteSpace(localPath))
+            {
+                var project = await ProjectService.LoadProjectFromLocalAsync(localPath);
+                Navigation.NavigateTo($"/editor/{project.Id}");
+                ToastService.Success($"已从本地加载项目: {project.Name}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"从本地打开失败: {ex.Message}");
+            ToastService.Error($"打开失败: {ex.Message}");
+        }
+    }
+
+    private void OpenInEditor(string projectId)
+    {
+        Navigation.NavigateTo($"/editor/{projectId}");
+    }
+
+    private async Task SaveToLocal(string projectId)
+    {
+        try
+        {
+            var success = await ProjectService.SaveProjectToLocalAsync(projectId,null);
+            if (success)
+            {
+                var path = await ProjectService.GetProjectRootPathAsync(projectId);
+                ToastService.Success($"项目已保存到: {path}");
+                await LoadProjects(); // 刷新列表
+            }
+            else
+            {
+                ToastService.Error("保存失败");
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.Error($"保存失败: {ex.Message}");
+        }
+    }
+
+    private async Task OpenInExplorer(string? path)
+    {
+        if (string.IsNullOrEmpty(path)) return;
+
+        try
+        {
+            await JS.InvokeVoidAsync("openInExplorer", path);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"打开文件管理器失败: {ex.Message}");
+        }
+    }
+
+    private async Task CopyPath(string? path)
+    {
+        if (string.IsNullOrEmpty(path)) return;
+
+        try
+        {
+            await JS.InvokeVoidAsync("navigator.clipboard.writeText", path);
+            ToastService.Success("路径已复制到剪贴板");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"复制路径失败: {ex.Message}");
+        }
+    }
+
+    private async Task DeleteProject(string projectId)
+    {
+        try
+        {
+            var confirm = await JS.InvokeAsync<bool>("confirm", "确定要删除此项目吗？此操作不可撤销。");
+            if (confirm)
+            {
+                await ProjectService.DeleteProjectAsync(projectId);
+                ToastService.Success("项目已删除");
+                await LoadProjects();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"删除项目失败: {ex.Message}");
+            ToastService.Error($"删除失败: {ex.Message}");
+        }
+    }
+
+    private string GetStatusVariant(ProjectStatus status) => status switch
+    {
+        ProjectStatus.Developing => "primary",
+        ProjectStatus.Completed => "success",
+        ProjectStatus.Deployed => "info",
+        ProjectStatus.Archived => "default",
+        _ => "default"
+    };
+
+    private string GetStatusText(ProjectStatus status) => status switch
+    {
+        ProjectStatus.Developing => "开发中",
+        ProjectStatus.Completed => "已完成",
+        ProjectStatus.Deployed => "已部署",
+        ProjectStatus.Archived => "已归档",
+        _ => "未知"
+    };
+}

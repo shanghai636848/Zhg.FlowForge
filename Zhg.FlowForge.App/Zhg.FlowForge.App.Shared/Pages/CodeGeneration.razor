@@ -107,8 +107,9 @@
 
                 @if (CurrentStep < WizardSteps.Count - 1)
                 {
-                    <Button Variant="primary"
-                            Size="sm"
+                    @* primary *@
+                    <Button Variant = "secondary"
+                                Size="sm"
                             Icon="fas fa-arrow-right"
                             OnClick="NextStep"
                             Disabled="!CanProceed">
@@ -225,7 +226,7 @@
     [Parameter] public string ProcessId { get; set; } = "";
 
     private int CurrentStep = 0;
-    private bool ShowPreview = false;
+    private bool ShowPreview = true;
     private bool IsGenerating = false;
     private bool ShowSuccessModal = false;
     private int GeneratedFileCount = 0;
