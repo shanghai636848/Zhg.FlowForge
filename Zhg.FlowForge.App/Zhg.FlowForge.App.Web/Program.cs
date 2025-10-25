@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Zhg.FlowForge.App.Shared.Services;
 using Zhg.FlowForge.App.Web.Components;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,23 +20,22 @@ builder.Services.AddScoped<HttpClient>(sp =>
 });
 
 // 注册全局服务
-builder.Services.AddSingleton<Zhg.FlowForge.App.Shared.Services.IThemeService, Zhg.FlowForge.App.Shared.Services.ThemeService>();
-builder.Services.AddSingleton<Zhg.FlowForge.App.Shared.Services.IToastService, Zhg.FlowForge.App.Shared.Services.ToastService>();
-builder.Services.AddSingleton<Zhg.FlowForge.App.Shared.Services.ILocalizationService, Zhg.FlowForge.App.Shared.Services.LocalizationService>();
+builder.Services.AddSingleton<IThemeService, ThemeService>();
+builder.Services.AddSingleton<IToastService, ToastService>();
+builder.Services.AddSingleton<ILocalizationService, LocalizationService>();
 
 // 注册业务服务
-builder.Services.AddScoped<Zhg.FlowForge.App.Shared.Services.IProjectService, Zhg.FlowForge.App.Shared.Services.ProjectService>();
-builder.Services.AddScoped<Zhg.FlowForge.App.Shared.Services.IBpmnService, Zhg.FlowForge.App.Shared.Services.BpmnService>();
-builder.Services.AddScoped<Zhg.FlowForge.App.Shared.Services.ICodeGenerationService, Zhg.FlowForge.App.Shared.Services.CodeGenerationService>();
-builder.Services.AddScoped<Zhg.FlowForge.App.Shared.Services.ICompilationService, Zhg.FlowForge.App.Shared.Services.CompilationService>();
-builder.Services.AddScoped<Zhg.FlowForge.App.Shared.Services.ICodeAnalysisService, Zhg.FlowForge.App.Shared.Services.CodeAnalysisService>();
-builder.Services.AddScoped<Zhg.FlowForge.App.Shared.Services.IDeploymentService, Zhg.FlowForge.App.Shared.Services.DeploymentService>();
-builder.Services.AddScoped<Zhg.FlowForge.App.Shared.Services.ITemplateService, Zhg.FlowForge.App.Shared.Services.TemplateService>();
+builder.Services.AddScoped<IProjectService, ProjectService>();
+builder.Services.AddScoped<IBpmnService, BpmnService>();
+builder.Services.AddScoped<ICodeGenerationService, CodeGenerationService>();
+builder.Services.AddScoped<ICompilationService, CompilationService>();
+builder.Services.AddScoped<ICodeAnalysisService, CodeAnalysisService>();
+builder.Services.AddScoped<IDeploymentService, DeploymentService>();
+builder.Services.AddScoped<ITemplateService, TemplateService>();
 
 // 注册日志
 builder.Logging.SetMinimumLevel(LogLevel.Information);
 builder.Logging.AddFilter("Microsoft", LogLevel.Warning);
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

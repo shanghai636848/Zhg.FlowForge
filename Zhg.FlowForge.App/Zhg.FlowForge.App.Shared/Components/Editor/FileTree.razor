@@ -1,6 +1,7 @@
 ﻿@using System.IO
+@using Zhg.FlowForge.App.Shared.Models
 @using Zhg.FlowForge.App.Shared.Services
-@using Microsoft.AspNetCore.Components  // 确保引入正确的命名空间
+@inject IJSRuntime JSRuntime
 
 <div class="file-tree select-none">
     @if (Files != null && Files.Any())
@@ -10,7 +11,7 @@
     else
     {
         <div class="flex flex-col items-center justify-center py-8 text-sm text-slate-500">
-            <i class="fa-solid fa-folder-open mb-2 text-2xl"></i>
+            <i class="fas fa-folder-open mb-2 text-2xl"></i>
             <p>没有文件</p>
         </div>
     }
@@ -32,126 +33,231 @@
     [Parameter]
     public EventCallback<ProjectFile> OnFileDeleted { get; set; }
 
-    // 递归渲染文件树
-    private RenderFragment RenderFiles(List<ProjectFile> files, int level)
+    private Dictionary<string, bool> _expandedFolders = new();
+
+    private RenderFragment RenderFiles(List<ProjectFile> files, int level) => builder =>
     {
-        return builder =>
+        if (files == null || !files.Any()) return;
+
+        // 按类型和名称排序：文件夹在前，文件在后
+        var sortedFiles = files
+            .OrderByDescending(f => f.IsFolder)
+            .ThenBy(f => f.Name, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        int sequence = 0;
+        foreach (var file in sortedFiles)
         {
-            // 按类型和名称排序：文件夹在前，文件在后
-            var sortedFiles = files
-                .OrderByDescending(f => f.IsFolder)
-                .ThenBy(f => f.Name)
-                .ToList();
+            var isExpanded = _expandedFolders.GetValueOrDefault(file.Path, false);
 
-            foreach (var file in sortedFiles)
+            // 文件项容器
+            builder.OpenElement(sequence++, "div");
+            builder.AddAttribute(sequence++, "class", "file-item");
+
+            // 文件项按钮
+            builder.OpenElement(sequence++, "button");
+            builder.AddAttribute(sequence++, "class", GetFileItemClass(file, level));
+            builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this,
+                async () => await HandleFileClick(file)));
+            builder.AddAttribute(sequence++, "title", file.Path);
+
+            // 缩进空间
+            if (level > 0)
             {
-                // 每个文件项使用唯一key
-                var key = file.Path;
-                builder.OpenRegion(key.GetHashCode());
-
-                // 计算缩进（使用Tailwind的空间类）
-                var indentClass = level > 0 ? $"pl-{level * 6}" : ""; // 1.5rem = 6 Tailwind单位
-
-                // 构建文件项容器
-                builder.OpenElement(0, "div");
-                builder.AddAttribute(1, "class", $"{GetFileItemClass(file)} {indentClass}");
-                builder.AddAttribute(2, "onclick", EventCallback.Factory.Create(this, async () => await HandleFileSelect(file)));
-
-                // 图标
-                builder.OpenElement(3, "i");
-                builder.AddAttribute(4, "class", GetFileIcon(file));
-                builder.CloseElement(); // 关闭i
-
-                // 文件名
-                builder.OpenElement(5, "span");
-                builder.AddAttribute(6, "class", "flex-1 overflow-hidden text-ellipsis whitespace-nowrap");
-                builder.AddContent(7, file.Name);
-                builder.CloseElement(); // 关闭span
-
-                // 右键菜单按钮（仅hover显示）
-                builder.OpenElement(8, "div");
-                builder.AddAttribute(9, "class", "opacity-0 transition-opacity px-1 hover:opacity-100");
-                builder.AddAttribute(10, "onclick", EventCallback.Factory.Create(this, () => HandleActionMenu(file)));
-
-                builder.OpenElement(11, "i");
-                builder.AddAttribute(12, "class", "fa-solid fa-ellipsis-v");
-                builder.CloseElement(); // 关闭i
-                builder.CloseElement(); // 关闭file-actions
-
-                builder.CloseElement(); // 关闭div（文件项容器）
-
-                // 如果是文件夹且有子项，递归渲染
-                if (file.IsFolder && file.SubFiles != null && file.SubFiles.Any())  // 修正子文件属性名
-                {
-                    builder.AddContent(13, RenderFiles(file.SubFiles, level + 1));  // 使用SubFiles替代Children
-                }
-
-                builder.CloseRegion();
+                builder.OpenElement(sequence++, "span");
+                builder.AddAttribute(sequence++, "class", $"inline-block w-{level * 4}");
+                builder.CloseElement();
             }
-        };
-    }
 
-    // 获取文件项样式（Tailwind v4）
-    private string GetFileItemClass(ProjectFile file)
-    {
-        return $"flex items-center gap-2 py-1.5 px-2 rounded text-sm cursor-pointer transition-colors " +
-               $"{(SelectedFile?.Path == file.Path ? "bg-slate-700 text-white" : "text-slate-300 hover:bg-slate-700/50")}";
-    }
+            // 展开/折叠图标 (仅文件夹)
+            if (file.IsFolder)
+            {
+                builder.OpenElement(sequence++, "i");
+                builder.AddAttribute(sequence++, "class",
+                    $"fas fa-chevron-right text-[0.625rem] text-slate-500 transition-transform duration-200 {(isExpanded ? "rotate-90" : "")}");
+                builder.CloseElement();
+            }
+            else
+            {
+                // 文件占位空间
+                builder.OpenElement(sequence++, "span");
+                builder.AddAttribute(sequence++, "class", "inline-block w-3");
+                builder.CloseElement();
+            }
 
-    // 获取文件图标（使用Tailwind v4颜色类）
-    private string GetFileIcon(ProjectFile file)
+            // 文件/文件夹图标
+            builder.OpenElement(sequence++, "i");
+            builder.AddAttribute(sequence++, "class", GetFileIcon(file));
+            builder.CloseElement();
+            // 文件名
+            builder.OpenElement(sequence++, "span");
+            builder.AddAttribute(sequence++, "class", "flex-1 truncate text-left");
+            builder.AddContent(sequence++, file.Name);
+            builder.CloseElement();
+
+            // 未保存标记
+            if (file.IsDirty)
+            {
+                builder.OpenElement(sequence++, "i");
+                builder.AddAttribute(sequence++, "class", "fas fa-circle text-[0.375rem] text-amber-500");
+                builder.AddAttribute(sequence++, "title", "未保存");
+                builder.CloseElement();
+            }
+
+            // 操作按钮
+            if (!file.IsFolder)
+            {
+                builder.OpenElement(sequence++, "button");
+                builder.AddAttribute(sequence++, "class", "opacity-0 group-hover:opacity-100 w-6 h-6 rounded hover:bg-slate-600 flex items-center justify-center transition-opacity");
+                builder.AddAttribute(sequence++, "onclick", EventCallback.Factory.Create(this, () => HandleFileMenu(file)));
+                builder.AddAttribute(sequence++, "onclick:stopPropagation", true); // 修复：使用正确的阻止事件冒泡方式
+                builder.AddAttribute(sequence++, "title", "更多操作");
+
+                builder.OpenElement(sequence++, "i");
+                builder.AddAttribute(sequence++, "class", "fas fa-ellipsis-v text-xs");
+                builder.CloseElement();
+
+                builder.CloseElement(); // button
+            }
+
+            builder.CloseElement(); // button (file item)
+
+            // 子文件 (仅展开的文件夹)
+            if (file.IsFolder && isExpanded && file.SubFiles != null && file.SubFiles.Any())
+            {
+                builder.AddContent(sequence++, RenderFiles(file.SubFiles, level + 1));
+            }
+
+            builder.CloseElement(); // div (file-item)
+        }
+    };
+
+    private async Task HandleFileClick(ProjectFile file)
     {
         if (file.IsFolder)
         {
-            return "fa-solid fa-folder text-amber-400";
+            // 切换展开/折叠
+            var currentState = _expandedFolders.GetValueOrDefault(file.Path, false);
+            _expandedFolders[file.Path] = !currentState;
+            StateHasChanged();
         }
-
-        var ext = Path.GetExtension(file.Name).ToLower();
-        return ext switch
+        else
         {
-            ".cs" => "fa-solid fa-file-code text-blue-400",
-            ".razor" => "fa-solid fa-file-code text-purple-400",
-            ".json" => "fa-solid fa-file-code text-amber-400",
-            ".xml" or ".html" => "fa-solid fa-file-code text-rose-400",
-            ".csproj" => "fa-solid fa-file-code text-green-400",
-            ".js" => "fa-solid fa-file-code text-yellow-400",
-            ".css" => "fa-solid fa-file-code text-blue-500",
-            _ => "fa-solid fa-file text-slate-400"
-        };
-    }
-
-    // 处理文件选择
-    private async Task HandleFileSelect(ProjectFile file)
-    {
-        if (!file.IsFolder)
-        {
+            // 打开文件
             await OnFileSelected.InvokeAsync(file);
         }
     }
 
-    // 处理右键菜单（移除事件参数以避免错误）
-    private void HandleActionMenu(ProjectFile file)
+    private void HandleFileMenu(ProjectFile file)
     {
-        // 移除事件参数相关的阻止冒泡代码
-        _ = ShowActionMenu(file);
+        _ = ShowFileMenu(file);
     }
 
-    // 显示操作菜单（JS交互）
-    private async Task ShowActionMenu(ProjectFile file)
+    private async Task ShowFileMenu(ProjectFile file)
     {
-        var actions = new List<string> { "重命名", "删除" };
-        var action = await JSRuntime.InvokeAsync<string?>("showFileActionMenu", file.Name, actions);
+        try
+        {
+            // 使用原生的 confirm 和 prompt
+            var menuOptions = new[] { "重命名", "删除", "取消" };
+            var action = await JSRuntime.InvokeAsync<string>("prompt",
+                $"对文件 '{file.Name}' 执行操作 (重命名/删除/取消):", "取消");
 
-        if (action == "重命名")
-        {
-            await OnFileRenamed.InvokeAsync(file);
+            if (string.IsNullOrWhiteSpace(action) || action == "取消")
+            {
+                return;
+            }
+
+            if (action.Contains("重命名") || action.StartsWith("r", StringComparison.OrdinalIgnoreCase))
+            {
+                await OnFileRenamed.InvokeAsync(file);
+            }
+            else if (action.Contains("删除") || action.StartsWith("d", StringComparison.OrdinalIgnoreCase))
+            {
+                var confirmed = await JSRuntime.InvokeAsync<bool>("confirm",
+                    $"确定要删除文件 '{file.Name}' 吗？");
+                if (confirmed)
+                {
+                    await OnFileDeleted.InvokeAsync(file);
+                }
+            }
         }
-        else if (action == "删除")
+        catch (Exception ex)
         {
-            await OnFileDeleted.InvokeAsync(file);
+            Console.WriteLine($"文件菜单操作失败: {ex.Message}");
         }
     }
 
-    [Inject]
-    private IJSRuntime JSRuntime { get; set; } = default!;
+    private string GetFileItemClass(ProjectFile file, int level)
+    {
+        var baseClass = "group flex items-center gap-2 px-2 py-1.5 rounded text-xs transition-colors cursor-pointer w-full text-left";
+        var selectedClass = SelectedFile?.Path == file.Path
+            ? "bg-slate-700 text-white"
+            : "text-slate-300 hover:bg-slate-700/50";
+
+        return $"{baseClass} {selectedClass}";
+    }
+
+    private string GetFileIcon(ProjectFile file)
+    {
+        if (file.IsFolder)
+        {
+            return "fas fa-folder text-amber-400 text-xs";
+        }
+
+        var ext = Path.GetExtension(file.Name ?? file.Path).ToLower();
+        return ext switch
+        {
+            ".cs" => "fas fa-file-code text-blue-400 text-xs",
+            ".razor" => "fas fa-file-code text-purple-400 text-xs",
+            ".json" => "fas fa-file-code text-amber-400 text-xs",
+            ".xml" => "fas fa-file-code text-rose-400 text-xs",
+            ".html" => "fas fa-file-code text-orange-400 text-xs",
+            ".csproj" => "fas fa-project-diagram text-green-400 text-xs",
+            ".js" => "fas fa-file-code text-yellow-400 text-xs",
+            ".css" => "fas fa-file-code text-blue-500 text-xs",
+            ".md" => "fas fa-file-alt text-slate-400 text-xs",
+            _ => "fas fa-file text-slate-400 text-xs"
+        };
+    }
+
+    // 公共方法：展开到指定文件
+    public void ExpandToFile(string filePath)
+    {
+        var parts = filePath.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        var currentPath = "";
+
+        for (int i = 0; i < parts.Length - 1; i++)
+        {
+            currentPath += (i > 0 ? "/" : "") + parts[i];
+            _expandedFolders[currentPath] = true;
+        }
+
+        StateHasChanged();
+    }
+
+    // 公共方法：折叠所有文件夹
+    public void CollapseAll()
+    {
+        _expandedFolders.Clear();
+        StateHasChanged();
+    }
+
+    // 公共方法：展开所有文件夹
+    public void ExpandAll()
+    {
+        ExpandAllRecursive(Files);
+        StateHasChanged();
+    }
+
+    private void ExpandAllRecursive(List<ProjectFile> files)
+    {
+        foreach (var file in files.Where(f => f.IsFolder))
+        {
+            _expandedFolders[file.Path] = true;
+            if (file.SubFiles != null && file.SubFiles.Any())
+            {
+                ExpandAllRecursive(file.SubFiles);
+            }
+        }
+    }
 }

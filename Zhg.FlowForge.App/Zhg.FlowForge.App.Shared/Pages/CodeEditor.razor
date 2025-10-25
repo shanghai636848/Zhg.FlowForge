@@ -1,9 +1,10 @@
 ﻿@page "/editor/{ProjectId}"
-@using System.Threading.Tasks
+@using System.Threading
 @using System.IO
 @using Zhg.FlowForge.App.Shared.Components.Buttons
 @using Zhg.FlowForge.App.Shared.Components.Editor
 @using Zhg.FlowForge.App.Shared.Components.Feedback
+@using Zhg.FlowForge.App.Shared.Components.Form
 @using Zhg.FlowForge.App.Shared.Components.Layout
 @using Zhg.FlowForge.App.Shared.Models
 @using Zhg.FlowForge.App.Shared.Services
@@ -57,13 +58,21 @@
 						  SelectedFile="@CurrentFile"
 						  OnFileSelected="OpenFile"
 						  OnFileRenamed="RenameFile"
-						  OnFileDeleted="DeleteFile" />
+						  OnFileDeleted="DeleteFile"
+						  @ref="_fileTreeRef" />
 			}
 			else
 			{
 				<div class="flex flex-col items-center justify-center py-8 text-slate-500">
 					<i class="fas fa-folder-open mb-2 text-2xl"></i>
 					<p class="text-xs">没有文件</p>
+					<Button Variant="primary"
+							Size="sm"
+							Icon="fas fa-file-plus"
+							OnClick="NewFile">
+						@* class="mt-3" *@
+						创建第一个文件
+					</Button>
 				</div>
 			}
 		</div>
@@ -71,7 +80,7 @@
 		<!-- 文件统计 -->
 		<div class="border-t border-slate-700 p-3 text-xs text-slate-400">
 			<div class="flex items-center justify-between">
-				<span>@ProjectFiles.Count 个文件</span>
+				<span>@GetTotalFileCount() 个文件</span>
 				<span>@TotalLines 行</span>
 			</div>
 		</div>
@@ -214,34 +223,38 @@
 						<!-- 快捷键提示 -->
 						<div class="mt-8 inline-block text-left">
 							<div class="mb-3 text-xs font-semibold text-slate-400">快捷键</div>
-							<div class="space-y-2 text-xs text-slate-500">
-								<div class="flex items-center gap-4">
+							<div class="grid grid-cols-2 gap-x-6 gap-y-2 text-xs text-slate-500">
+								<div class="flex items-center gap-3">
 									<kbd class="kbd-dark">Ctrl+N</kbd>
 									<span>新建文件</span>
 								</div>
-								<div class="flex items-center gap-4">
+								<div class="flex items-center gap-3">
 									<kbd class="kbd-dark">Ctrl+S</kbd>
 									<span>保存文件</span>
 								</div>
-								<div class="flex items-center gap-4">
+								<div class="flex items-center gap-3">
 									<kbd class="kbd-dark">Ctrl+W</kbd>
 									<span>关闭标签</span>
 								</div>
-								<div class="flex items-center gap-4">
+								<div class="flex items-center gap-3">
 									<kbd class="kbd-dark">Ctrl+F</kbd>
 									<span>查找</span>
 								</div>
-								<div class="flex items-center gap-4">
+								<div class="flex items-center gap-3">
 									<kbd class="kbd-dark">Shift+Alt+F</kbd>
 									<span>格式化</span>
 								</div>
-								<div class="flex items-center gap-4">
+								<div class="flex items-center gap-3">
 									<kbd class="kbd-dark">Ctrl+/</kbd>
 									<span>注释切换</span>
 								</div>
-								<div class="flex items-center gap-4">
+								<div class="flex items-center gap-3">
 									<kbd class="kbd-dark">F5</kbd>
 									<span>编译测试</span>
+								</div>
+								<div class="flex items-center gap-3">
+									<kbd class="kbd-dark">Ctrl+Z</kbd>
+									<span>撤销</span>
 								</div>
 							</div>
 						</div>
@@ -268,7 +281,10 @@
 					<span>@GetLanguageName(CurrentFile.Path)</span>
 					<span>UTF-8</span>
 					<span>LF</span>
-					<span>@_EditorState.SelectionCount 个选中</span>
+					@if (_EditorState.SelectionCount > 0)
+					{
+						<span>已选 @_EditorState.SelectionCount 字符</span>
+					}
 				}
 				else
 				{
@@ -316,7 +332,7 @@
 				<button class="transition-colors hover:text-white"
 						@onclick="CycleTheme"
 						title="切换主题">
-					<span>@_EditorSettings.Theme</span>
+					<span>@GetThemeDisplayName()</span>
 				</button>
 				<span>空格: @_EditorSettings.TabSize</span>
 			</div>
@@ -333,6 +349,7 @@
 									   		   "text-slate-400 hover:text-white hover:bg-slate-700/50")"
 					@onclick="@(() => ActivePanel = "outline")"
 					title="代码大纲">
+				<i class="fas fa-list-tree mr-1 text-xs"></i>
 				大纲
 			</button>
 			<button class="h-8 flex-1 rounded text-xs font-medium transition-colors
@@ -341,6 +358,7 @@
 									   		   "text-slate-400 hover:text-white hover:bg-slate-700/50")"
 					@onclick="@(() => ActivePanel = "problems")"
 					title="问题列表">
+				<i class="fas fa-exclamation-circle mr-1 text-xs"></i>
 				问题 @(Diagnostics.Any() ? $"({Diagnostics.Count})" : "")
 			</button>
 			<button class="h-8 flex-1 rounded text-xs font-medium transition-colors
@@ -349,6 +367,7 @@
 									   		   "text-slate-400 hover:text-white hover:bg-slate-700/50")"
 					@onclick="@(() => ActivePanel = "search")"
 					title="文件搜索">
+				<i class="fas fa-search mr-1 text-xs"></i>
 				搜索
 			</button>
 		</div>
@@ -373,28 +392,69 @@
 
 <!-- 确认关闭对话框 -->
 <Modal IsOpen="_showCloseConfirm"
+	   IsOpenChanged="(value) => _showCloseConfirm = value"
 	   Title="未保存的更改"
 	   Icon="fas fa-exclamation-triangle"
 	   IconColorClass="text-amber-600"
 	   MaxWidth="sm">
-	<div>
 
-		<div class="mb-4 text-sm text-slate-700">
-			文件 <strong>@_fileToClose?.Name</strong> 有未保存的更改。
-		</div>
+	<div class="mb-4 text-sm text-slate-700">
+		文件 <strong>@_fileToClose?.Name</strong> 有未保存的更改。
+	</div>
 
-		<FooterActions>
-			<Button Variant="secondary" OnClick="() => _showCloseConfirm = false">
-				取消
-			</Button>
-			<Button Variant="warning" OnClick="CloseFileWithoutSaving">
-				不保存
-			</Button>
-			<Button Variant="primary" OnClick="SaveAndCloseFile">
-				保存并关闭
-			</Button>
-		</FooterActions>
+	<div class="mt-4 flex items-center justify-end gap-2 border-t border-slate-200 pt-4">
+		<Button Variant="secondary" OnClick="() => _showCloseConfirm = false">
+			取消
+		</Button>
+		<Button Variant="warning" OnClick="CloseFileWithoutSaving">
+			不保存
+		</Button>
+		<Button Variant="primary" OnClick="SaveAndCloseFile">
+			保存并关闭
+		</Button>
+	</div>
+</Modal>
 
+<!-- 设置对话框 -->
+<Modal IsOpen="_showSettingsDialog"
+	   IsOpenChanged="(value) => _showSettingsDialog = value"
+	   Title="编辑器设置"
+	   Icon="fas fa-cog"
+	   IconColorClass="text-slate-600"
+	   MaxWidth="md">
+
+	<div class="space-y-4">
+		<FormGroup Title="主题设置" Icon="fas fa-palette">
+			<Select Label="编辑器主题"
+					Options="@ThemeOptions"
+					Value="@_EditorSettings.Theme"
+					ValueChanged="@((value) => ChangeTheme(value))" />
+		</FormGroup>
+
+		<FormGroup Title="编辑器配置" Icon="fas fa-sliders-h">
+			<Input Label="Tab 大小"
+				   Type="number"
+				   Value="@_EditorSettings.TabSize.ToString()"
+				   Min="2"
+				   Max="8"
+				   @onchange="@((e) => ChangeTabSize(int.Parse(e.Value?.ToString() ?? "4")))" />
+
+			<Checkbox Checked="@_EditorSettings.WordWrap"
+					  CheckedChanged="@((value) => ToggleWordWrap(value))">
+				自动换行
+			</Checkbox>
+
+			<Checkbox Checked="@_EditorSettings.Minimap"
+					  CheckedChanged="@((value) => ToggleMinimap(value))">
+				显示小地图
+			</Checkbox>
+		</FormGroup>
+	</div>
+
+	<div class="mt-4 flex items-center justify-end gap-2 border-t border-slate-200 pt-4">
+		<Button Variant="secondary" OnClick="() => _showSettingsDialog = false">
+			关闭
+		</Button>
 	</div>
 </Modal>
 
@@ -402,9 +462,17 @@
 	.kbd-dark {
 		@@apply inline-flex items-center justify-center px-2 py-1 rounded bg-slate-700 border border-slate-600 text-slate-300 font-mono text-xs;
 	}
+
+	#monaco-container {
+		position: relative;
+		width: 100%;
+		height: 100%;
+	}
 </style>
 
 @code {
+	#region 内部类
+
 	class EditorState
 	{
 		public int Line { get; set; } = 1;
@@ -425,20 +493,27 @@
 	{
 		public string Theme { get; set; } = "vs-dark";
 		public int TabSize { get; set; } = 4;
+		public bool WordWrap { get; set; } = false;
+		public bool Minimap { get; set; } = true;
 	}
+
+	#endregion
+
+	#region 参数和字段
 
 	[Parameter] public string ProjectId { get; set; } = "";
 
 	private List<ProjectFile> ProjectFiles = new();
 	private List<ProjectFile> OpenedFiles = new();
 	private ProjectFile? CurrentFile = null;
+	private FileTree? _fileTreeRef;
 	private string ActivePanel = "outline";
 	private bool HasUnsavedChanges => OpenedFiles.Any(f => f.IsDirty);
 	private int TotalLines = 0;
 
 	private EditorState _EditorState = new();
 	private AnalysisState _AnalysisState = new();
-	private EditorSettings _EditorSettings = new() { Theme = "vs-dark", TabSize = 4 };
+	private EditorSettings _EditorSettings = new();
 	private List<CodeSymbol> CodeSymbols = new();
 	private List<Diagnostic> Diagnostics = new();
 
@@ -448,9 +523,21 @@
 	private bool _isLoadingFiles;
 	private bool _isLoadingFile;
 	private bool _showCloseConfirm;
+	private bool _showSettingsDialog;
 	private ProjectFile? _fileToClose;
 	private Dictionary<string, string> _fileContents = new();
 	private System.Threading.Timer? _analysisDebounceTimer;
+
+	private List<Select.SelectOption> ThemeOptions = new()
+	{
+		new("vs-dark", "深色主题"),
+		new("vs", "浅色主题"),
+		new("hc-black", "高对比度")
+	};
+
+	#endregion
+
+	#region 生命周期方法
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -477,6 +564,29 @@
 			await LoadProject();
 		}
 	}
+
+	public async ValueTask DisposeAsync()
+	{
+		if (_isDisposed) return;
+
+		_analysisDebounceTimer?.Dispose();
+		_dotnetHelper?.Dispose();
+
+		if (_jsModule != null)
+		{
+			try
+			{
+				await _jsModule.DisposeAsync();
+			}
+			catch { }
+		}
+
+		_isDisposed = true;
+	}
+
+	#endregion
+
+	#region Monaco 初始化
 
 	private async Task InitializeJs()
 	{
@@ -505,10 +615,10 @@
 				theme = _EditorSettings.Theme,
 				fontSize = 14,
 				tabSize = _EditorSettings.TabSize,
-				minimap = new { enabled = true },
+				minimap = new { enabled = _EditorSettings.Minimap },
 				automaticLayout = true,
 				scrollBeyondLastLine = false,
-				wordWrap = "on",
+				wordWrap = _EditorSettings.WordWrap ? "on" : "off",
 				folding = true,
 				lineNumbers = "on"
 			});
@@ -542,6 +652,10 @@
 		}
 	}
 
+	#endregion
+
+	#region 项目和文件加载
+
 	private async Task LoadProject()
 	{
 		_isLoadingFiles = true;
@@ -550,10 +664,10 @@
 		try
 		{
 			ProjectFiles = await ProjectService.GetProjectFilesAsync(ProjectId);
-			TotalLines = ProjectFiles.Sum(f => f.LineCount);
+			TotalLines = CalculateTotalLines(ProjectFiles);
 			_fileContents.Clear();
 
-			ToastService.Info($"已加载 {ProjectFiles.Count} 个文件");
+			ToastService.Info($"已加载 {GetTotalFileCount()} 个文件");
 		}
 		catch (Exception ex)
 		{
@@ -566,6 +680,49 @@
 			StateHasChanged();
 		}
 	}
+
+	private int CalculateTotalLines(List<ProjectFile> files)
+	{
+		int total = 0;
+		foreach (var file in files)
+		{
+			if (!file.IsFolder)
+			{
+				total += file.LineCount;
+			}
+			if (file.SubFiles != null && file.SubFiles.Any())
+			{
+				total += CalculateTotalLines(file.SubFiles);
+			}
+		}
+		return total;
+	}
+
+	private int GetTotalFileCount()
+	{
+		return CountFiles(ProjectFiles);
+	}
+
+	private int CountFiles(List<ProjectFile> files)
+	{
+		int count = 0;
+		foreach (var file in files)
+		{
+			if (!file.IsFolder)
+			{
+				count++;
+			}
+			if (file.SubFiles != null && file.SubFiles.Any())
+			{
+				count += CountFiles(file.SubFiles);
+			}
+		}
+		return count;
+	}
+
+	#endregion
+
+	#region 文件操作
 
 	private async Task OpenFile(ProjectFile file)
 	{
@@ -604,6 +761,9 @@
 
 			await JS.InvokeVoidAsync("setMonacoContent", content, GetLanguage(file.Path));
 
+			// 展开文件树到该文件
+			_fileTreeRef?.ExpandToFile(file.Path);
+
 			// 异步执行分析，不阻塞界面
 			_ = AnalyzeCurrentFile();
 			_ = UpdateCodeOutline();
@@ -634,7 +794,6 @@
 				var currentContent = await JS.InvokeAsync<string>("getMonacoContent");
 				_fileContents[CurrentFile.Path] = currentContent;
 			}
-
 			CurrentFile = file;
 			var content = _fileContents.GetValueOrDefault(file.Path, "");
 			await JS.InvokeVoidAsync("setMonacoContent", content, GetLanguage(file.Path));
@@ -669,7 +828,12 @@
 		{
 			try
 			{
-				var content = await JS.InvokeAsync<string>("getMonacoContent");
+				var content = _fileContents.GetValueOrDefault(_fileToClose.Path, "");
+				if (_fileToClose == CurrentFile)
+				{
+					content = await JS.InvokeAsync<string>("getMonacoContent");
+				}
+
 				await ProjectService.SaveFileAsync(ProjectId, _fileToClose.Path, content);
 				_fileToClose.IsDirty = false;
 				_fileContents[_fileToClose.Path] = content;
@@ -753,6 +917,172 @@
 		}
 	}
 
+	private async Task NewFile()
+	{
+		try
+		{
+			var fileName = await JS.InvokeAsync<string>("prompt", "请输入文件名", "NewFile.cs");
+			if (string.IsNullOrWhiteSpace(fileName))
+			{
+				return;
+			}
+
+			// 确保文件名有扩展名
+			if (!Path.HasExtension(fileName))
+			{
+				fileName += ".cs";
+			}
+
+			// 生成初始内容
+			var initialContent = GetInitialFileContent(fileName);
+
+			var newFile = await ProjectService.CreateFileAsync(ProjectId, fileName, initialContent);
+
+			// 重新加载文件列表
+			await RefreshFiles();
+
+			// 打开新文件
+			var fileInList = FindFileByPath(ProjectFiles, fileName);
+			if (fileInList != null)
+			{
+				await OpenFile(fileInList);
+			}
+
+			ToastService.Success($"已创建文件: {fileName}");
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($"创建文件失败: {ex.Message}");
+			ToastService.Error($"创建文件失败: {ex.Message}");
+		}
+	}
+
+	private async Task NewFolder()
+	{
+		try
+		{
+			var folderName = await JS.InvokeAsync<string>("prompt", "请输入文件夹名", "NewFolder");
+			if (string.IsNullOrWhiteSpace(folderName))
+			{
+				return;
+			}
+
+			// 创建占位文件
+			var placeholderFile = $"{folderName}/.gitkeep";
+			await ProjectService.CreateFileAsync(ProjectId, placeholderFile, "");
+
+			await RefreshFiles();
+			ToastService.Success($"已创建文件夹: {folderName}");
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($"创建文件夹失败: {ex.Message}");
+			ToastService.Error($"创建文件夹失败: {ex.Message}");
+		}
+	}
+
+	private async Task RefreshFiles()
+	{
+		await LoadProject();
+		ToastService.Info("文件列表已刷新");
+	}
+
+	private async Task RenameFile(ProjectFile file)
+	{
+		if (file == null) return;
+
+		try
+		{
+			var currentName = Path.GetFileName(file.Path);
+			var newName = await JS.InvokeAsync<string>("prompt", "请输入新名称", currentName);
+
+			if (string.IsNullOrWhiteSpace(newName) || newName == currentName)
+			{
+				return;
+			}
+
+			var directory = Path.GetDirectoryName(file.Path)?.Replace("\\", "/") ?? "";
+			var newPath = string.IsNullOrEmpty(directory)
+				? newName
+				: $"{directory}/{newName}";
+
+			await ProjectService.RenameFileAsync(ProjectId, file.Path, newPath);
+
+			// 更新缓存
+			if (_fileContents.ContainsKey(file.Path))
+			{
+				var content = _fileContents[file.Path];
+				_fileContents.Remove(file.Path);
+				_fileContents[newPath] = content;
+			}
+
+			// 更新当前文件引用
+			if (CurrentFile == file)
+			{
+				file.Path = newPath;
+				file.Name = newName;
+			}
+
+			// 更新打开的文件列表
+			var openedFile = OpenedFiles.FirstOrDefault(f => f.Path == file.Path);
+			if (openedFile != null)
+			{
+				openedFile.Path = newPath;
+				openedFile.Name = newName;
+			}
+
+			await RefreshFiles();
+			ToastService.Success($"已重命名为: {newName}");
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($"重命名文件失败: {ex.Message}");
+			ToastService.Error($"重命名失败: {ex.Message}");
+		}
+	}
+
+	private async Task DeleteFile(ProjectFile file)
+	{
+		if (file == null) return;
+
+		try
+		{
+			var fileName = Path.GetFileName(file.Path);
+			var confirmMessage = file.IsFolder
+				? $"确定要删除文件夹 '{fileName}' 及其所有内容吗？"
+				: $"确定要删除文件 '{fileName}' 吗？";
+
+			var confirm = await JS.InvokeAsync<bool>("confirm", confirmMessage);
+			if (!confirm)
+			{
+				return;
+			}
+
+			await ProjectService.DeleteFileAsync(ProjectId, file.Path);
+
+			// 从缓存中移除
+			_fileContents.Remove(file.Path);
+
+			// 从打开的文件列表中移除
+			if (OpenedFiles.Contains(file))
+			{
+				await PerformCloseFile(file);
+			}
+
+			await RefreshFiles();
+			ToastService.Success($"已删除: {fileName}");
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($"删除文件失败: {ex.Message}");
+			ToastService.Error($"删除失败: {ex.Message}");
+		}
+	}
+
+	#endregion
+
+	#region 编辑器操作
+
 	private async Task FormatDocument()
 	{
 		if (CurrentFile == null) return;
@@ -808,24 +1138,44 @@
 		var currentIndex = Array.IndexOf(themes, _EditorSettings.Theme);
 		var nextIndex = (currentIndex + 1) % themes.Length;
 		_EditorSettings.Theme = themes[nextIndex];
+
 		await JS.InvokeVoidAsync("setMonacoTheme", _EditorSettings.Theme);
 		await JS.InvokeVoidAsync("localStorage.setItem", "editor-theme", _EditorSettings.Theme);
 
-		var themeName = _EditorSettings.Theme switch
-		{
-			"vs-dark" => "深色主题",
-			"vs" => "浅色主题",
-			"hc-black" => "高对比度",
-			_ => _EditorSettings.Theme
-		};
-
-		ToastService.Info($"已切换到 {themeName}");
+		ToastService.Info($"已切换到 {GetThemeDisplayName()}");
 		StateHasChanged();
 	}
 
 	private async Task ShowSettings()
 	{
-		await CycleTheme();
+		_showSettingsDialog = true;
+	}
+
+	private async Task ChangeTheme(string theme)
+	{
+		_EditorSettings.Theme = theme;
+		await JS.InvokeVoidAsync("setMonacoTheme", theme);
+		await JS.InvokeVoidAsync("localStorage.setItem", "editor-theme", theme);
+		StateHasChanged();
+	}
+
+	private async Task ChangeTabSize(int size)
+	{
+		_EditorSettings.TabSize = size;
+		// 重新初始化 Monaco 以应用新的 Tab 大小
+		StateHasChanged();
+	}
+
+	private async Task ToggleWordWrap(bool enabled)
+	{
+		_EditorSettings.WordWrap = enabled;
+		StateHasChanged();
+	}
+
+	private async Task ToggleMinimap(bool enabled)
+	{
+		_EditorSettings.Minimap = enabled;
+		StateHasChanged();
 	}
 
 	private void GoToCompile()
@@ -838,6 +1188,10 @@
 
 		Navigation.NavigateTo($"/compile/{ProjectId}");
 	}
+
+	#endregion
+
+	#region 代码分析
 
 	private async Task AnalyzeCurrentFile()
 	{
@@ -895,6 +1249,10 @@
 
 		StateHasChanged();
 	}
+
+	#endregion
+
+	#region JavaScript 回调
 
 	[JSInvokable]
 	public async Task OnContentChanged()
@@ -986,6 +1344,10 @@
 		}
 	}
 
+	#endregion
+
+	#region 导航和面板
+
 	private async Task JumpToSymbol(CodeSymbol symbol)
 	{
 		try
@@ -1017,156 +1379,6 @@
 		StateHasChanged();
 	}
 
-	private async Task NewFile()
-	{
-		try
-		{
-			var fileName = await JS.InvokeAsync<string>("prompt", "请输入文件名", "NewFile.cs");
-			if (string.IsNullOrWhiteSpace(fileName))
-			{
-				return;
-			}
-
-			// 确保文件名有扩展名
-			if (!Path.HasExtension(fileName))
-			{
-				fileName += ".cs";
-			}
-
-			var newFile = await ProjectService.CreateFileAsync(ProjectId, fileName, "");
-			ProjectFiles.Add(newFile);
-			_fileContents[newFile.Path] = "";
-			await OpenFile(newFile);
-
-			ToastService.Success($"已创建文件: {fileName}");
-		}
-		catch (Exception ex)
-		{
-			Console.WriteLine($"创建文件失败: {ex.Message}");
-			ToastService.Error($"创建文件失败: {ex.Message}");
-		}
-	}
-
-	private async Task NewFolder()
-	{
-		try
-		{
-			var folderName = await JS.InvokeAsync<string>("prompt", "请输入文件夹名", "NewFolder");
-			if (string.IsNullOrWhiteSpace(folderName))
-			{
-				return;
-			}
-
-			// 如果ProjectService没有CreateFolderAsync方法，可以创建一个占位文件
-			var placeholderFile = $"{folderName}/.gitkeep";
-			await ProjectService.CreateFileAsync(ProjectId, placeholderFile, "");
-
-			await RefreshFiles();
-			ToastService.Success($"已创建文件夹: {folderName}");
-		}
-		catch (Exception ex)
-		{
-			Console.WriteLine($"创建文件夹失败: {ex.Message}");
-			ToastService.Error($"创建文件夹失败: {ex.Message}");
-		}
-	}
-
-	private async Task RefreshFiles()
-	{
-		await LoadProject();
-		ToastService.Info("文件列表已刷新");
-	}
-
-	private async Task RenameFile(ProjectFile file)
-	{
-		if (file == null) return;
-
-		try
-		{
-			var currentName = Path.GetFileName(file.Path);
-			var newName = await JS.InvokeAsync<string>("prompt", "请输入新名称", currentName);
-
-			if (string.IsNullOrWhiteSpace(newName) || newName == currentName)
-			{
-				return;
-			}
-
-			var directory = Path.GetDirectoryName(file.Path) ?? "";
-			var newPath = Path.Combine(directory, newName).Replace("\\", "/");
-
-			await ProjectService.RenameFileAsync(ProjectId, file.Path, newPath);
-
-			// 更新缓存
-			if (_fileContents.ContainsKey(file.Path))
-			{
-				var content = _fileContents[file.Path];
-				_fileContents.Remove(file.Path);
-				_fileContents[newPath] = content;
-			}
-
-			// 更新当前文件引用
-			if (CurrentFile == file)
-			{
-				file.Path = newPath;
-				file.Name = newName;
-			}
-
-			// 更新打开的文件列表
-			var openedFile = OpenedFiles.FirstOrDefault(f => f.Path == file.Path);
-			if (openedFile != null)
-			{
-				openedFile.Path = newPath;
-				openedFile.Name = newName;
-			}
-
-			await RefreshFiles();
-			ToastService.Success($"已重命名为: {newName}");
-		}
-		catch (Exception ex)
-		{
-			Console.WriteLine($"重命名文件失败: {ex.Message}");
-			ToastService.Error($"重命名失败: {ex.Message}");
-		}
-	}
-
-	private async Task DeleteFile(ProjectFile file)
-	{
-		if (file == null) return;
-
-		try
-		{
-			var fileName = Path.GetFileName(file.Path);
-			var confirmMessage = file.IsFolder
-				? $"确定要删除文件夹 '{fileName}' 及其所有内容吗？"
-				: $"确定要删除文件 '{fileName}' 吗？";
-
-			var confirm = await JS.InvokeAsync<bool>("confirm", confirmMessage);
-			if (!confirm)
-			{
-				return;
-			}
-
-			await ProjectService.DeleteFileAsync(ProjectId, file.Path);
-
-			// 从缓存中移除
-			_fileContents.Remove(file.Path);
-
-			// 从打开的文件列表中移除
-			if (OpenedFiles.Contains(file))
-			{
-				await PerformCloseFile(file);
-			}
-
-			await RefreshFiles();
-			ToastService.Success($"已删除: {fileName}");
-		}
-		catch (Exception ex)
-		{
-			Console.WriteLine($"删除文件失败: {ex.Message}");
-			ToastService.Error($"删除失败: {ex.Message}");
-		}
-	}
-
 	private async Task PerformSearch(string query)
 	{
 		if (string.IsNullOrWhiteSpace(query)) return;
@@ -1183,6 +1395,59 @@
 		}
 	}
 
+	#endregion
+
+	#region 辅助方法
+
+	private ProjectFile? FindFileByPath(List<ProjectFile> files, string path)
+	{
+		foreach (var file in files)
+		{
+			if (file.Path == path)
+			{
+				return file;
+			}
+
+			if (file.SubFiles != null && file.SubFiles.Any())
+			{
+				var found = FindFileByPath(file.SubFiles, path);
+				if (found != null)
+				{
+					return found;
+				}
+			}
+		}
+
+		return null;
+	}
+
+	private string GetInitialFileContent(string fileName)
+	{
+		var ext = Path.GetExtension(fileName).ToLower();
+		var nameWithoutExt = Path.GetFileNameWithoutExtension(fileName);
+
+		return ext switch
+		{
+			".cs" => $@"using System;
+namespace FlowForge.Generated
+{{
+public class {nameWithoutExt}
+{{
+// TODO: 添加您的代码
+}}
+}}",
+			".json" => @"{
+""key"": ""value""
+}",
+			".xml" => @"<?xml version=""1.0"" encoding=""utf-8""?>
+<root>
+</root>",
+			".md" => $@"# {nameWithoutExt}描述
+TODO: 添加描述
+",
+			_ => ""
+		};
+	}
 	private string GetFileIcon(string path)
 	{
 		var ext = Path.GetExtension(path).ToLower();
@@ -1241,22 +1506,17 @@
 		};
 	}
 
-	public async ValueTask DisposeAsync()
+	private string GetThemeDisplayName()
 	{
-		if (_isDisposed) return;
-
-		_analysisDebounceTimer?.Dispose();
-		_dotnetHelper?.Dispose();
-
-		if (_jsModule != null)
+		return _EditorSettings.Theme switch
 		{
-			try
-			{
-				await _jsModule.DisposeAsync();
-			}
-			catch { }
-		}
-
-		_isDisposed = true;
+			"vs-dark" => "深色主题",
+			"vs" => "浅色主题",
+			"hc-black" => "高对比度",
+			_ => _EditorSettings.Theme
+		};
 	}
+
+	#endregion
+
 }

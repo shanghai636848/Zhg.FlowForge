@@ -1,93 +1,83 @@
 ﻿@using Zhg.FlowForge.App.Shared.Components.Buttons
 @if (IsOpen)
 {
-    <div class="fixed inset-0 z-50 flex items-center justify-center" @onclick="HandleBackdropClick">
-        <!-- 遮罩层 -->
+    <div class="fixed inset-0 z-50 flex animate-[fadeIn_0.2s_ease-out] items-center justify-center p-4"
+         @onclick="HandleBackdropClick">
+        <!-- 遮罩 -->
         <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
 
         <!-- 模态框 -->
-        <div class="max-w-@MaxWidth relative mx-3 flex
-                    max-h-[90vh] w-full animate-[fadeIn_0.2s_ease-out]
-                    flex-col rounded-xl bg-white
-                    shadow-xl"
+        <div class="relative max-h-[90vh] w-full animate-[scaleIn_0.2s_ease-out] overflow-hidden rounded-xl bg-white
+                        shadow-2xl"
+             style="max-width: @GetMaxWidth()"
              @onclick:stopPropagation="true">
-            
-            <!-- 头部 -->
-            @if (!HideHeader)
-            {
-                <div class="flex items-center justify-between border-b border-slate-200 p-3">
-                    <h2 class="flex items-center gap-2 text-sm font-semibold text-slate-900">
-                        @if (!string.IsNullOrEmpty(Icon))
-                        {
-                            <i class="@Icon text-xs @IconColorClass"></i>
-                        }
-                        @Title
-                    </h2>
 
-                    @if (!HideClose)
+            <!-- 头部 -->
+            <div class="flex items-center justify-between border-b border-slate-200 p-4">
+                <div class="flex items-center gap-3">
+                    @if (!string.IsNullOrEmpty(Icon))
                     {
-                        <IconButton 
-                            Icon="fas fa-times"
-                            Size="sm"
-                            Variant="ghost"
-                            OnClick="Close" />
+                        <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100">
+                            <i class="@Icon @IconColorClass"></i>
+                        </div>
                     }
+                    <h3 class="text-base font-semibold text-slate-900">@Title</h3>
                 </div>
-            }
+
+                @if (!HideClose)
+                {
+                    <button class="flex h-8 w-8 items-center justify-center rounded-lg transition-colors hover:bg-slate-100"
+                            @onclick="Close">
+                        <i class="fas fa-times text-slate-600"></i>
+                    </button>
+                }
+            </div>
 
             <!-- 内容 -->
-            <div class="scrollable flex-1 overflow-y-auto p-3">
+            <div class="overflow-y-auto p-4" style="max-height: calc(90vh - 8rem);">
                 @ChildContent
             </div>
 
-            <!-- 底部 -->
-            @if (FooterActions != null)
-            {
-                <div class="flex items-center justify-end gap-2 border-t border-slate-200 p-3">
-                    @FooterActions
-                </div>
-            }
+            <!-- 内容 -->
+            <div class="overflow-y-auto p-4" style="max-height: calc(90vh - 8rem);">
+                @FooterActions
+            </div>
         </div>
     </div>
-
-    <style>
-        @@keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: scale(0.95);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-    </style>
 }
 
 @code {
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public EventCallback<bool> IsOpenChanged { get; set; }
     [Parameter] public string Title { get; set; } = "";
     [Parameter] public string Icon { get; set; } = "";
-    [Parameter] public string IconColorClass { get; set; } = "text-blue-600";
-    [Parameter] public string MaxWidth { get; set; } = "2xl"; // sm, md, lg, xl, 2xl, 3xl, 4xl
-    [Parameter] public bool IsOpen { get; set; }
-    [Parameter] public bool CloseOnBackdrop { get; set; } = true;
-    [Parameter] public bool HideHeader { get; set; }
+    [Parameter] public string IconColorClass { get; set; } = "";
+    [Parameter] public string MaxWidth { get; set; } = "md";
     [Parameter] public bool HideClose { get; set; }
     [Parameter] public RenderFragment? ChildContent { get; set; }
     [Parameter] public RenderFragment? FooterActions { get; set; }
-    [Parameter] public EventCallback OnClose { get; set; }
+
 
     private async Task Close()
     {
         IsOpen = false;
-        await OnClose.InvokeAsync();
+        await IsOpenChanged.InvokeAsync(false);
     }
 
     private async Task HandleBackdropClick()
     {
-        if (CloseOnBackdrop)
+        if (!HideClose)
         {
             await Close();
         }
     }
+
+    private string GetMaxWidth() => MaxWidth switch
+    {
+        "sm" => "32rem",
+        "md" => "48rem",
+        "lg" => "64rem",
+        "xl" => "80rem",
+        _ => "48rem"
+    };
 }

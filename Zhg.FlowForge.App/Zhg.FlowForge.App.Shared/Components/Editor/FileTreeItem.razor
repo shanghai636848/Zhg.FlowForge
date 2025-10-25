@@ -1,4 +1,7 @@
-﻿@using Zhg.FlowForge.App.Shared.Services
+﻿@using System.IO
+@using Zhg.FlowForge.App.Shared.Models
+@using Zhg.FlowForge.App.Shared.Services
+
 <div class="group relative"
      @onmouseover="() => IsHovering = true"
      @onmouseout="() => IsHovering = false">
@@ -6,10 +9,9 @@
     <button class="flex w-full items-center gap-2 rounded px-2 py-1.5 text-xs transition-colors
                   @(IsSelected ? "bg-blue-600 text-white" : "text-slate-300 hover:bg-slate-700")"
             @onclick="OnClick"
-            @oncontextmenu:preventDefault="true"
-            @* @oncontextmenu="ShowContextMenu" *@
-    >
-
+            @oncontextmenu="ShowContextMenuHandler"
+            @oncontextmenu:preventDefault>
+        <!-- 修复：移除参数值 -->
         @if (File.IsFolder)
         {
             <i class="fas @(IsExpanded ? "fa-folder-open" : "fa-folder") text-xs text-amber-400"></i>
@@ -71,6 +73,12 @@
             ".xml" => "fas fa-code text-rose-400",
             _ => "fas fa-file text-slate-400"
         };
+    }
+
+    private void ShowContextMenuHandler()
+    {
+        ShowContextMenu = true;
+        StateHasChanged();
     }
 
     private void Rename()
