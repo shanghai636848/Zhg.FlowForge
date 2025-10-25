@@ -585,9 +585,6 @@
   .mb-6 {
     margin-bottom: calc(var(--spacing) * 6);
   }
-  .ml-1 {
-    margin-left: calc(var(--spacing) * 1);
-  }
   .ml-2 {
     margin-left: calc(var(--spacing) * 2);
   }
@@ -933,6 +930,9 @@
   }
   .animate-\[scaleIn_0\.2s_ease-out\] {
     animation: scaleIn 0.2s ease-out;
+  }
+  .animate-\[scaleIn_0\.3s_ease-out\] {
+    animation: scaleIn 0.3s ease-out;
   }
   .animate-\[slideInLeft_0\.3s_ease-out\] {
     animation: slideInLeft 0.3s ease-out;

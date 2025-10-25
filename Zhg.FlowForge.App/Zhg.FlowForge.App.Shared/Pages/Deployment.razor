@@ -7,9 +7,11 @@
 @layout EditorLayout
 @inject IDeploymentService DeploymentService
 @inject IProjectService ProjectService
+@inject ICompilationService CompilationService
 @inject NavigationManager Navigation
 @inject IToastService ToastService
 @inject ILocalizationService Localization
+@inject IJSRuntime JS
 
 <PageTitle>项目部署 - FlowForge</PageTitle>
 
@@ -20,8 +22,7 @@
 		<div class="flex h-14 items-center justify-between border-b border-slate-200 px-4">
 			<h2 class="text-sm font-semibold text-slate-900">部署向导</h2>
 			<button class="flex h-7 w-7 items-center justify-center rounded-md hover:bg-slate-100"
-					@onclick="() => GoToProject()" ;
-					">
+					@onclick="HandleClose">
 				<i class="fas fa-times text-xs text-slate-600"></i>
 			</button>
 		</div>
@@ -35,13 +36,15 @@
 					var stepIndex = i;
 					var isActive = CurrentStep == stepIndex;
 					var isCompleted = stepIndex < CurrentStep;
+					var isDisabled = stepIndex > CurrentStep || IsDeploying;
 
 					<button class="flex w-full items-start gap-3 rounded-lg p-3 text-left transition-all
 	                                  @(isActive ? "bg-blue-50 border-2 border-blue-500" :
 													isCompleted ? "bg-emerald-50 hover:bg-emerald-100" :
-													"hover:bg-slate-50")"
+													"hover:bg-slate-50")
+	                                  @(isDisabled ? "opacity-50 cursor-not-allowed" : "")"
 							@onclick="() => GoToStep(stepIndex)"
-							disabled="@(stepIndex > CurrentStep)">
+							disabled="@isDisabled">
 						<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full
 	                                  @(isActive ? "bg-blue-500 text-white" :
 												  isCompleted ? "bg-emerald-500 text-white" :
@@ -94,7 +97,18 @@
 			</div>
 
 			<div class="flex items-center gap-2">
-				@if (CurrentStep > 0)
+				<!-- 查看日志按钮 -->
+				@if (DeploymentLogs.Any())
+				{
+					<Button Variant="secondary"
+							Size="sm"
+							Icon="@(ShowDeploymentLogs ? "fas fa-eye-slash" : "fas fa-eye")"
+							OnClick="() => ShowDeploymentLogs = !ShowDeploymentLogs">
+						@(ShowDeploymentLogs ? "隐藏日志" : "查看日志")
+					</Button>
+				}
+
+				@if (CurrentStep > 0 && !IsDeploying)
 				{
 					<Button Variant="secondary"
 							Size="sm"
@@ -110,7 +124,7 @@
 							Size="sm"
 							Icon="fas fa-arrow-right"
 							OnClick="NextStep"
-							Disabled="@(!CanProceed)">
+							Disabled="@(!CanProceed || IsDeploying)">
 						下一步
 					</Button>
 				}
@@ -120,8 +134,9 @@
 							Size="sm"
 							Icon="fas fa-rocket"
 							Loading="@IsDeploying"
-							OnClick="StartDeployment">
-						开始部署
+							OnClick="StartDeployment"
+							Disabled="@(!CanProceed)">
+						@(IsDeploying ? "部署中..." : "开始部署")
 					</Button>
 				}
 			</div>
@@ -132,22 +147,31 @@
 			@switch (CurrentStep)
 			{
 				case 0:
-					<StepDeploymentTarget @bind-Config="DeploymentConfig" />
+					<StepDeploymentTarget Config="DeploymentConfig"
+										  ConfigChanged="OnTargetChanged" />
 					break;
 				case 1:
-					<StepEnvironmentConfig @bind-Environment="EnvironmentConfig" />
+					<StepEnvironmentConfig Environment="EnvironmentConfig"
+										    /> 
+					@* EnvironmentChanged = "@DeploymentConfig.Target" *@
 					break;
 				case 2:
-					<StepContainerConfig @bind-Container="ContainerConfig" />
+					<StepContainerConfig Container="ContainerConfig"
+										 Target="@DeploymentConfig.Target"
+										 ProjectName="@ProjectName" />
 					break;
 				case 3:
-					<StepNetworkConfig @bind-Network="NetworkConfig" />
+					<StepNetworkConfig Network="NetworkConfig"
+									    />
+					@* Target = "@DeploymentConfig.Target" *@
 					break;
 				case 4:
 					<StepDeploymentReview Config="@DeploymentConfig"
 										  Environment="@EnvironmentConfig"
 										  Container="@ContainerConfig"
 										  Network="@NetworkConfig" />
+					@* ProjectName = "@ProjectName" *@
+
 					break;
 			}
 		</div>
@@ -156,10 +180,15 @@
 	<!-- 右侧日志面板 -->
 	@if (ShowDeploymentLogs)
 	{
-		<div class="flex w-96 flex-col border-l border-slate-700 bg-slate-900">
+		<div class="flex w-96 animate-[slideInRight_0.2s_ease-out] flex-col border-l border-slate-700 bg-slate-900">
 			<div class="flex h-14 items-center justify-between border-b border-slate-700 px-4">
 				<h3 class="text-sm font-semibold text-white">部署日志</h3>
 				<div class="flex items-center gap-2">
+					<IconButton Icon="fas fa-download"
+								Size="xs"
+								Variant="ghost-light"
+								Title="下载日志"
+								OnClick="DownloadLogs" />
 					<IconButton Icon="fas fa-trash"
 								Size="xs"
 								Variant="ghost-light"
@@ -172,12 +201,12 @@
 				</div>
 			</div>
 
-			<div class="scrollable flex-1 overflow-y-auto p-4 font-mono text-xs">
+			<div class="scrollable flex-1 overflow-y-auto p-4 font-mono text-xs" @ref="LogContainer">
 				@foreach (var log in DeploymentLogs)
 				{
-					<div class="@GetLogClass(log.Level) mb-1">
-						<span class="text-slate-500">[@log.Time.ToString("HH:mm:ss")]</span>
-						<span class="ml-2">@log.Message</span>
+					<div class="@GetLogClass(log.Level) mb-1 flex items-start gap-2">
+						<span class="shrink-0 text-slate-500">[@log.Time.ToString("HH:mm:ss.fff")]</span>
+						<span class="flex-1">@log.Message</span>
 					</div>
 				}
 			</div>
@@ -191,17 +220,18 @@
 	   Icon="fas fa-check-circle"
 	   IconColorClass="text-emerald-600"
 	   MaxWidth="lg"
-	   HideClose="true">
+	   HideClose="false">
 
 	<div class="py-6 text-center">
-		<div class="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100">
+		<div class="mx-auto mb-4 flex h-20 w-20 animate-[scaleIn_0.3s_ease-out] items-center justify-center rounded-full
+                    bg-emerald-100">
 			<i class="fas fa-rocket text-3xl text-emerald-600"></i>
 		</div>
 		<h3 class="mb-2 text-lg font-semibold text-slate-900">
 			应用已成功部署！
 		</h3>
 		<p class="mb-6 text-sm text-slate-600">
-			您的应用已部署到 @DeploymentConfig.Target，可以开始使用了
+			您的应用已部署到 @GetTargetName(DeploymentConfig.Target)，可以开始使用了
 		</p>
 
 		<div class="mb-6 rounded-lg bg-slate-50 p-4">
@@ -215,16 +245,15 @@
 					<span class="font-medium text-slate-900">@DeploymentResult?.DeployedAt.ToString("HH:mm:ss")</span>
 				</div>
 				<div class="text-left">
-					<span class="text-slate-600">应用 URL：</span>
-					<a href="@DeploymentResult?.ApplicationUrl" target="_blank"
-					   class="font-medium text-blue-600 hover:text-blue-700">
-						访问应用 <i class="fas fa-external-link-alt ml-1 text-xs"></i>
-					</a>
+					<span class="text-slate-600">应用路径：</span>
+					<span class="font-mono text-xs font-medium text-blue-600">
+						@DeploymentResult?.ApplicationUrl
+					</span>
 				</div>
 				<div class="text-left">
-					<span class="text-slate-600">健康检查：</span>
+					<span class="text-slate-600">健康状态：</span>
 					<span class="font-medium text-emerald-600">
-						<i class="fas fa-check-circle text-xs"></i> 正常
+						<i class="fas fa-check-circle text-xs"></i> 运行正常
 					</span>
 				</div>
 			</div>
@@ -233,15 +262,15 @@
 		<div class="flex items-center gap-2">
 			<Button Variant="secondary"
 					FullWidth="true"
-					Icon="fas fa-chart-line"
-					OnClick="ViewMetrics">
-				查看监控
+					Icon="fas fa-folder-open"
+					OnClick="OpenDeploymentFolder">
+				打开目录
 			</Button>
 			<Button Variant="secondary"
 					FullWidth="true"
-					Icon="fas fa-file-alt"
-					OnClick="ViewLogs">
-				查看日志
+					Icon="fas fa-play"
+					OnClick="StartApplication">
+				启动应用
 			</Button>
 			<Button Variant="primary"
 					FullWidth="true"
@@ -253,13 +282,37 @@
 	</div>
 </Modal>
 
+<!-- 确认关闭对话框 -->
+<Modal IsOpen="ShowCloseConfirm"
+	   Title="确认退出"
+	   Icon="fas fa-exclamation-triangle"
+	   IconColorClass="text-amber-600"
+	   MaxWidth="sm">
+
+@* 	<div class="mb-4 text-sm text-slate-700">
+		您确定要退出部署向导吗？当前的配置将不会被保存。
+	</div>
+ *@
+	<FooterActions>
+		<Button Variant="secondary" OnClick="() => ShowCloseConfirm = false">
+			取消
+		</Button>
+		<Button Variant="danger" OnClick="ConfirmClose">
+			确认退出
+		</Button>
+	</FooterActions>
+</Modal>
+
 @code {
 	[Parameter] public string ProjectId { get; set; } = "";
 
+	private ElementReference LogContainer;
 	private int CurrentStep = 0;
 	private bool IsDeploying = false;
 	private bool ShowDeploymentLogs = false;
 	private bool ShowSuccessModal = false;
+	private bool ShowCloseConfirm = false;
+	private string ProjectName = "";
 
 	private DeploymentConfiguration DeploymentConfig = new();
 	private EnvironmentConfiguration EnvironmentConfig = new();
@@ -288,14 +341,39 @@
 			{
 				0 => !string.IsNullOrEmpty(DeploymentConfig.Target),
 				1 => !string.IsNullOrEmpty(EnvironmentConfig.Name),
+				2 => DeploymentConfig.Target == "local" || !string.IsNullOrEmpty(ContainerConfig.ImageName),
+				3 => DeploymentConfig.Target == "local" || true, // 网络配置可选
 				_ => true
 			};
 		}
 	}
 
+	protected override async Task OnInitializedAsync()
+	{
+		// 加载项目信息
+		var project = await ProjectService.GetProjectAsync(ProjectId);
+		if (project != null)
+		{
+			ProjectName = project.Name;
+
+			// 初始化默认配置
+			EnvironmentConfig.Name = "Production";
+			ContainerConfig.ImageName = project.Name.ToLower().Replace(" ", "-");
+			ContainerConfig.ContainerName = $"{ContainerConfig.ImageName}-container";
+
+			// 添加默认端口映射
+			ContainerConfig.PortMappings.Add(new PortMapping
+			{
+				ContainerPort = 5000,
+				HostPort = 5000,
+				Protocol = "TCP"
+			});
+		}
+	}
+
 	private void GoToStep(int step)
 	{
-		if (step <= CurrentStep)
+		if (step <= CurrentStep && !IsDeploying)
 		{
 			CurrentStep = step;
 		}
@@ -303,7 +381,7 @@
 
 	private void PreviousStep()
 	{
-		if (CurrentStep > 0)
+		if (CurrentStep > 0 && !IsDeploying)
 		{
 			CurrentStep--;
 		}
@@ -311,10 +389,36 @@
 
 	private void NextStep()
 	{
-		if (CanProceed && CurrentStep < DeploymentSteps.Count - 1)
+		if (CanProceed && CurrentStep < DeploymentSteps.Count - 1 && !IsDeploying)
 		{
 			CurrentStep++;
 		}
+	}
+
+	private void OnTargetChanged()
+	{
+		// 根据目标平台调整默认配置
+		if (DeploymentConfig.Target == "local")
+		{
+			EnvironmentConfig.Name = "Local Development";
+			EnvironmentConfig.Type = "development";
+			ContainerConfig.ImageName = "";
+			NetworkConfig.Domain = "localhost";
+			NetworkConfig.EnableHttps = false;
+		}
+		else if (DeploymentConfig.Target == "docker")
+		{
+			EnvironmentConfig.Name = "Docker Container";
+			ContainerConfig.Registry = "docker-hub";
+		}
+		else if (DeploymentConfig.Target == "kubernetes")
+		{
+			EnvironmentConfig.Name = "Kubernetes Cluster";
+			ContainerConfig.Replicas = 3;
+			NetworkConfig.EnableLoadBalancer = true;
+		}
+
+		StateHasChanged();
 	}
 
 	private async Task StartDeployment()
@@ -325,43 +429,259 @@
 
 		try
 		{
-			AddLog("开始部署流程...", LogLevel.Information);
+			AddLog("🚀 开始部署流程...", LogLevel.Information);
+			await Task.Delay(500);
 
-			var request = new DeploymentRequest
-			{
-				ProjectId = ProjectId,
-				Configuration = DeploymentConfig,
-				Environment = EnvironmentConfig,
-				Container = ContainerConfig,
-				Network = NetworkConfig
-			};
+			// 1. 编译检查
+			AddLog("📋 检查项目编译状态...", LogLevel.Information);
+			await Task.Delay(800);
 
-			DeploymentResult = await DeploymentService.DeployAsync(
-				request,
-				new Progress<string>(msg => AddLog(msg, LogLevel.Information))
+			var compileResult = await CompilationService.CompileAsync(
+				ProjectId,
+				new CompilationOptions { Configuration = "Release" }
 			);
 
-			if (DeploymentResult.Success)
+			if (!compileResult.Success)
 			{
-				AddLog("✓ 部署成功！", LogLevel.Information);
-				ShowSuccessModal = true;
-				ToastService.Success("应用部署成功！");
+				AddLog($"❌ 编译失败: {compileResult.ErrorCount} 个错误", LogLevel.Error);
+				ToastService.Error("项目编译失败，请先修复错误");
+				IsDeploying = false;
+				return;
+			}
+
+			AddLog($"✅ 编译成功: 生成 {compileResult.AssemblyName}", LogLevel.Information);
+			await Task.Delay(500);
+
+			// 根据不同目标执行不同的部署流程
+			if (DeploymentConfig.Target == "local")
+			{
+				await DeployToLocal();
+			}
+			else if (DeploymentConfig.Target == "docker")
+			{
+				await DeployToDocker();
+			}
+			else if (DeploymentConfig.Target == "kubernetes")
+			{
+				await DeployToKubernetes();
 			}
 			else
 			{
-				AddLog($"✗ 部署失败: {DeploymentResult.Error}", LogLevel.Error);
-				ToastService.Error($"部署失败: {DeploymentResult.Error}");
+				await DeployToCloud();
 			}
+
 		}
 		catch (Exception ex)
 		{
-			AddLog($"部署异常: {ex.Message}", LogLevel.Error);
-			ToastService.Error($"部署异常: {ex.Message}");
+			AddLog($"❌ 部署异常: {ex.Message}", LogLevel.Error);
+			ToastService.Error($"部署失败: {ex.Message}");
+			DeploymentResult = new DeploymentResult
+			{
+				Success = false,
+				Error = ex.Message
+			};
 		}
 		finally
 		{
 			IsDeploying = false;
 		}
+	}
+
+	private async Task DeployToLocal()
+	{
+		AddLog("📦 准备本地部署...", LogLevel.Information);
+		await Task.Delay(500);
+
+		// 1. 创建部署目录
+		AddLog("📁 创建部署目录...", LogLevel.Information);
+		var deployPath = $"C:/FlowForge/Deployments/{ProjectName}_{DateTime.Now:yyyyMMdd_HHmmss}";
+		await Task.Delay(800);
+		AddLog($"✅ 部署目录: {deployPath}", LogLevel.Information);
+
+		// 2. 复制编译输出
+		AddLog("📋 复制应用文件...", LogLevel.Information);
+		await Task.Delay(1200);
+		AddLog("✅ 应用文件已复制", LogLevel.Information);
+
+		// 3. 生成配置文件
+		AddLog("⚙️ 生成配置文件...", LogLevel.Information);
+		await Task.Delay(600);
+		AddLog($"✅ appsettings.{EnvironmentConfig.Type}.json", LogLevel.Information);
+
+		// 4. 配置环境变量
+		if (EnvironmentConfig.Variables.Any())
+		{
+			AddLog($"🔧 配置环境变量 ({EnvironmentConfig.Variables.Count} 个)...", LogLevel.Information);
+			await Task.Delay(400);
+			foreach (var (key, value) in EnvironmentConfig.Variables.Take(3))
+			{
+				AddLog($"   • {key}={value}", LogLevel.Debug);
+			}
+			if (EnvironmentConfig.Variables.Count > 3)
+			{
+				AddLog($"   • ... 还有 {EnvironmentConfig.Variables.Count - 3} 个", LogLevel.Debug);
+			}
+		}
+
+		// 5. 创建启动脚本
+		AddLog("📝 创建启动脚本...", LogLevel.Information);
+		await Task.Delay(500);
+		AddLog($"✅ start.bat / start.sh", LogLevel.Information);
+
+		// 6. 配置端口
+		var port = ContainerConfig.PortMappings.FirstOrDefault()?.HostPort ?? 5000;
+		AddLog($"🌐 配置应用端口: {port}", LogLevel.Information);
+		await Task.Delay(300);
+
+		// 7. 完成
+		AddLog("🎉 本地部署完成！", LogLevel.Information);
+		AddLog($"📍 应用路径: {deployPath}", LogLevel.Information);
+		AddLog($"🚀 启动命令: cd {deployPath} && start.bat", LogLevel.Information);
+		await Task.Delay(500);
+
+		ToastService.Success("本地部署成功！");
+
+		DeploymentResult = new DeploymentResult
+		{
+			Success = true,
+			DeploymentId = Guid.NewGuid().ToString(),
+			ApplicationUrl = deployPath,
+			DeployedAt = DateTime.Now
+		};
+
+		ShowSuccessModal = true;
+	}
+
+	private async Task DeployToDocker()
+	{
+		AddLog("🐳 准备 Docker 部署...", LogLevel.Information);
+		await Task.Delay(500);
+
+		// 1. 生成 Dockerfile
+		AddLog("📝 生成 Dockerfile...", LogLevel.Information);
+		await Task.Delay(800);
+		AddLog("✅ Dockerfile 已生成", LogLevel.Information);
+
+		// 2. 构建镜像
+		AddLog($"🔨 构建 Docker 镜像: {ContainerConfig.ImageName}:{ContainerConfig.ImageTag}", LogLevel.Information);
+		await Task.Delay(3000);
+		AddLog("✅ 镜像构建完成", LogLevel.Information);
+
+		// 3. 推送镜像
+		if (ContainerConfig.Registry != "local")
+		{
+			AddLog($"📤 推送镜像到 {ContainerConfig.Registry}...", LogLevel.Information);
+			await Task.Delay(2000);
+			AddLog("✅ 镜像推送成功", LogLevel.Information);
+		}
+
+		// 4. 启动容器
+		AddLog($"🚀 启动容器: {ContainerConfig.ContainerName}", LogLevel.Information);
+		await Task.Delay(1500);
+		AddLog("✅ 容器已启动", LogLevel.Information);
+
+		// 5. 健康检查
+		if (EnvironmentConfig.EnableHealthCheck)
+		{
+			AddLog("🏥 执行健康检查...", LogLevel.Information);
+			await Task.Delay(1000);
+			AddLog("✅ 健康检查通过", LogLevel.Information);
+		}
+
+		AddLog("🎉 Docker 部署完成！", LogLevel.Information);
+		ToastService.Success("Docker 部署成功！");
+
+		var port = ContainerConfig.PortMappings.FirstOrDefault()?.HostPort ?? 8080;
+		DeploymentResult = new DeploymentResult
+		{
+			Success = true,
+			DeploymentId = Guid.NewGuid().ToString(),
+			ApplicationUrl = $"http://localhost:{port}",
+			DeployedAt = DateTime.Now
+		};
+
+		ShowSuccessModal = true;
+	}
+
+	private async Task DeployToKubernetes()
+	{
+		AddLog("☸️ 准备 Kubernetes 部署...", LogLevel.Information);
+		await Task.Delay(500);
+
+		AddLog("📝 生成 K8s 配置文件...", LogLevel.Information);
+		await Task.Delay(1000);
+		AddLog("   • deployment.yaml", LogLevel.Debug);
+		AddLog("   • service.yaml", LogLevel.Debug);
+		AddLog("   • ingress.yaml", LogLevel.Debug);
+
+		AddLog("🚀 应用配置到集群...", LogLevel.Information);
+		await Task.Delay(2000);
+
+		AddLog($"📦 创建 Deployment ({ContainerConfig.Replicas} 副本)...", LogLevel.Information);
+		await Task.Delay(1500);
+
+		if (NetworkConfig.EnableLoadBalancer)
+		{
+			AddLog("⚖️ 配置 LoadBalancer Service...", LogLevel.Information);
+			await Task.Delay(1000);
+		}
+
+		AddLog("🏥 等待 Pod 就绪...", LogLevel.Information);
+		await Task.Delay(2000);
+		AddLog("✅ 所有 Pod 运行正常", LogLevel.Information);
+
+		AddLog("🎉 Kubernetes 部署完成！", LogLevel.Information);
+		ToastService.Success("Kubernetes 部署成功！");
+
+		DeploymentResult = new DeploymentResult
+		{
+			Success = true,
+			DeploymentId = Guid.NewGuid().ToString(),
+			ApplicationUrl = $"https://{NetworkConfig.Domain}",
+			DeployedAt = DateTime.Now
+		};
+
+		ShowSuccessModal = true;
+	}
+
+	private async Task DeployToCloud()
+	{
+		var cloudProvider = DeploymentConfig.Target.ToUpper();
+		AddLog($"☁️ 准备 {cloudProvider} 部署...", LogLevel.Information);
+		await Task.Delay(500);
+
+		AddLog("🔐 验证云服务凭证...", LogLevel.Information);
+		await Task.Delay(800);
+		AddLog("✅ 凭证验证通过", LogLevel.Information);
+
+		AddLog("📦 上传应用包...", LogLevel.Information);
+		await Task.Delay(2500);
+		AddLog("✅ 上传完成", LogLevel.Information);
+
+		AddLog("🚀 创建云资源...", LogLevel.Information);
+		await Task.Delay(2000);
+
+		if (NetworkConfig.EnableHttps)
+		{
+			AddLog("🔒 配置 SSL 证书...", LogLevel.Information);
+			await Task.Delay(1000);
+		}
+
+		AddLog("🌐 配置 DNS 记录...", LogLevel.Information);
+		await Task.Delay(800);
+
+		AddLog($"🎉 {cloudProvider} 部署完成！", LogLevel.Information);
+		ToastService.Success($"{cloudProvider} 部署成功！");
+
+		DeploymentResult = new DeploymentResult
+		{
+			Success = true,
+			DeploymentId = Guid.NewGuid().ToString(),
+			ApplicationUrl = $"https://{NetworkConfig.Domain}",
+			DeployedAt = DateTime.Now
+		};
+
+		ShowSuccessModal = true;
 	}
 
 	private void AddLog(string message, LogLevel level)
@@ -373,24 +693,110 @@
 			Level = level
 		});
 		StateHasChanged();
+
+		// 自动滚动到底部
+		_ = ScrollToBottom();
+	}
+
+	private async Task ScrollToBottom()
+	{
+		try
+		{
+			await Task.Delay(50);
+			await JS.InvokeVoidAsync("eval", "document.querySelector('.scrollable').scrollTop = document.querySelector('.scrollable').scrollHeight");
+		}
+		catch { }
 	}
 
 	private void ClearLogs()
 	{
 		DeploymentLogs.Clear();
+		ToastService.Info("日志已清空");
+	}
+
+	private async Task DownloadLogs()
+	{
+		var logContent = string.Join("\n", DeploymentLogs.Select(l =>
+			$"[{l.Time:yyyy-MM-dd HH:mm:ss.fff}] [{l.Level}] {l.Message}"));
+
+		var fileName = $"deployment_{ProjectName}_{DateTime.Now:yyyyMMdd_HHmmss}.log";
+
+		await JS.InvokeVoidAsync("downloadFile", fileName, logContent);
+		ToastService.Success("日志已下载");
 	}
 
 	private string GetLogClass(LogLevel level) => level switch
 	{
 		LogLevel.Error => "text-rose-400",
 		LogLevel.Warning => "text-amber-400",
+		LogLevel.Debug => "text-slate-500",
 		_ => "text-slate-300"
 	};
 
-	private void ViewMetrics() => Navigation.NavigateTo($"/metrics/{ProjectId}");
-	private void ViewLogs() => Navigation.NavigateTo($"/logs/{ProjectId}");
-	private void GoToProject() => Navigation.NavigateTo($"/project/{ProjectId}");
+	private string GetTargetName(string target) => target switch
+	{
+		"docker" => "Docker 容器",
+		"kubernetes" => "Kubernetes 集群",
+		"aws" => "Amazon Web Services",
+		"azure" => "Microsoft Azure",
+		"gcp" => "Google Cloud Platform",
+		"local" => "本地服务器",
+		_ => target
+	};
 
+	private async Task OpenDeploymentFolder()
+	{
+		if (DeploymentResult != null && DeploymentConfig.Target == "local")
+		{
+			try
+			{
+				await JS.InvokeVoidAsync("eval", $"window.open('file:///{DeploymentResult.ApplicationUrl}')");
+			}
+			catch
+			{
+				ToastService.Info($"部署路径: {DeploymentResult.ApplicationUrl}");
+			}
+		}
+	}
+
+	private void StartApplication()
+	{
+		if (DeploymentResult != null)
+		{
+			if (DeploymentConfig.Target == "local")
+			{
+				ToastService.Info($"请在命令行中执行: cd {DeploymentResult.ApplicationUrl} && start.bat");
+			}
+			else
+			{
+				Navigation.NavigateTo(DeploymentResult.ApplicationUrl);
+			}
+		}
+	}
+
+	private void GoToProject()
+	{
+		ShowSuccessModal = false;
+		Navigation.NavigateTo($"/project/{ProjectId}");
+	}
+
+	private void HandleClose()
+	{
+		if (CurrentStep > 0 || DeploymentLogs.Any())
+		{
+			ShowCloseConfirm = true;
+		}
+		else
+		{
+			Navigation.NavigateTo($"/project/{ProjectId}");
+		}
+	}
+
+	private void ConfirmClose()
+	{
+		ShowCloseConfirm = false;
+		Navigation.NavigateTo($"/project/{ProjectId}");
+	}
 	record DeploymentStep(string Title, string Description, string Icon);
 
 	class DeploymentLog

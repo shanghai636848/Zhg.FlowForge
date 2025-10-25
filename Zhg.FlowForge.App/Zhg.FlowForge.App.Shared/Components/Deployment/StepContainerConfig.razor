@@ -6,168 +6,227 @@
 	<div class="mb-6">
 		<h3 class="mb-2 text-base font-semibold text-slate-900">容器配置</h3>
 		<p class="text-sm text-slate-600">
-			配置 Docker 容器和镜像参数
+			@if (Target == "local")
+			{
+				<span>本地部署无需配置容器，系统将直接运行编译后的程序</span>
+			}
+			else
+			{
+				<span>配置 Docker 容器和镜像参数</span>
+			}
 		</p>
 	</div>
 
-	<Stack Direction="vertical" Gap="4">
-		<FormGroup Title="镜像配置" Icon="fab fa-docker">
-			<Input Label="镜像名称"
-				   Icon="fas fa-box"
-				   Placeholder="flowforge/myapp"
-				   Required="true"
-				   @bind-Value="Container.ImageName"
-				   HelpText="容器镜像的名称" />
+	@if (Target == "local")
+	{
+		<!-- 本地部署配置 -->
+		<Stack Direction="vertical" Gap="4">
+			<FormGroup Title="应用配置" Icon="fas fa-cog">
+				<Input Label="应用名称"
+					   Icon="fas fa-tag"
+					   Value="@ProjectName"
+					   Disabled="true"
+					   HelpText="应用程序名称（只读）" />
 
-			<Input Label="镜像标签"
-				   Placeholder="latest"
-				   @bind-Value="Container.ImageTag"
-				   HelpText="镜像版本标签" />
+				<Input Label="工作目录"
+					   Icon="fas fa-folder"
+					   Placeholder="C:/FlowForge/Apps"
+					   Value="Container.WorkingDirectory"
+					   HelpText="应用运行的工作目录" />
 
-			<Select Label="镜像仓库"
-					Options="@Registries"
-					@bind-Value="Container.Registry" />
+				<div class="grid grid-cols-2 gap-3">
+					<Input Label="启动端口"
+						   Type="number"
+						   Icon="fas fa-network-wired"
+						   Placeholder="5000"
+						   Value="Container.LocalPort"
+						   HelpText="应用监听端口" />
 
-			<Checkbox @bind-Checked="Container.AlwaysPullImage">
-				总是拉取最新镜像
-			</Checkbox>
-		</FormGroup>
-
-		<FormGroup Title="容器设置" Icon="fas fa-cog" Variant="primary">
-			<div class="grid grid-cols-2 gap-3">
-				<Input Label="容器名称"
-					   Placeholder="myapp-container"
-					   Value="@(Container.ContainerName)" />
-
-				<Input Label="副本数量"
-					   Type="number"
-					   Placeholder="1"
-					   Value="@(Container.Replicas.ToString())" />
-			</div>
-
-			<Select Label="重启策略"
-					Options="@RestartPolicies"
-					Value="Container.RestartPolicy" />
-
-			<Checkbox @bind-Checked="Container.Privileged">
-				特权模式（慎用）
-			</Checkbox>
-		</FormGroup>
-
-		<FormGroup Title="端口映射" Icon="fas fa-network-wired" Variant="success">
-			<div class="space-y-2">
-				@foreach (var mapping in Container.PortMappings)
-				{
-					<div class="flex items-center gap-2">
-						<Input Placeholder="容器端口"
-							   Type="number"
-							   Value="@(mapping.ContainerPort.ToString())"
-							   class="flex-1" />
-						<span class="text-slate-600">→</span>
-						<Input Placeholder="主机端口"
-							   Type="number"
-							   Value="@(mapping.HostPort.ToString())"
-							   class="flex-1" />
-						<Select Options="@Protocols"
-								Value="@(mapping.Protocol.ToString())"
-								Size="sm"
-								style="width: 100px;" />
-						<IconButton Icon="fas fa-trash"
-									Size="sm"
-									Variant="ghost"
-									OnClick="() => RemovePortMapping(mapping)" />
-					</div>
-				}
-
-				<Button Variant="secondary" Size="sm"
-						Icon="fas fa-plus"
-						OnClick="AddPortMapping">
-					添加端口映射
-				</Button>
-			</div>
-		</FormGroup>
-		<FormGroup Title="卷挂载" Icon="fas fa-hdd">
-			<div class="space-y-2">
-				@foreach (var volume in Container.Volumes)
-				{
-					<div class="flex items-center gap-2">
-						<Input Placeholder="主机路径"
-							   Value="@volume.HostPath"
-							   class="flex-1" />
-						<span class="text-slate-600">→</span>
-						<Input Placeholder="容器路径"
-							   Value="@volume.ContainerPath"
-							   class="flex-1" />
-						<Checkbox Checked="@volume.ReadOnly">只读</Checkbox>
-						<IconButton Icon="fas fa-trash"
-									Size="sm"
-									Variant="ghost"
-									OnClick="() => RemoveVolume(volume)" />
-					</div>
-				}
-
-				<Button Variant="secondary"
-						Size="sm"
-						Icon="fas fa-plus"
-						OnClick="AddVolume">
-					添加卷挂载
-				</Button>
-			</div>
-		</FormGroup>
-
-		<FormGroup Title="资源限制" Icon="fas fa-tachometer-alt" Variant="warning">
-			<div class="grid grid-cols-2 gap-4">
-				<div>
-					<label class="mb-2 block text-xs font-medium text-slate-700">CPU 限制</label>
-					<Input Type="number"
-						   Placeholder="1.0"
-						   Value="@(Container.CpuLimit.ToString())"
-						   HelpText="核心数" />
+					<Select Label="运行模式"
+							Options="@RunModeOptions"
+							Value="Container.RunMode" />
 				</div>
-				<div>
-					<label class="mb-2 block text-xs font-medium text-slate-700">内存限制</label>
-					<Input Type="number"
-						   Placeholder="512"
-						   Value="@(Container.MemoryLimit.ToString())"
-						   HelpText="MB" />
+			</FormGroup>
+
+			<FormGroup Title="启动选项" Icon="fas fa-play" Variant="primary">
+				<Checkbox Checked="Container.AutoStart">
+					部署后自动启动应用
+				</Checkbox>
+
+				<Checkbox Checked="Container.CreateShortcut">
+					创建桌面快捷方式
+				</Checkbox>
+
+				<Checkbox Checked="Container.OpenBrowser">
+					启动时自动打开浏览器
+				</Checkbox>
+			</FormGroup>
+
+			<FormGroup Title="环境变量" Icon="fas fa-key" Variant="success">
+				<div class="mb-3 rounded-lg bg-blue-50 p-3 text-xs text-blue-700">
+					<i class="fas fa-info-circle mr-1"></i>
+					环境变量将在"环境配置"步骤中统一设置
 				</div>
-			</div>
-		</FormGroup>
-	</Stack>
+			</FormGroup>
+		</Stack>
+	}
+	else
+	{
+		<!-- Docker/K8s 配置 -->
+		<Stack Direction="vertical" Gap="4">
+			<FormGroup Title="镜像配置" Icon="fab fa-docker">
+				<Input Label="镜像名称"
+					   Icon="fas fa-box"
+					   Placeholder="@(ProjectName.ToLower().Replace(" ", "-"))"
+					   Required="true"
+					   Value="Container.ImageName"
+					   HelpText="容器镜像的名称" />
+
+				<Input Label="镜像标签"
+					   Placeholder="latest"
+					   Value="Container.ImageTag"
+					   HelpText="镜像版本标签" />
+
+				<Select Label="镜像仓库"
+						Options="@Registries"
+						Value="Container.Registry" />
+
+				<Checkbox Checked="Container.AlwaysPullImage">
+					总是拉取最新镜像
+				</Checkbox>
+			</FormGroup>
+
+			<FormGroup Title="容器设置" Icon="fas fa-cog" Variant="primary">
+				<div class="grid grid-cols-2 gap-3">
+					<Input Label="容器名称"
+						   Placeholder="myapp-container"
+						   Value="Container.ContainerName" />
+
+					<Input Label="副本数量"
+						   Type="number"
+						   Placeholder="1"
+						   Value="Container.Replicas"
+						   Min="1"
+						   Max="10" />
+				</div>
+
+				<Select Label="重启策略"
+						Options="@RestartPolicies"
+						Value="Container.RestartPolicy" />
+
+				<Checkbox Checked="Container.Privileged">
+					特权模式（慎用）
+				</Checkbox>
+			</FormGroup>
+
+			<FormGroup Title="端口映射" Icon="fas fa-network-wired" Variant="success">
+				<div class="space-y-2">
+					@foreach (var mapping in Container.PortMappings)
+					{
+						<div class="flex items-center gap-2 rounded-lg bg-slate-50 p-2">
+							<div class="grid flex-1 grid-cols-3 gap-2">
+								<Input Placeholder="容器端口"
+									   Type="number"
+									   Value="@(mapping.ContainerPort.ToString())"
+									   Size="sm"
+									   ValueChanged="@((e) => mapping.ContainerPort = int.Parse(e?.ToString() ?? "0"))" />
+								<Input Placeholder="主机端口"
+									   Type="number"
+									   Value="@(mapping.HostPort.ToString())"
+									   Size="sm"
+									   ValueChanged="@((e) => mapping.HostPort = int.Parse(e?.ToString() ?? "0"))" />
+								<Select Options="@Protocols"
+										Value="@mapping.Protocol"
+										Size="sm"
+										ValueChanged="@((e) => mapping.Protocol = e?.ToString() ?? "TCP")" />
+							</div>
+							<IconButton Icon="fas fa-trash"
+										Size="sm"
+										Variant="ghost"
+										OnClick="() => RemovePortMapping(mapping)" />
+						</div>
+					}
+
+					<Button Variant="secondary"
+							Size="sm"
+							Icon="fas fa-plus"
+							FullWidth="true"
+							OnClick="AddPortMapping">
+						添加端口映射
+					</Button>
+				</div>
+			</FormGroup>
+
+			<FormGroup Title="资源限制" Icon="fas fa-tachometer-alt" Variant="warning">
+				<div class="grid grid-cols-2 gap-4">
+					<div>
+						<label class="mb-2 block text-xs font-medium text-slate-700">CPU 限制</label>
+						<Input Type="number"
+							   Placeholder="1.0"
+							   Value="Container.CpuLimit"
+							   HelpText="核心数"
+							   Step="0.1" />
+					</div>
+					<div>
+						<label class="mb-2 block text-xs font-medium text-slate-700">内存限制</label>
+						<Input Type="number"
+							   Placeholder="512"
+							   Value="Container.MemoryLimit"
+							   HelpText="MB" />
+					</div>
+				</div>
+			</FormGroup>
+		</Stack>
+	}
 </div>
+
 @code {
-	[Parameter] public ContainerConfiguration Container { get; set; } = new();
-	[Parameter] public EventCallback<ContainerConfiguration> ContainerChanged { get; set; }
+	[Parameter] public Zhg.FlowForge.App.Shared.Services.ContainerConfiguration Container { get; set; } = new();
+	[Parameter] public EventCallback<Zhg.FlowForge.App.Shared.Services.ContainerConfiguration> ContainerChanged { get; set; }
+	[Parameter] public string Target { get; set; } = "";
+	[Parameter] public string ProjectName { get; set; } = "";
+
+	private List<Select.SelectOption> RunModeOptions = new()
+	{
+		new("console", "控制台模式"),
+		new("background", "后台运行"),
+		new("service", "Windows 服务")
+	};
+
 	private List<Select.SelectOption> Registries = new()
-{
-	new("docker-hub", "Docker Hub"),
-	new("github", "GitHub Container Registry"),
-	new("aws-ecr", "AWS ECR"),
-	new("azure-acr", "Azure ACR"),
-	new("google-gcr", "Google GCR"),
-	new("private", "私有仓库")
-};
+	{
+		new("docker-hub", "Docker Hub"),
+		new("github", "GitHub Container Registry"),
+		new("aws-ecr", "AWS ECR"),
+		new("azure-acr", "Azure ACR"),
+		new("google-gcr", "Google GCR"),
+		new("private", "私有仓库")
+	};
 
 	private List<Select.SelectOption> RestartPolicies = new()
-{
-	new("always", "总是重启"),
-	new("on-failure", "失败时重启"),
-	new("unless-stopped", "除非停止"),
-	new("no", "不重启")
-};
+	{
+		new("always", "总是重启"),
+		new("on-failure", "失败时重启"),
+		new("unless-stopped", "除非停止"),
+		new("no", "不重启")
+	};
 
 	private List<Select.SelectOption> Protocols = new()
-{
-	new("TCP", "TCP"),
-	new("UDP", "UDP")
-};
+	{
+		new("TCP", "TCP"),
+		new("UDP", "UDP")
+	};
 
 	private void AddPortMapping()
 	{
+		var nextPort = Container.PortMappings.Any()
+			? Container.PortMappings.Max(p => p.HostPort) + 1
+			: 5000;
+
 		Container.PortMappings.Add(new PortMapping
 		{
-			ContainerPort = 8080,
-			HostPort = 8080,
+			ContainerPort = nextPort,
+			HostPort = nextPort,
 			Protocol = "TCP"
 		});
 		ContainerChanged.InvokeAsync(Container);
@@ -176,23 +235,6 @@
 	private void RemovePortMapping(PortMapping mapping)
 	{
 		Container.PortMappings.Remove(mapping);
-		ContainerChanged.InvokeAsync(Container);
-	}
-
-	private void AddVolume()
-	{
-		Container.Volumes.Add(new VolumeMount
-		{
-			HostPath = "/host/path",
-			ContainerPath = "/container/path",
-			ReadOnly = false
-		});
-		ContainerChanged.InvokeAsync(Container);
-	}
-
-	private void RemoveVolume(VolumeMount volume)
-	{
-		Container.Volumes.Remove(volume);
 		ContainerChanged.InvokeAsync(Container);
 	}
 }

@@ -35,6 +35,7 @@ public class EnvironmentConfiguration
 
 public class ContainerConfiguration
 {
+    // Docker/K8s 配置
     public string ImageName { get; set; } = "";
     public string ImageTag { get; set; } = "latest";
     public string Registry { get; set; } = "docker-hub";
@@ -47,6 +48,14 @@ public class ContainerConfiguration
     public List<VolumeMount> Volumes { get; set; } = new();
     public double CpuLimit { get; set; } = 1.0;
     public int MemoryLimit { get; set; } = 512;
+
+    // 本地部署配置
+    public string WorkingDirectory { get; set; } = "C:/FlowForge/Apps";
+    public int LocalPort { get; set; } = 5000;
+    public string RunMode { get; set; } = "console";
+    public bool AutoStart { get; set; } = true;
+    public bool CreateShortcut { get; set; } = false;
+    public bool OpenBrowser { get; set; } = true;
 }
 
 public class PortMapping

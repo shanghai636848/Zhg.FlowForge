@@ -25,17 +25,17 @@
                    HelpText="选择环境类型" />
 
             <div class="grid grid-cols-2 gap-3">
-               @*  <Input Label="CPU 限制"
+                <Input Label="CPU 限制"
                        Type="number"
                        Placeholder="1000"
-                       @bind-Value="Environment.CpuLimit"
+                       Value="Environment.CpuLimit"
                        HelpText="毫核 (millicores)" />
 
                 <Input Label="内存限制"
                        Type="number"
                        Placeholder="512"
-                       @bind-Value="Environment.MemoryLimit"
-                       HelpText="MB" /> *@
+                       Value="Environment.MemoryLimit"
+                       HelpText="MB" />
             </div>
         </FormGroup>
 
@@ -89,15 +89,15 @@
                            @bind-Value="Environment.HealthCheckPath" />
 
                     <div class="grid grid-cols-2 gap-3">
-                     @*    <Input Label="检查间隔（秒）"
+                        <Input Label="检查间隔（秒）"
                                Type="number"
                                Placeholder="30"
-                               @bind-Value="@(Environment.HealthCheckInterval.ToString())" />
+                               Value="@(Environment.HealthCheckInterval.ToString())" />
 
                         <Input Label="超时时间（秒）"
                                Type="number"
                                Placeholder="5"
-                               @bind-Value="@(Environment.HealthCheckTimeout.ToString())" /> *@
+                               Value="@(Environment.HealthCheckTimeout.ToString())" />
                     </div>
                 </div>
             }
