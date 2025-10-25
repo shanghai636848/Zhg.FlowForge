@@ -1,310 +1,493 @@
-﻿@page "/templates"
+@page "/templates"
 @using Zhg.FlowForge.App.Shared.Components.Buttons
-@using Zhg.FlowForge.App.Shared.Components.Display
-@using Zhg.FlowForge.App.Shared.Components.Feedback
-@using Zhg.FlowForge.App.Shared.Components.Form
-@using Zhg.FlowForge.App.Shared.Components.Layout
-@using Zhg.FlowForge.App.Shared.Components.Templates
-@using Zhg.FlowForge.App.Shared.Services
+@using Zhg.FlowForge.App.Shared.Models
 @layout MainLayout
 @inject ITemplateService TemplateService
 @inject NavigationManager Navigation
 @inject IToastService ToastService
-@inject ILocalizationService Localization
 
 <PageTitle>模板库 - FlowForge</PageTitle>
 
-<Container MaxWidth="7xl">
-	<Stack Direction="vertical" Gap="6">
-		<!-- 页面标题 -->
-		<div class="flex items-center justify-between">
-			<div>
-				<h1 class="mb-2 text-2xl font-bold text-slate-900">
-					@Localization["common.templates"]
-				</h1>
-				<p class="text-sm text-slate-600">
-					浏览和使用专业的 BPMN 流程模板，快速启动您的项目
-				</p>
-			</div>
-
-			<div class="flex items-center gap-2">
-				<Button Variant="secondary"
-						Icon="fas fa-upload"
-						OnClick="ShowUploadDialog">
-					上传模板
-				</Button>
+<div class="flex h-screen flex-col bg-slate-50">
+	<!-- 顶部搜索栏 -->
+	<div class="border-b border-slate-200 bg-white px-6 py-4">
+		<div class="mx-auto max-w-7xl">
+			<div class="mb-4 flex items-center justify-between">
+				<div>
+					<h1 class="text-xl font-bold text-slate-900">模板库</h1>
+					<p class="mt-1 text-sm text-slate-600">浏览和使用预制的项目模板，快速开始您的项目</p>
+				</div>
 				<Button Variant="primary"
+						Size="md"
 						Icon="fas fa-plus"
-						OnClick="CreateCustomTemplate">
+						OnClick="CreateTemplate">
 					创建模板
 				</Button>
 			</div>
-		</div>
 
-		
-
-		<!-- 模板列表 -->
-		@if (IsLoading)
-		{
-			<div class="py-12 text-center">
-				<i class="fas fa-spinner fa-spin mb-2 text-3xl text-blue-600"></i>
-				<p class="text-sm text-slate-600">加载中...</p>
-			</div>
-		}
-		else if (!FilteredTemplates.Any())
-		{
-			<div class="py-12 text-center">
-				<div class="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100">
-					<i class="fas fa-inbox text-2xl text-slate-400"></i>
+			<!-- 搜索和过滤 -->
+			<div class="flex items-center gap-3">
+				<div class="flex-1">
+					<div class="relative">
+						<i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+						<input type="text"
+							   @bind="SearchQuery"
+							   @bind:event="oninput"
+							   @onkeyup="OnSearchChanged"
+							   placeholder="搜索模板..."
+							   class="w-full rounded-lg border border-slate-300 py-2 pl-10 pr-4 text-sm focus:border-blue-500 focus:outline-none" />
+					</div>
 				</div>
-				<p class="text-sm text-slate-600">未找到匹配的模板</p>
+
+				<select @bind="SelectedCategory"
+						@onchange="FilterTemplates"
+						class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm focus:border-blue-500 focus:outline-none">
+					<option value="">所有分类</option>
+					<option value="web">Web 应用</option>
+					<option value="api">API 服务</option>
+					<option value="desktop">桌面应用</option>
+					<option value="mobile">移动应用</option>
+					<option value="microservice">微服务</option>
+					<option value="library">类库</option>
+				</select>
+
+				<select @bind="SortBy"
+						@onchange="SortTemplates"
+						class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm focus:border-blue-500 focus:outline-none">
+					<option value="popular">最受欢迎</option>
+					<option value="newest">最新发布</option>
+					<option value="name">名称排序</option>
+					<option value="downloads">下载次数</option>
+				</select>
 			</div>
-		}
-		else
-		{
-			@if (ViewMode == "grid")
+		</div>
+	</div>
+
+	<!-- 模板列表 -->
+	<div class="scrollable flex-1 overflow-y-auto">
+		<div class="mx-auto max-w-7xl px-6 py-6">
+			@if (IsLoading)
 			{
-				<Grid Cols="1" ColsSm="2" ColsLg="3" Gap="4">
+				<div class="flex h-64 items-center justify-center">
+					<div class="text-center">
+						<i class="fas fa-spinner fa-spin mb-2 text-2xl text-blue-600"></i>
+						<p class="text-sm text-slate-600">加载模板中...</p>
+					</div>
+				</div>
+			}
+			else if (FilteredTemplates.Any())
+			{
+				<div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
 					@foreach (var template in FilteredTemplates)
 					{
-						<TemplateCard Template="@template"
-									  OnUse="() => UseTemplate(template)"
-									  OnPreview="() => PreviewTemplate(template)"
-									  OnFavorite="() => ToggleFavorite(template)" />
+						<div class="group rounded-lg border border-slate-200 bg-white p-5 transition-all hover:border-blue-300 hover:shadow-lg">
+							<!-- 模板头部 -->
+							<div class="mb-4 flex items-start justify-between">
+								<div class="flex items-center gap-3">
+									<div class="flex h-12 w-12 items-center justify-center rounded-lg @GetCategoryColor(template.Category)">
+										<i class="@GetCategoryIcon(template.Category) text-xl"></i>
+									</div>
+									<div>
+										<h3 class="font-semibold text-slate-900">@template.Name</h3>
+										<span class="text-xs text-slate-500">@template.Author</span>
+									</div>
+								</div>
+								@if (template.IsFeatured)
+								{
+									<span class="rounded bg-amber-100 px-2 py-1 text-xs font-medium text-amber-700">
+										<i class="fas fa-star mr-1"></i>推荐
+									</span>
+								}
+							</div>
+
+							<!-- 模板描述 -->
+							<p class="mb-4 text-sm text-slate-600">
+								@template.Description
+							</p>
+
+							<!-- 标签 -->
+							<div class="mb-4 flex flex-wrap gap-2">
+								@foreach (var tag in template.Tags.Take(3))
+								{
+									<span class="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-600">
+										@tag
+									</span>
+								}
+								@if (template.Tags.Count > 3)
+								{
+									<span class="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-600">
+										+@(template.Tags.Count - 3)
+									</span>
+								}
+							</div>
+
+							<!-- 统计信息 -->
+							<div class="mb-4 flex items-center gap-4 text-xs text-slate-500">
+								<span class="flex items-center gap-1">
+									<i class="fas fa-download"></i>
+									@FormatNumber(template.Downloads)
+								</span>
+								<span class="flex items-center gap-1">
+									<i class="fas fa-star"></i>
+									@template.Rating.ToString("F1")
+								</span>
+								<span class="flex items-center gap-1">
+									<i class="fas fa-clock"></i>
+									@template.LastUpdated.ToString("yyyy-MM-dd")
+								</span>
+							</div>
+
+							<!-- 操作按钮 -->
+							<div class="flex items-center gap-2">
+								<Button Variant="primary"
+										Size="sm"
+										Icon="fas fa-play"
+										FullWidth="true"
+										OnClick="() => UseTemplate(template)">
+									使用模板
+								</Button>
+								<IconButton Icon="fas fa-info-circle"
+										   Size="sm"
+										   Variant="ghost"
+										   Title="查看详情"
+										   OnClick="() => ViewTemplateDetails(template)" />
+								<IconButton Icon="fas fa-heart"
+										   Size="sm"
+										   Variant="ghost"
+										   Title="收藏"
+										   OnClick="() => ToggleFavorite(template)" />
+							</div>
+						</div>
 					}
-				</Grid>
+				</div>
 			}
 			else
 			{
-				<div class="space-y-2">
-					@foreach (var template in FilteredTemplates)
-					{
-						<TemplateListItem Template="@template"
-										  OnUse="() => UseTemplate(template)"
-										  OnPreview="() => PreviewTemplate(template)"
-										  OnFavorite="() => ToggleFavorite(template)" />
-					}
+				<div class="flex h-64 items-center justify-center">
+					<div class="text-center">
+						<i class="fas fa-search mb-2 text-4xl text-slate-300"></i>
+						<p class="text-sm text-slate-600">未找到匹配的模板</p>
+						<p class="mt-1 text-xs text-slate-500">尝试调整搜索条件或分类筛选</p>
+					</div>
 				</div>
 			}
-		}
+		</div>
+	</div>
+</div>
 
-		<!-- 分页 -->
-		@if (TotalPages > 1)
-		{
-			<div class="flex items-center justify-center gap-2">
-				<Button Variant="secondary"
-						Size="sm"
-						Icon="fas fa-chevron-left"
-						Disabled="@(CurrentPage == 1)"
-						OnClick="PreviousPage">
-					上一页
-				</Button>
+<!-- 模板详情模态框 -->
+@if (SelectedTemplate != null)
+{
+	<Modal @bind-IsOpen="ShowTemplateDetails"
+		   Title="@SelectedTemplate.Name"
+		   MaxWidth="2xl">
+		<div class="space-y-4">
+			<!-- 模板信息 -->
+			<div class="flex items-start gap-4">
+				<div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg @GetCategoryColor(SelectedTemplate.Category)">
+					<i class="@GetCategoryIcon(SelectedTemplate.Category) text-3xl"></i>
+				</div>
+				<div class="flex-1">
+					<h3 class="mb-1 text-lg font-semibold text-slate-900">@SelectedTemplate.Name</h3>
+					<p class="mb-2 text-sm text-slate-600">@SelectedTemplate.Description</p>
+					<div class="flex items-center gap-4 text-xs text-slate-500">
+						<span>作者: @SelectedTemplate.Author</span>
+						<span>版本: @SelectedTemplate.Version</span>
+						<span>更新: @SelectedTemplate.LastUpdated.ToString("yyyy-MM-dd")</span>
+					</div>
+				</div>
+			</div>
 
-				<div class="flex items-center gap-1">
-					@for (int i = 1; i <= TotalPages; i++)
+			<!-- 标签 -->
+			<div>
+				<h4 class="mb-2 text-sm font-semibold text-slate-700">标签</h4>
+				<div class="flex flex-wrap gap-2">
+					@foreach (var tag in SelectedTemplate.Tags)
 					{
-						var page = i;
-						<button class="h-8 w-8 rounded text-xs font-medium transition-colors
-						                                      @(CurrentPage == page ?
-																									"bg-blue-600 text-white" :
-																									"bg-white text-slate-700 hover:bg-slate-50 border border-slate-200")"
-								@onclick="() => GoToPage(page)">
-						</button>
+						<span class="rounded-full bg-blue-50 px-3 py-1 text-sm text-blue-700">
+							@tag
+						</span>
 					}
 				</div>
+			</div>
 
+			<!-- 功能特性 -->
+			<div>
+				<h4 class="mb-2 text-sm font-semibold text-slate-700">功能特性</h4>
+				<ul class="space-y-2">
+					@foreach (var feature in SelectedTemplate.Features)
+					{
+						<li class="flex items-start gap-2 text-sm text-slate-600">
+							<i class="fas fa-check-circle mt-0.5 text-emerald-500"></i>
+							<span>@feature</span>
+						</li>
+					}
+				</ul>
+			</div>
+
+			<!-- 依赖项 -->
+			<div>
+				<h4 class="mb-2 text-sm font-semibold text-slate-700">主要依赖</h4>
+				<div class="flex flex-wrap gap-2">
+					@foreach (var dep in SelectedTemplate.Dependencies)
+					{
+						<span class="rounded bg-slate-100 px-2 py-1 text-xs text-slate-700">
+							@dep
+						</span>
+					}
+				</div>
+			</div>
+
+			<!-- 操作按钮 -->
+			<div class="flex items-center gap-2 pt-4">
+				<Button Variant="primary"
+						Size="md"
+						Icon="fas fa-play"
+						FullWidth="true"
+						OnClick="() => UseTemplate(SelectedTemplate)">
+					使用此模板
+				</Button>
 				<Button Variant="secondary"
-						Size="sm"
-						Icon="fas fa-chevron-right"
-						Disabled="@(CurrentPage == TotalPages)"
-						OnClick="NextPage">
-					下一页
+						Size="md"
+						OnClick="() => ShowTemplateDetails = false">
+					取消
 				</Button>
 			</div>
-		}
-	</Stack>
-</Container>
-
-<!-- 模板预览模态框 -->
-<Modal IsOpen="ShowPreviewModal"
-	   Title="@PreviewingTemplate?.Name"
-	   MaxWidth="4xl">
-
-	@* @if(PreviewingTemplate != null)
-	{
-		<TemplatePreview Template=PreviewingTemplate />
-	} *@
-
-	<FooterActions>
-		<Button Variant="secondary" OnClick="() => ShowPreviewModal = false">
-			关闭
-		</Button>
-		<Button Variant="primary" OnClick="() => UseTemplate(PreviewingTemplate!)">
-			使用此模板
-		</Button>
-	</FooterActions>
-</Modal>
-
-<style>
-	.filter-tab {
-		@@apply px-3 py-1.5 rounded-lg text-xs font-medium transition-colors;
-		@@apply text-slate-700 hover:bg-slate-100;
-	}
-
-		.filter-tab.active {
-			@@apply bg-blue-600 text-white hover:bg-blue-700;
-		}
-
-	.view-toggle {
-		@@apply w-7 h-7 rounded flex items-center justify-center;
-		@@apply text-slate-600 hover:bg-slate-100 transition-colors;
-	}
-
-		.view-toggle.active {
-			@@apply bg-slate-900 text-white;
-		}
-</style>
+		</div>
+	</Modal>
+}
 
 @code {
 	private bool IsLoading = true;
+	private bool ShowTemplateDetails = false;
 	private string SearchQuery = "";
-	private string ActiveCategory = "all";
+	private string SelectedCategory = "";
 	private string SortBy = "popular";
-	private string ViewMode = "grid";
-	private int CurrentPage = 1;
-	private int PageSize = 12;
 
-	private List<WorkflowTemplate> Templates = new();
-	private WorkflowTemplate? PreviewingTemplate = null;
-	private bool ShowPreviewModal = false;
-	private int TotalTemplates => Templates.Count;
-	private int PopularTemplates => Templates.Count(t => t.Downloads > 100);
-	private int TotalDownloads => Templates.Sum(t => t.Downloads);
-	private int MyTemplates => Templates.Count(t => t.IsCustom);
-
-	private IEnumerable<WorkflowTemplate> FilteredTemplates
-	{
-		get
-		{
-			var filtered = Templates.AsEnumerable();
-
-			// 分类筛选
-			if (ActiveCategory != "all")
-			{
-				filtered = filtered.Where(t => t.Category == ActiveCategory);
-			}
-
-			// 搜索筛选
-			if (!string.IsNullOrWhiteSpace(SearchQuery))
-			{
-				filtered = filtered.Where(t =>
-					t.Name.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) ||
-					t.Description.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) ||
-					t.Tags.Any(tag => tag.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase)));
-			}
-
-			// 排序
-			filtered = SortBy switch
-			{
-				"popular" => filtered.OrderByDescending(t => t.Downloads),
-				"recent" => filtered.OrderByDescending(t => t.CreatedAt),
-				"rating" => filtered.OrderByDescending(t => t.Rating),
-				"name" => filtered.OrderBy(t => t.Name),
-				_ => filtered
-			};
-
-			// 分页
-			return filtered
-				.Skip((CurrentPage - 1) * PageSize)
-				.Take(PageSize);
-		}
-	}
-
-	private int TotalPages => (int)Math.Ceiling(Templates.Count / (double)PageSize);
-
-	private List<Select.SelectOption> SortOptions = new()
-{
-	new("popular", "最受欢迎"),
-	new("recent", "最新发布"),
-	new("rating", "评分最高"),
-	new("name", "名称排序")
-};
+	private List<TemplateInfo> AllTemplates = new();
+	private List<TemplateInfo> FilteredTemplates = new();
+	private TemplateInfo? SelectedTemplate = null;
 
 	protected override async Task OnInitializedAsync()
 	{
-		await LoadTemplatesAsync();
-	}
-
-	private async Task LoadTemplatesAsync()
-	{
-		IsLoading = true;
-		Templates = await TemplateService.GetTemplatesAsync();
+		await LoadTemplates();
 		IsLoading = false;
 	}
 
-	private void FilterByCategory(string category)
+	private async Task LoadTemplates()
 	{
-		ActiveCategory = category;
-		CurrentPage = 1;
-	}
-
-	private void UseTemplate(WorkflowTemplate template)
-	{
-		ShowPreviewModal = false;
-		Navigation.NavigateTo($"/designer/from-template/{template.Id}");
-	}
-
-	private void PreviewTemplate(WorkflowTemplate template)
-	{
-		PreviewingTemplate = template;
-		ShowPreviewModal = true;
-	}
-
-	private async Task ToggleFavorite(WorkflowTemplate template)
-	{
-		template.IsFavorite = !template.IsFavorite;
-		await TemplateService.ToggleFavoriteAsync(template.Id);
-
-		if (template.IsFavorite)
+		// 模拟加载模板数据
+		AllTemplates = new List<TemplateInfo>
 		{
-			ToastService.Success($"已收藏 {template.Name}");
-		}
-		else
+			new()
+			{
+				Id = "1",
+				Name = "ASP.NET Core Web API",
+				Description = "现代化的 RESTful API 模板，包含身份验证、日志和 Swagger 文档",
+				Category = "api",
+				Author = "Microsoft",
+				Version = "1.0.0",
+				Downloads = 125000,
+				Rating = 4.8,
+				IsFeatured = true,
+				Tags = new() { "ASP.NET Core", "Web API", "REST", "Swagger", "JWT" },
+				Features = new() { "JWT 身份验证", "Swagger/OpenAPI 文档", "结构化日志", "异常处理中间件", "健康检查端点" },
+				Dependencies = new() { "ASP.NET Core 8.0", "Entity Framework Core", "Serilog", "AutoMapper" },
+				LastUpdated = DateTime.Now.AddDays(-5)
+			},
+			new()
+			{
+				Id = "2",
+				Name = "Blazor WebAssembly 应用",
+				Description = "使用 Blazor WebAssembly 构建的单页应用模板",
+				Category = "web",
+				Author = "Microsoft",
+				Version = "2.1.0",
+				Downloads = 89000,
+				Rating = 4.6,
+				IsFeatured = true,
+				Tags = new() { "Blazor", "WebAssembly", "SPA", "C#" },
+				Features = new() { "组件化架构", "客户端路由", "状态管理", "HTTP 拦截器", "响应式设计" },
+				Dependencies = new() { ".NET 8.0", "Blazor WebAssembly", "HttpClient" },
+				LastUpdated = DateTime.Now.AddDays(-10)
+			},
+			new()
+			{
+				Id = "3",
+				Name = "微服务架构模板",
+				Description = "基于容器的微服务架构，包含 API 网关和服务发现",
+				Category = "microservice",
+				Author = "Community",
+				Version = "1.5.2",
+				Downloads = 56000,
+				Rating = 4.7,
+				IsFeatured = false,
+				Tags = new() { "Microservices", "Docker", "Kubernetes", "gRPC", "RabbitMQ" },
+				Features = new() { "API 网关", "服务发现", "分布式追踪", "消息队列", "容器化部署" },
+				Dependencies = new() { "Docker", "Kubernetes", "Consul", "Ocelot", "MassTransit" },
+				LastUpdated = DateTime.Now.AddDays(-15)
+			},
+			new()
+			{
+				Id = "4",
+				Name = "WPF MVVM 应用",
+				Description = "采用 MVVM 模式的 WPF 桌面应用程序模板",
+				Category = "desktop",
+				Author = "Community",
+				Version = "1.2.0",
+				Downloads = 42000,
+				Rating = 4.5,
+				IsFeatured = false,
+				Tags = new() { "WPF", "MVVM", "Desktop", "Prism" },
+				Features = new() { "MVVM 架构", "依赖注入", "导航服务", "对话框服务", "主题支持" },
+				Dependencies = new() { ".NET 8.0", "Prism.Unity", "MaterialDesignThemes" },
+				LastUpdated = DateTime.Now.AddDays(-20)
+			},
+			new()
+			{
+				Id = "5",
+				Name = "MAUI 跨平台应用",
+				Description = "使用 .NET MAUI 构建的跨平台移动应用模板",
+				Category = "mobile",
+				Author = "Microsoft",
+				Version = "1.0.5",
+				Downloads = 38000,
+				Rating = 4.4,
+				IsFeatured = true,
+				Tags = new() { "MAUI", "iOS", "Android", "Cross-platform" },
+				Features = new() { "跨平台 UI", "本地存储", "网络请求", "平台特定功能", "Shell 导航" },
+				Dependencies = new() { ".NET 8.0", "MAUI", "SQLite" },
+				LastUpdated = DateTime.Now.AddDays(-7)
+			},
+			new()
+			{
+				Id = "6",
+				Name = "类库项目模板",
+				Description = "可重用的 .NET 类库项目，支持 NuGet 打包",
+				Category = "library",
+				Author = "Community",
+				Version = "1.1.0",
+				Downloads = 28000,
+				Rating = 4.3,
+				IsFeatured = false,
+				Tags = new() { "Library", "NuGet", "Reusable" },
+				Features = new() { "多目标框架", "单元测试", "NuGet 打包配置", "XML 文档", "版本控制" },
+				Dependencies = new() { ".NET Standard 2.1", "xUnit" },
+				LastUpdated = DateTime.Now.AddDays(-30)
+			}
+		};
+
+		FilteredTemplates = AllTemplates;
+		await Task.CompletedTask;
+	}
+
+	private void OnSearchChanged()
+	{
+		FilterTemplates();
+	}
+
+	private void FilterTemplates()
+	{
+		FilteredTemplates = AllTemplates;
+
+		// 分类过滤
+		if (!string.IsNullOrEmpty(SelectedCategory))
 		{
-			ToastService.Info($"已取消收藏 {template.Name}");
+			FilteredTemplates = FilteredTemplates.Where(t => t.Category == SelectedCategory).ToList();
 		}
 
-		StateHasChanged();
-	}
-
-	private void ShowUploadDialog()
-	{
-		ToastService.Info("上传功能开发中...");
-	}
-
-	private void CreateCustomTemplate()
-	{
-		Navigation.NavigateTo("/templates/create");
-	}
-
-	private void PreviousPage()
-	{
-		if (CurrentPage > 1)
+		// 搜索过滤
+		if (!string.IsNullOrEmpty(SearchQuery))
 		{
-			CurrentPage--;
+			var query = SearchQuery.ToLower();
+			FilteredTemplates = FilteredTemplates.Where(t =>
+				t.Name.ToLower().Contains(query) ||
+				t.Description.ToLower().Contains(query) ||
+				t.Tags.Any(tag => tag.ToLower().Contains(query))
+			).ToList();
 		}
+
+		SortTemplates();
 	}
 
-	private void NextPage()
+	private void SortTemplates()
 	{
-		if (CurrentPage < TotalPages)
+		FilteredTemplates = SortBy switch
 		{
-			CurrentPage++;
-		}
+			"newest" => FilteredTemplates.OrderByDescending(t => t.LastUpdated).ToList(),
+			"name" => FilteredTemplates.OrderBy(t => t.Name).ToList(),
+			"downloads" => FilteredTemplates.OrderByDescending(t => t.Downloads).ToList(),
+			_ => FilteredTemplates.OrderByDescending(t => t.Rating).ThenByDescending(t => t.Downloads).ToList()
+		};
 	}
 
-	private void GoToPage(int page)
+	private void ViewTemplateDetails(TemplateInfo template)
 	{
-		CurrentPage = page;
-	}	
+		SelectedTemplate = template;
+		ShowTemplateDetails = true;
+	}
+
+	private void UseTemplate(TemplateInfo template)
+	{
+		ToastService.Info($"正在使用模板: {template.Name}");
+		Navigation.NavigateTo($"/codegen/new?template={template.Id}");
+	}
+
+	private void ToggleFavorite(TemplateInfo template)
+	{
+		ToastService.Success($"已收藏模板: {template.Name}");
+	}
+
+	private void CreateTemplate()
+	{
+		ToastService.Info("创建模板功能开发中...");
+	}
+
+	private string GetCategoryIcon(string category) => category switch
+	{
+		"web" => "fas fa-globe",
+		"api" => "fas fa-plug",
+		"desktop" => "fas fa-desktop",
+		"mobile" => "fas fa-mobile-alt",
+		"microservice" => "fas fa-network-wired",
+		"library" => "fas fa-book",
+		_ => "fas fa-file-code"
+	};
+
+	private string GetCategoryColor(string category) => category switch
+	{
+		"web" => "bg-blue-100 text-blue-600",
+		"api" => "bg-emerald-100 text-emerald-600",
+		"desktop" => "bg-purple-100 text-purple-600",
+		"mobile" => "bg-pink-100 text-pink-600",
+		"microservice" => "bg-amber-100 text-amber-600",
+		"library" => "bg-slate-100 text-slate-600",
+		_ => "bg-slate-100 text-slate-600"
+	};
+
+	private string FormatNumber(int number)
+	{
+		if (number >= 1000000)
+			return $"{number / 1000000.0:F1}M";
+		if (number >= 1000)
+			return $"{number / 1000.0:F1}K";
+		return number.ToString();
+	}
+
+	class TemplateInfo
+	{
+		public string Id { get; set; } = "";
+		public string Name { get; set; } = "";
+		public string Description { get; set; } = "";
+		public string Category { get; set; } = "";
+		public string Author { get; set; } = "";
+		public string Version { get; set; } = "";
+		public int Downloads { get; set; }
+		public double Rating { get; set; }
+		public bool IsFeatured { get; set; }
+		public List<string> Tags { get; set; } = new();
+		public List<string> Features { get; set; } = new();
+		public List<string> Dependencies { get; set; } = new();
+		public DateTime LastUpdated { get; set; }
+	}
 }
