@@ -1,0 +1,147 @@
+﻿@using Zhg.FlowForge.App.Shared.Components.Buttons
+@using Zhg.FlowForge.App.Shared.Components.Form
+@using Zhg.FlowForge.App.Shared.Services
+<!-- Components/Editor/SearchInFilesPanel.razor -->
+@inject IToastService ToastService
+
+<div class="space-y-3">
+    <div class="space-y-2">
+        <Input Placeholder="搜索内容..."
+               PrefixIcon="fas fa-search"
+               Size="sm"
+               Value="_searchQuery"
+               @onkeydown="HandleKeyDown" />
+
+        <div class="flex items-center gap-2">
+            <Checkbox Checked="_caseSensitive" Size="sm">
+                <span class="text-xs">区分大小写</span>
+            </Checkbox>
+            <Checkbox Checked="_wholeWord" Size="sm">
+                <span class="text-xs">全字匹配</span>
+            </Checkbox>
+        </div>
+
+        <div class="flex items-center gap-2">
+            <Checkbox Checked="_useRegex" Size="sm">
+                <span class="text-xs">正则表达式</span>
+            </Checkbox>
+            <Checkbox Checked="_includeFiles" Size="sm">
+                <span class="text-xs">包含所有文件</span>
+            </Checkbox>
+        </div>
+
+        <Button Variant="primary"
+                Size="sm"
+                Icon="fas fa-search"
+                FullWidth="true"
+                OnClick="PerformSearch"
+                Disabled="string.IsNullOrWhiteSpace(_searchQuery)">
+            搜索
+        </Button>
+    </div>
+
+    @if (_isSearching)
+    {
+        <div class="py-4 text-center">
+            <i class="fas fa-spinner fa-spin text-slate-400"></i>
+            <p class="mt-2 text-xs text-slate-500">搜索中...</p>
+        </div>
+    }
+    else if (_searchResults.Any())
+    {
+        <div class="space-y-2">
+            <div class="mb-2 text-xs text-slate-400">
+                找到 @_searchResults.Count 个结果
+            </div>
+            @foreach (var result in _searchResults)
+            {
+                <div class="cursor-pointer rounded bg-slate-700/50 p-2 transition-colors hover:bg-slate-700"
+                     @onclick="() => OnSearchPerformed.InvokeAsync(result.Text)">
+                    <div class="mb-1 text-xs font-medium text-slate-200">
+                        @result.FileName
+                    </div>
+                    <div class="font-mono text-xs text-slate-400">
+                        行 @result.Line: @result.Text
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else if (_hasSearched)
+    {
+        <div class="py-8 text-center">
+            <i class="fas fa-search mb-2 text-2xl text-slate-600"></i>
+            <p class="text-xs text-slate-500">未找到匹配结果</p>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public EventCallback<string> OnSearchPerformed { get; set; }
+
+    private string _searchQuery = "";
+    private bool _caseSensitive = false;
+    private bool _wholeWord = false;
+    private bool _useRegex = false;
+    private bool _includeFiles = false;
+    private bool _isSearching = false;
+    private bool _hasSearched = false;
+    private List<SearchResult> _searchResults = new();
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(_searchQuery))
+        {
+            await PerformSearch();
+        }
+    }
+
+    private async Task PerformSearch()
+    {
+        if (string.IsNullOrWhiteSpace(_searchQuery))
+        {
+            return;
+        }
+
+        _isSearching = true;
+        _hasSearched = false;
+        _searchResults.Clear();
+        StateHasChanged();
+
+        try
+        {
+            await Task.Delay(500); // 模拟搜索延迟
+
+            // 模拟搜索结果
+            _searchResults = new List<SearchResult>
+            {
+                new("Program.cs", 15, $"包含 '{_searchQuery}' 的代码行"),
+                new("Startup.cs", 23, $"找到匹配项 '{_searchQuery}'"),
+                new("Models/User.cs", 42, $"定义了 '{_searchQuery}'")
+            };
+
+            await OnSearchPerformed.InvokeAsync(_searchQuery);
+            
+            if (_searchResults.Any())
+            {
+                ToastService.Success($"找到 {_searchResults.Count} 个结果");
+            }
+            else
+            {
+                ToastService.Info("未找到匹配结果");
+            }
+        }
+        catch (Exception ex)
+        {
+            ToastService.Error($"搜索失败: {ex.Message}");
+        }
+        finally
+        {
+            _isSearching = false;
+            _hasSearched = true;
+            StateHasChanged();
+        }
+    }
+
+    record SearchResult(string FileName, int Line, string Text);
+}

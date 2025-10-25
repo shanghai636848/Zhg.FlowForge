@@ -109,7 +109,7 @@ public class Project
 public class ProjectFile
 {
     public string Path { get; set; } = "";
-    public string Name => System.IO.Path.GetFileName(Path);
+    public string Name { get; set; } = "";
     public bool IsFolder { get; set; }
     public bool IsDirty { get; set; }
     public int LineCount { get; set; }

@@ -1,5 +1,6 @@
 ﻿<button class="@GetButtonClass()"
 		disabled="@IsDisabled"
+		title="@Title"
 		@onclick="OnClickHandler">
 
 	@if (Loading)
@@ -18,6 +19,7 @@
 </button>
 
 @code {
+    [Parameter] public string Title { get; set; } = "";
 	[Parameter] public string Icon { get; set; } = "";
 	[Parameter] public string Variant { get; set; } = "primary"; // primary, secondary, success, danger, ghost
 	[Parameter] public string Size { get; set; } = "md"; // xs, sm, md, lg
