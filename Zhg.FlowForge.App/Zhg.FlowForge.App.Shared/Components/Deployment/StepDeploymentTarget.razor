@@ -1,0 +1,171 @@
+﻿@using Zhg.FlowForge.App.Shared.Components.Display
+@using Zhg.FlowForge.App.Shared.Components.Feedback
+@using Zhg.FlowForge.App.Shared.Components.Layout
+@using Zhg.FlowForge.App.Shared.Services
+<div class="max-w-4xl">
+    <div class="mb-6">
+        <h3 class="mb-2 text-base font-semibold text-slate-900">选择部署目标</h3>
+        <p class="text-sm text-slate-600">
+            选择您想要部署应用的目标平台
+        </p>
+    </div>
+
+    <Grid Cols="1" ColsMd="2" ColsLg="3" Gap="4">
+        @foreach (var target in DeploymentTargets)
+        {
+            <div class="group relative cursor-pointer"
+                 @onclick="() => SelectTarget(target.Id)">
+                <Card Variant="@(Config.Target == target.Id ? "primary" : "default")"
+                      Hoverable="true"
+                      Clickable="true">
+                    
+                    @if (Config.Target == target.Id)
+                    {
+                        <div class="absolute top-3 right-3 flex h-6 w-6 items-center
+                                    justify-center rounded-full bg-blue-500">
+                            <i class="fas fa-check text-xs text-white"></i>
+                        </div>
+                    }
+
+                    <div class="mx-auto mb-4 flex @target.IconBg
+                                h-16 w-16 items-center justify-center rounded-xl">
+                        <i class="@target.Icon @target.IconColor text-3xl"></i>
+                    </div>
+
+                    <h4 class="mb-2 text-center text-sm font-semibold text-slate-900">
+                        @target.Name
+                    </h4>
+                    <p class="mb-3 text-center text-xs text-slate-600">
+                        @target.Description
+                    </p>
+
+                    @if (!string.IsNullOrEmpty(target.Badge))
+                    {
+                        <div class="flex justify-center">
+                            <Badge Variant="@target.BadgeVariant" Size="sm">@target.Badge</Badge>
+                        </div>
+                    }
+
+                    <div class="mt-4 border-t border-slate-200 pt-4">
+                        <div class="space-y-1.5">
+                            @foreach (var feature in target.Features)
+                            {
+                                <div class="flex items-center gap-2 text-xs text-slate-600">
+                                    <i class="fas fa-check text-xs text-emerald-500"></i>
+                                    <span>@feature</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </Card>
+            </div>
+        }
+    </Grid>
+
+    @if (!string.IsNullOrEmpty(Config.Target))
+    {
+        <div class="mt-6">
+            <Alert Type="info" ShowIcon="true">
+                已选择 <strong>@GetTargetName(Config.Target)</strong> 作为部署目标
+            </Alert>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public DeploymentConfiguration Config { get; set; } = new();
+    [Parameter] public EventCallback<DeploymentConfiguration> ConfigChanged { get; set; }
+
+    private List<DeploymentTargetInfo> DeploymentTargets = new()
+    {
+        new(
+            "docker",
+            "Docker 容器",
+            "部署为 Docker 容器",
+            "fab fa-docker",
+            "bg-blue-100",
+            "text-blue-600",
+            "推荐",
+            "success",
+            new[] { "快速部署", "资源隔离", "易于迁移", "版本控制" }
+        ),
+        new(
+            "kubernetes",
+            "Kubernetes",
+            "部署到 K8s 集群",
+            "fas fa-dharmachakra",
+            "bg-indigo-100",
+            "text-indigo-600",
+            "云原生",
+            "primary",
+            new[] { "自动扩展", "负载均衡", "高可用", "滚动更新" }
+        ),
+        new(
+            "aws",
+            "AWS",
+            "Amazon Web Services",
+            "fab fa-aws",
+            "bg-amber-100",
+            "text-amber-600",
+            "",
+            "",
+            new[] { "EC2 实例", "Lambda 函数", "ECS 服务", "全球部署" }
+        ),
+        new(
+            "azure",
+            "Azure",
+            "Microsoft Azure",
+            "fab fa-microsoft",
+            "bg-cyan-100",
+            "text-cyan-600",
+            "",
+            "",
+            new[] { "App Service", "容器实例", "函数应用", "企业集成" }
+        ),
+        new(
+            "gcp",
+            "Google Cloud",
+            "Google Cloud Platform",
+            "fab fa-google",
+            "bg-rose-100",
+            "text-rose-600",
+            "",
+            "",
+            new[] { "Cloud Run", "GKE", "App Engine", "全球网络" }
+        ),
+        new(
+            "local",
+            "本地部署",
+            "部署到本地服务器",
+            "fas fa-server",
+            "bg-slate-100",
+            "text-slate-600",
+            "",
+            "",
+            new[] { "完全控制", "数据隐私", "无云费用", "内网部署" }
+        )
+    };
+
+    private async Task SelectTarget(string targetId)
+    {
+        Config.Target = targetId;
+        await ConfigChanged.InvokeAsync(Config);
+    }
+
+    private string GetTargetName(string targetId)
+    {
+        return DeploymentTargets.FirstOrDefault(t => t.Id == targetId)?.Name ?? targetId;
+    }
+
+    record DeploymentTargetInfo(
+        string Id,
+        string Name,
+        string Description,
+        string Icon,
+        string IconBg,
+        string IconColor,
+        string Badge,
+        string BadgeVariant,
+        string[] Features
+    );
+}
