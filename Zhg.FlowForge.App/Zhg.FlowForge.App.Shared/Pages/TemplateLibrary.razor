@@ -1,6 +1,8 @@
-@page "/templates"
+﻿@page "/templates"
 @using Zhg.FlowForge.App.Shared.Components.Buttons
+@using Zhg.FlowForge.App.Shared.Components.Feedback
 @using Zhg.FlowForge.App.Shared.Models
+@using Zhg.FlowForge.App.Shared.Services
 @layout MainLayout
 @inject ITemplateService TemplateService
 @inject NavigationManager Navigation
@@ -29,18 +31,18 @@
 			<div class="flex items-center gap-3">
 				<div class="flex-1">
 					<div class="relative">
-						<i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+						<i class="fas fa-search absolute top-1/2 left-3 -translate-y-1/2 text-slate-400"></i>
 						<input type="text"
 							   @bind="SearchQuery"
 							   @bind:event="oninput"
 							   @onkeyup="OnSearchChanged"
 							   placeholder="搜索模板..."
-							   class="w-full rounded-lg border border-slate-300 py-2 pl-10 pr-4 text-sm focus:border-blue-500 focus:outline-none" />
+							   class="w-full rounded-lg border border-slate-300 py-2 pr-4 pl-10 text-sm focus:border-blue-500 focus:outline-none" />
 					</div>
 				</div>
 
 				<select @bind="SelectedCategory"
-						@onchange="FilterTemplates"
+						@bind:after="FilterTemplates"
 						class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm focus:border-blue-500 focus:outline-none">
 					<option value="">所有分类</option>
 					<option value="web">Web 应用</option>
@@ -52,7 +54,7 @@
 				</select>
 
 				<select @bind="SortBy"
-						@onchange="SortTemplates"
+						@bind:after="SortTemplates"
 						class="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm focus:border-blue-500 focus:outline-none">
 					<option value="popular">最受欢迎</option>
 					<option value="newest">最新发布</option>
@@ -178,7 +180,7 @@
 <!-- 模板详情模态框 -->
 @if (SelectedTemplate != null)
 {
-	<Modal @bind-IsOpen="ShowTemplateDetails"
+	<Modal IsOpen="ShowTemplateDetails"
 		   Title="@SelectedTemplate.Name"
 		   MaxWidth="2xl">
 		<div class="space-y-4">
