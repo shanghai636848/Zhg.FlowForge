@@ -21,7 +21,7 @@
 			添加依赖
 		</Button>
 	</div><!-- 依赖分类标签 -->
-	<Tabs @bind-ActiveTab="ActiveCategory"
+	<Tabs ActiveTab="ActiveCategory"
 		  Variant="pills"
 		  Size="sm"
 		  Tabs="@CategoryTabs">
@@ -55,8 +55,9 @@
 								</div>                            <div class="flex shrink-0 items-center gap-2">
 									<Select Options="@GetVersionOptions(dep.PackageId)"
 											Size="sm"
-											@bind-Value="dep.Version"
-											style="width: 120px;" />                                @if (!dep.IsRequired)
+											Value="dep.Version" />   
+									@* style="width: 120px;" *@
+									@if (!dep.IsRequired)
 									{
 										<IconButton Icon="fas fa-trash"
 													Size="sm"
@@ -154,14 +155,14 @@
 	</div>
 </div>
 @* <!-- 添加依赖对话框 -->
-<Modal @bind-IsOpen="ShowAddDialog"
+<Modal IsOpen="ShowAddDialog"
 	   Title="添加 NuGet 包"
 	   Icon="fas fa-search"
 	   MaxWidth="lg">
 	<div class="space-y-4">
 		<Input Placeholder="搜索 NuGet 包..."
 			   PrefixIcon="fas fa-search"
-			   @bind-Value="SearchQuery" />
+			   Value="SearchQuery" />
 		@if (!string.IsNullOrEmpty(SearchQuery))
 		{
 			<div class="scrollable max-h-96 space-y-2 overflow-y-auto">
@@ -178,7 +179,7 @@
  *@
 
 <!-- 添加依赖对话框 -->
-<Modal @bind-IsOpen="ShowAddDialog"
+<Modal IsOpen="ShowAddDialog"
 	   Title="添加 NuGet 包"
 	   Icon="fas fa-search"
 	   MaxWidth="lg">
@@ -186,7 +187,7 @@
 		<div class="space-y-4">
 			<Input Placeholder="搜索 NuGet 包..."
 				   PrefixIcon="fas fa-search"
-				   @bind-Value="SearchQuery" />
+				   Value="SearchQuery" />
 			@if (!string.IsNullOrEmpty(SearchQuery))
 			{
 				<div class="scrollable max-h-96 space-y-2 overflow-y-auto">
