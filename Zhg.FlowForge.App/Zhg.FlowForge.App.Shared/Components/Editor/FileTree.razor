@@ -1,19 +1,157 @@
-﻿@using Zhg.FlowForge.App.Shared.Services
-<div class="space-y-0.5">
-	@foreach (var item in Files)
-	{
-		<FileTreeItem File="@item"
-					  IsSelected="@(SelectedFile?.Path == item.Path)"
-					  OnClick="() => OnFileSelected.InvokeAsync(item)"
-					  OnRename="() => OnFileRenamed.InvokeAsync(item)"
-					  OnDelete="() => OnFileDeleted.InvokeAsync(item)" />
-	}
+﻿@using System.IO
+@using Zhg.FlowForge.App.Shared.Services
+@using Microsoft.AspNetCore.Components  // 确保引入正确的命名空间
+
+<div class="file-tree select-none">
+    @if (Files != null && Files.Any())
+    {
+        @RenderFiles(Files, 0)
+    }
+    else
+    {
+        <div class="flex flex-col items-center justify-center py-8 text-sm text-slate-500">
+            <i class="fa-solid fa-folder-open mb-2 text-2xl"></i>
+            <p>没有文件</p>
+        </div>
+    }
 </div>
 
 @code {
-	[Parameter] public List<ProjectFile> Files { get; set; } = new();
-	[Parameter] public ProjectFile? SelectedFile { get; set; }
-	[Parameter] public EventCallback<ProjectFile> OnFileSelected { get; set; }
-	[Parameter] public EventCallback<ProjectFile> OnFileRenamed { get; set; }
-	[Parameter] public EventCallback<ProjectFile> OnFileDeleted { get; set; }
+    [Parameter, EditorRequired]
+    public List<ProjectFile> Files { get; set; } = new();
+
+    [Parameter]
+    public ProjectFile? SelectedFile { get; set; }
+
+    [Parameter]
+    public EventCallback<ProjectFile> OnFileSelected { get; set; }
+
+    [Parameter]
+    public EventCallback<ProjectFile> OnFileRenamed { get; set; }
+
+    [Parameter]
+    public EventCallback<ProjectFile> OnFileDeleted { get; set; }
+
+    // 递归渲染文件树
+    private RenderFragment RenderFiles(List<ProjectFile> files, int level)
+    {
+        return builder =>
+        {
+            // 按类型和名称排序：文件夹在前，文件在后
+            var sortedFiles = files
+                .OrderByDescending(f => f.IsFolder)
+                .ThenBy(f => f.Name)
+                .ToList();
+
+            foreach (var file in sortedFiles)
+            {
+                // 每个文件项使用唯一key
+                var key = file.Path;
+                builder.OpenRegion(key.GetHashCode());
+
+                // 计算缩进（使用Tailwind的空间类）
+                var indentClass = level > 0 ? $"pl-{level * 6}" : ""; // 1.5rem = 6 Tailwind单位
+
+                // 构建文件项容器
+                builder.OpenElement(0, "div");
+                builder.AddAttribute(1, "class", $"{GetFileItemClass(file)} {indentClass}");
+                builder.AddAttribute(2, "onclick", EventCallback.Factory.Create(this, async () => await HandleFileSelect(file)));
+
+                // 图标
+                builder.OpenElement(3, "i");
+                builder.AddAttribute(4, "class", GetFileIcon(file));
+                builder.CloseElement(); // 关闭i
+
+                // 文件名
+                builder.OpenElement(5, "span");
+                builder.AddAttribute(6, "class", "flex-1 overflow-hidden text-ellipsis whitespace-nowrap");
+                builder.AddContent(7, file.Name);
+                builder.CloseElement(); // 关闭span
+
+                // 右键菜单按钮（仅hover显示）
+                builder.OpenElement(8, "div");
+                builder.AddAttribute(9, "class", "opacity-0 transition-opacity px-1 hover:opacity-100");
+                builder.AddAttribute(10, "onclick", EventCallback.Factory.Create(this, () => HandleActionMenu(file)));
+
+                builder.OpenElement(11, "i");
+                builder.AddAttribute(12, "class", "fa-solid fa-ellipsis-v");
+                builder.CloseElement(); // 关闭i
+                builder.CloseElement(); // 关闭file-actions
+
+                builder.CloseElement(); // 关闭div（文件项容器）
+
+                // 如果是文件夹且有子项，递归渲染
+                if (file.IsFolder && file.SubFiles != null && file.SubFiles.Any())  // 修正子文件属性名
+                {
+                    builder.AddContent(13, RenderFiles(file.SubFiles, level + 1));  // 使用SubFiles替代Children
+                }
+
+                builder.CloseRegion();
+            }
+        };
+    }
+
+    // 获取文件项样式（Tailwind v4）
+    private string GetFileItemClass(ProjectFile file)
+    {
+        return $"flex items-center gap-2 py-1.5 px-2 rounded text-sm cursor-pointer transition-colors " +
+               $"{(SelectedFile?.Path == file.Path ? "bg-slate-700 text-white" : "text-slate-300 hover:bg-slate-700/50")}";
+    }
+
+    // 获取文件图标（使用Tailwind v4颜色类）
+    private string GetFileIcon(ProjectFile file)
+    {
+        if (file.IsFolder)
+        {
+            return "fa-solid fa-folder text-amber-400";
+        }
+
+        var ext = Path.GetExtension(file.Name).ToLower();
+        return ext switch
+        {
+            ".cs" => "fa-solid fa-file-code text-blue-400",
+            ".razor" => "fa-solid fa-file-code text-purple-400",
+            ".json" => "fa-solid fa-file-code text-amber-400",
+            ".xml" or ".html" => "fa-solid fa-file-code text-rose-400",
+            ".csproj" => "fa-solid fa-file-code text-green-400",
+            ".js" => "fa-solid fa-file-code text-yellow-400",
+            ".css" => "fa-solid fa-file-code text-blue-500",
+            _ => "fa-solid fa-file text-slate-400"
+        };
+    }
+
+    // 处理文件选择
+    private async Task HandleFileSelect(ProjectFile file)
+    {
+        if (!file.IsFolder)
+        {
+            await OnFileSelected.InvokeAsync(file);
+        }
+    }
+
+    // 处理右键菜单（移除事件参数以避免错误）
+    private void HandleActionMenu(ProjectFile file)
+    {
+        // 移除事件参数相关的阻止冒泡代码
+        _ = ShowActionMenu(file);
+    }
+
+    // 显示操作菜单（JS交互）
+    private async Task ShowActionMenu(ProjectFile file)
+    {
+        var actions = new List<string> { "重命名", "删除" };
+        var action = await JSRuntime.InvokeAsync<string?>("showFileActionMenu", file.Name, actions);
+
+        if (action == "重命名")
+        {
+            await OnFileRenamed.InvokeAsync(file);
+        }
+        else if (action == "删除")
+        {
+            await OnFileDeleted.InvokeAsync(file);
+        }
+    }
+
+    [Inject]
+    private IJSRuntime JSRuntime { get; set; } = default!;
 }

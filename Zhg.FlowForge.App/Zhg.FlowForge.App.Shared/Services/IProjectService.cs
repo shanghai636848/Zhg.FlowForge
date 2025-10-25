@@ -115,6 +115,7 @@ public class ProjectFile
     public int LineCount { get; set; }
     public long Size { get; set; }
     public DateTime LastModified { get; set; } = DateTime.Now;
+    public List<ProjectFile> SubFiles { get; set; }
 }
 
 /// <summary>
