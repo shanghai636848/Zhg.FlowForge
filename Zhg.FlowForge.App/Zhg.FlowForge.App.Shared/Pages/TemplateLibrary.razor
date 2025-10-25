@@ -1,0 +1,310 @@
+﻿@page "/templates"
+@using Zhg.FlowForge.App.Shared.Components.Buttons
+@using Zhg.FlowForge.App.Shared.Components.Display
+@using Zhg.FlowForge.App.Shared.Components.Feedback
+@using Zhg.FlowForge.App.Shared.Components.Form
+@using Zhg.FlowForge.App.Shared.Components.Layout
+@using Zhg.FlowForge.App.Shared.Components.Templates
+@using Zhg.FlowForge.App.Shared.Services
+@layout MainLayout
+@inject ITemplateService TemplateService
+@inject NavigationManager Navigation
+@inject IToastService ToastService
+@inject ILocalizationService Localization
+
+<PageTitle>模板库 - FlowForge</PageTitle>
+
+<Container MaxWidth="7xl">
+	<Stack Direction="vertical" Gap="6">
+		<!-- 页面标题 -->
+		<div class="flex items-center justify-between">
+			<div>
+				<h1 class="mb-2 text-2xl font-bold text-slate-900">
+					@Localization["common.templates"]
+				</h1>
+				<p class="text-sm text-slate-600">
+					浏览和使用专业的 BPMN 流程模板，快速启动您的项目
+				</p>
+			</div>
+
+			<div class="flex items-center gap-2">
+				<Button Variant="secondary"
+						Icon="fas fa-upload"
+						OnClick="ShowUploadDialog">
+					上传模板
+				</Button>
+				<Button Variant="primary"
+						Icon="fas fa-plus"
+						OnClick="CreateCustomTemplate">
+					创建模板
+				</Button>
+			</div>
+		</div>
+
+		
+
+		<!-- 模板列表 -->
+		@if (IsLoading)
+		{
+			<div class="py-12 text-center">
+				<i class="fas fa-spinner fa-spin mb-2 text-3xl text-blue-600"></i>
+				<p class="text-sm text-slate-600">加载中...</p>
+			</div>
+		}
+		else if (!FilteredTemplates.Any())
+		{
+			<div class="py-12 text-center">
+				<div class="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100">
+					<i class="fas fa-inbox text-2xl text-slate-400"></i>
+				</div>
+				<p class="text-sm text-slate-600">未找到匹配的模板</p>
+			</div>
+		}
+		else
+		{
+			@if (ViewMode == "grid")
+			{
+				<Grid Cols="1" ColsSm="2" ColsLg="3" Gap="4">
+					@foreach (var template in FilteredTemplates)
+					{
+						<TemplateCard Template="@template"
+									  OnUse="() => UseTemplate(template)"
+									  OnPreview="() => PreviewTemplate(template)"
+									  OnFavorite="() => ToggleFavorite(template)" />
+					}
+				</Grid>
+			}
+			else
+			{
+				<div class="space-y-2">
+					@foreach (var template in FilteredTemplates)
+					{
+						<TemplateListItem Template="@template"
+										  OnUse="() => UseTemplate(template)"
+										  OnPreview="() => PreviewTemplate(template)"
+										  OnFavorite="() => ToggleFavorite(template)" />
+					}
+				</div>
+			}
+		}
+
+		<!-- 分页 -->
+		@if (TotalPages > 1)
+		{
+			<div class="flex items-center justify-center gap-2">
+				<Button Variant="secondary"
+						Size="sm"
+						Icon="fas fa-chevron-left"
+						Disabled="@(CurrentPage == 1)"
+						OnClick="PreviousPage">
+					上一页
+				</Button>
+
+				<div class="flex items-center gap-1">
+					@for (int i = 1; i <= TotalPages; i++)
+					{
+						var page = i;
+						<button class="h-8 w-8 rounded text-xs font-medium transition-colors
+						                                      @(CurrentPage == page ?
+																									"bg-blue-600 text-white" :
+																									"bg-white text-slate-700 hover:bg-slate-50 border border-slate-200")"
+								@onclick="() => GoToPage(page)">
+						</button>
+					}
+				</div>
+
+				<Button Variant="secondary"
+						Size="sm"
+						Icon="fas fa-chevron-right"
+						Disabled="@(CurrentPage == TotalPages)"
+						OnClick="NextPage">
+					下一页
+				</Button>
+			</div>
+		}
+	</Stack>
+</Container>
+
+<!-- 模板预览模态框 -->
+<Modal IsOpen="ShowPreviewModal"
+	   Title="@PreviewingTemplate?.Name"
+	   MaxWidth="4xl">
+
+	@* @if(PreviewingTemplate != null)
+	{
+		<TemplatePreview Template=PreviewingTemplate />
+	} *@
+
+	<FooterActions>
+		<Button Variant="secondary" OnClick="() => ShowPreviewModal = false">
+			关闭
+		</Button>
+		<Button Variant="primary" OnClick="() => UseTemplate(PreviewingTemplate!)">
+			使用此模板
+		</Button>
+	</FooterActions>
+</Modal>
+
+<style>
+	.filter-tab {
+		@@apply px-3 py-1.5 rounded-lg text-xs font-medium transition-colors;
+		@@apply text-slate-700 hover:bg-slate-100;
+	}
+
+		.filter-tab.active {
+			@@apply bg-blue-600 text-white hover:bg-blue-700;
+		}
+
+	.view-toggle {
+		@@apply w-7 h-7 rounded flex items-center justify-center;
+		@@apply text-slate-600 hover:bg-slate-100 transition-colors;
+	}
+
+		.view-toggle.active {
+			@@apply bg-slate-900 text-white;
+		}
+</style>
+
+@code {
+	private bool IsLoading = true;
+	private string SearchQuery = "";
+	private string ActiveCategory = "all";
+	private string SortBy = "popular";
+	private string ViewMode = "grid";
+	private int CurrentPage = 1;
+	private int PageSize = 12;
+
+	private List<WorkflowTemplate> Templates = new();
+	private WorkflowTemplate? PreviewingTemplate = null;
+	private bool ShowPreviewModal = false;
+	private int TotalTemplates => Templates.Count;
+	private int PopularTemplates => Templates.Count(t => t.Downloads > 100);
+	private int TotalDownloads => Templates.Sum(t => t.Downloads);
+	private int MyTemplates => Templates.Count(t => t.IsCustom);
+
+	private IEnumerable<WorkflowTemplate> FilteredTemplates
+	{
+		get
+		{
+			var filtered = Templates.AsEnumerable();
+
+			// 分类筛选
+			if (ActiveCategory != "all")
+			{
+				filtered = filtered.Where(t => t.Category == ActiveCategory);
+			}
+
+			// 搜索筛选
+			if (!string.IsNullOrWhiteSpace(SearchQuery))
+			{
+				filtered = filtered.Where(t =>
+					t.Name.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) ||
+					t.Description.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase) ||
+					t.Tags.Any(tag => tag.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase)));
+			}
+
+			// 排序
+			filtered = SortBy switch
+			{
+				"popular" => filtered.OrderByDescending(t => t.Downloads),
+				"recent" => filtered.OrderByDescending(t => t.CreatedAt),
+				"rating" => filtered.OrderByDescending(t => t.Rating),
+				"name" => filtered.OrderBy(t => t.Name),
+				_ => filtered
+			};
+
+			// 分页
+			return filtered
+				.Skip((CurrentPage - 1) * PageSize)
+				.Take(PageSize);
+		}
+	}
+
+	private int TotalPages => (int)Math.Ceiling(Templates.Count / (double)PageSize);
+
+	private List<Select.SelectOption> SortOptions = new()
+{
+	new("popular", "最受欢迎"),
+	new("recent", "最新发布"),
+	new("rating", "评分最高"),
+	new("name", "名称排序")
+};
+
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadTemplatesAsync();
+	}
+
+	private async Task LoadTemplatesAsync()
+	{
+		IsLoading = true;
+		Templates = await TemplateService.GetTemplatesAsync();
+		IsLoading = false;
+	}
+
+	private void FilterByCategory(string category)
+	{
+		ActiveCategory = category;
+		CurrentPage = 1;
+	}
+
+	private void UseTemplate(WorkflowTemplate template)
+	{
+		ShowPreviewModal = false;
+		Navigation.NavigateTo($"/designer/from-template/{template.Id}");
+	}
+
+	private void PreviewTemplate(WorkflowTemplate template)
+	{
+		PreviewingTemplate = template;
+		ShowPreviewModal = true;
+	}
+
+	private async Task ToggleFavorite(WorkflowTemplate template)
+	{
+		template.IsFavorite = !template.IsFavorite;
+		await TemplateService.ToggleFavoriteAsync(template.Id);
+
+		if (template.IsFavorite)
+		{
+			ToastService.Success($"已收藏 {template.Name}");
+		}
+		else
+		{
+			ToastService.Info($"已取消收藏 {template.Name}");
+		}
+
+		StateHasChanged();
+	}
+
+	private void ShowUploadDialog()
+	{
+		ToastService.Info("上传功能开发中...");
+	}
+
+	private void CreateCustomTemplate()
+	{
+		Navigation.NavigateTo("/templates/create");
+	}
+
+	private void PreviousPage()
+	{
+		if (CurrentPage > 1)
+		{
+			CurrentPage--;
+		}
+	}
+
+	private void NextPage()
+	{
+		if (CurrentPage < TotalPages)
+		{
+			CurrentPage++;
+		}
+	}
+
+	private void GoToPage(int page)
+	{
+		CurrentPage = page;
+	}	
+}

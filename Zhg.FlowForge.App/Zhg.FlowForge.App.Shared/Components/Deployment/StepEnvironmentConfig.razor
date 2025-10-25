@@ -1,0 +1,166 @@
+﻿@using Zhg.FlowForge.App.Shared.Components.Buttons
+@using Zhg.FlowForge.App.Shared.Components.Form
+@using Zhg.FlowForge.App.Shared.Components.Layout
+@using Zhg.FlowForge.App.Shared.Services
+<div class="max-w-2xl">
+    <div class="mb-6">
+        <h3 class="mb-2 text-base font-semibold text-slate-900">环境配置</h3>
+        <p class="text-sm text-slate-600">
+            配置应用运行时的环境变量和参数
+        </p>
+    </div>
+
+    <Stack Direction="vertical" Gap="4">
+        <FormGroup Title="基本配置" Icon="fas fa-cog">
+            <Input Label="环境名称"
+                   Icon="fas fa-tag"
+                   Placeholder="Production"
+                   Required="true"
+                   @bind-Value="Environment.Name"
+                   HelpText="环境的显示名称" />
+
+            <Select Label="环境类型"
+                   Options="@EnvironmentTypes"
+                   @bind-Value="Environment.Type"
+                   HelpText="选择环境类型" />
+
+            <div class="grid grid-cols-2 gap-3">
+               @*  <Input Label="CPU 限制"
+                       Type="number"
+                       Placeholder="1000"
+                       @bind-Value="Environment.CpuLimit"
+                       HelpText="毫核 (millicores)" />
+
+                <Input Label="内存限制"
+                       Type="number"
+                       Placeholder="512"
+                       @bind-Value="Environment.MemoryLimit"
+                       HelpText="MB" /> *@
+            </div>
+        </FormGroup>
+
+        <FormGroup Title="环境变量" Icon="fas fa-key" Variant="primary">
+            <div class="space-y-2">
+                @foreach (var (key, value) in Environment.Variables)
+                {
+                    <div class="flex items-center gap-2">
+                        <Input Placeholder="KEY"
+                               Value="@key"
+                               Disabled="true"
+                               class="flex-1" />
+                        <Input Placeholder="Value"
+                               Value="@value"
+                               @onchange="@((e) => UpdateVariable(key, e.Value?.ToString() ?? ""))"
+                               class="flex-1" />
+                        <IconButton Icon="fas fa-trash"
+                                   Size="sm"
+                                   Variant="ghost"
+                                   OnClick="() => RemoveVariable(key)" />
+                    </div>
+                }
+
+                <div class="flex items-center gap-2">
+                    <Input Placeholder="KEY"
+                           @bind-Value="NewVariableKey"
+                           class="flex-1" />
+                    <Input Placeholder="Value"
+                           @bind-Value="NewVariableValue"
+                           class="flex-1" />
+                    <Button Variant="secondary"
+                            Size="sm"
+                            Icon="fas fa-plus"
+                            OnClick="AddVariable">
+                        添加
+                    </Button>
+                </div>
+            </div>
+        </FormGroup>
+
+        <FormGroup Title="健康检查" Icon="fas fa-heartbeat" Variant="success">
+            <Checkbox @bind-Checked="Environment.EnableHealthCheck">
+                启用健康检查
+            </Checkbox>
+
+            @if (Environment.EnableHealthCheck)
+            {
+                <div class="mt-3 ml-6 space-y-3">
+                    <Input Label="健康检查路径"
+                           Placeholder="/health"
+                           @bind-Value="Environment.HealthCheckPath" />
+
+                    <div class="grid grid-cols-2 gap-3">
+                     @*    <Input Label="检查间隔（秒）"
+                               Type="number"
+                               Placeholder="30"
+                               @bind-Value="@(Environment.HealthCheckInterval.ToString())" />
+
+                        <Input Label="超时时间（秒）"
+                               Type="number"
+                               Placeholder="5"
+                               @bind-Value="@(Environment.HealthCheckTimeout.ToString())" /> *@
+                    </div>
+                </div>
+            }
+        </FormGroup>
+
+        <FormGroup Title="日志配置" Icon="fas fa-file-alt">
+            <Select Label="日志级别"
+                   Options="@LogLevels"
+                   @bind-Value="Environment.LogLevel" />
+
+            <Checkbox @bind-Checked="Environment.EnableStructuredLogging">
+                启用结构化日志
+            </Checkbox>
+
+            <Checkbox @bind-Checked="Environment.EnableMetrics">
+                启用性能指标收集
+            </Checkbox>
+        </FormGroup>
+    </Stack>
+</div>
+
+@code {
+    [Parameter] public EnvironmentConfiguration Environment { get; set; } = new();
+    [Parameter] public EventCallback<EnvironmentConfiguration> EnvironmentChanged { get; set; }
+
+    private string NewVariableKey = "";
+    private string NewVariableValue = "";
+
+    private List<Select.SelectOption> EnvironmentTypes = new()
+    {
+        new("development", "开发环境"),
+        new("staging", "测试环境"),
+        new("production", "生产环境")
+    };
+
+    private List<Select.SelectOption> LogLevels = new()
+    {
+        new("Debug", "调试 (Debug)"),
+        new("Information", "信息 (Information)"),
+        new("Warning", "警告 (Warning)"),
+        new("Error", "错误 (Error)")
+    };
+
+    private void AddVariable()
+    {
+        if (!string.IsNullOrWhiteSpace(NewVariableKey) && !Environment.Variables.ContainsKey(NewVariableKey))
+        {
+            Environment.Variables[NewVariableKey] = NewVariableValue;
+            NewVariableKey = "";
+            NewVariableValue = "";
+            EnvironmentChanged.InvokeAsync(Environment);
+        }
+    }
+
+    private void UpdateVariable(string key, string value)
+    {
+        Environment.Variables[key] = value;
+        EnvironmentChanged.InvokeAsync(Environment);
+    }
+
+    private void RemoveVariable(string key)
+    {
+        Environment.Variables.Remove(key);
+        EnvironmentChanged.InvokeAsync(Environment);
+    }
+}

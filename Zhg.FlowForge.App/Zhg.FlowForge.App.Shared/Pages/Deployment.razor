@@ -1,0 +1,401 @@
+﻿@page "/deploy/{ProjectId}"
+@using Microsoft.Extensions.Logging
+@using Zhg.FlowForge.App.Shared.Components.Buttons
+@using Zhg.FlowForge.App.Shared.Components.Deployment
+@using Zhg.FlowForge.App.Shared.Components.Feedback
+@using Zhg.FlowForge.App.Shared.Services
+@layout EditorLayout
+@inject IDeploymentService DeploymentService
+@inject IProjectService ProjectService
+@inject NavigationManager Navigation
+@inject IToastService ToastService
+@inject ILocalizationService Localization
+
+<PageTitle>项目部署 - FlowForge</PageTitle>
+
+<div class="flex h-screen bg-slate-50">
+	<!-- 左侧部署步骤 -->
+	<div class="flex w-80 flex-col border-r border-slate-200 bg-white">
+		<!-- 头部 -->
+		<div class="flex h-14 items-center justify-between border-b border-slate-200 px-4">
+			<h2 class="text-sm font-semibold text-slate-900">部署向导</h2>
+			<button class="flex h-7 w-7 items-center justify-center rounded-md hover:bg-slate-100"
+					@onclick="@(() => Navigation.NavigateTo($"project/{ProjectId}"))">
+				<i class="fas fa-times text-xs text-slate-600"></i>
+			</button>
+		</div>
+
+		<!-- 步骤列表 -->
+		<div class="scrollable flex-1 overflow-y-auto p-4">
+			<div class="space-y-1">
+				@for (int i = 0; i < DeploymentSteps.Count; i++)
+				{
+					var step = DeploymentSteps[i];
+					var stepIndex = i;
+					var isActive = CurrentStep == stepIndex;
+					var isCompleted = stepIndex < CurrentStep;
+
+					<button class="flex w-full items-start gap-3 rounded-lg p-3 text-left transition-all
+			                                  @(isActive ? "bg-blue-50 border-2 border-blue-500" :
+																					isCompleted ? "bg-emerald-50 hover:bg-emerald-100" :
+																					"hover:bg-slate-50")"
+							@onclick="() => GoToStep(stepIndex)"
+							disabled="@(stepIndex > CurrentStep)">
+						<div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full
+			                                  @(isActive ? "bg-blue-500 text-white" :
+																			  isCompleted ? "bg-emerald-500 text-white" :
+																  		  "bg-slate-200 text-slate-500")">
+							@if (isCompleted)
+							{
+								<i class="fas fa-check text-xs"></i>
+							}
+							else
+							{
+								<span class="text-xs font-semibold">@(stepIndex + 1)</span>
+							}
+						</div>
+
+						<div class="min-w-0 flex-1">
+							<div class="text-xs font-semibold @(isActive ? "text-blue-900" : "text-slate-900")">
+								@step.Title
+							</div>
+							<div class="mt-0.5 text-xs text-slate-600">
+								@step.Description
+							</div>
+						</div>
+					</button>
+				}
+			</div>
+		</div>
+
+		<!-- 底部进度 -->
+		<div class="space-y-2 border-t border-slate-200 p-4">
+			<Progress Value="@ProgressPercentage"
+					  ShowPercentage="true"
+					  Color="primary"
+					  Size="sm" />
+
+			<div class="text-center text-xs text-slate-600">
+				步骤 @(CurrentStep + 1) / @DeploymentSteps.Count
+			</div>
+		</div>
+	</div>
+
+	<!-- 右侧主内容区 -->
+	<div class="flex flex-1 flex-col">
+		<!-- 顶部工具栏 -->
+		<div class="flex h-14 items-center justify-between border-b border-slate-200 bg-white px-6">
+			<div class="flex items-center gap-3">
+				<i class="@DeploymentSteps[CurrentStep].Icon text-blue-600"></i>
+				<h3 class="text-sm font-semibold text-slate-900">
+					@DeploymentSteps[CurrentStep].Title
+				</h3>
+			</div>
+
+			<div class="flex items-center gap-2">
+				@if (CurrentStep > 0)
+				{
+					<Button Variant="secondary"
+							Size="sm"
+							Icon="fas fa-arrow-left"
+							OnClick="PreviousStep">
+						上一步
+					</Button>
+				}
+
+				@if (CurrentStep < DeploymentSteps.Count - 1)
+				{
+					<Button Variant="primary"
+							Size="sm"
+							Icon="fas fa-arrow-right"
+							OnClick="NextStep"
+							Disabled="@(!CanProceed)">
+						下一步
+					</Button>
+				}
+				else
+				{
+					<Button Variant="success"
+							Size="sm"
+							Icon="fas fa-rocket"
+							Loading="@IsDeploying"
+							OnClick="StartDeployment">
+						开始部署
+					</Button>
+				}
+			</div>
+		</div>
+
+		<!-- 步骤内容 -->
+		<div class="scrollable flex-1 overflow-y-auto p-6">
+			@switch (CurrentStep)
+			{
+				case 0:
+					<StepDeploymentTarget Config=DeploymentConfig />
+					break;
+				case 1:
+					<StepEnvironmentConfig Environment=EnvironmentConfig />
+					break;
+				case 2:
+					<StepContainerConfig Container=ContainerConfig />
+					break;
+				case 3:
+					<StepNetworkConfig Network=NetworkConfig />
+					break;
+				case 4:
+					<StepDeploymentReview Config=DeploymentConfig
+										  Environment=EnvironmentConfig
+										  Container=ContainerConfig
+										  Network=NetworkConfig />
+					break;
+			}
+		</div>
+	</div>
+
+	<!-- 右侧日志面板 -->
+	@if (ShowDeploymentLogs)
+	{
+		<div class="flex w-96 flex-col border-l border-slate-700 bg-slate-900">
+			<div class="flex h-14 items-center justify-between border-b border-slate-700 px-4">
+				<h3 class="text-sm font-semibold text-white">部署日志</h3>
+				<div class="flex items-center gap-2">
+					<IconButton Icon="fas fa-trash"
+								Size="xs"
+								Variant="ghost-light"
+								Title="清空日志"
+								OnClick="ClearLogs" />
+					<IconButton Icon="fas fa-times"
+								Size="xs"
+								Variant="ghost-light"
+								OnClick="() => ShowDeploymentLogs = false" />
+				</div>
+			</div>
+
+			<div class="scrollable flex-1 overflow-y-auto p-4 font-mono text-xs">
+				@foreach (var log in DeploymentLogs)
+				{
+					<div class="@GetLogClass(log.Level) mb-1">
+						<span class="text-slate-500">[@log.Time.ToString("HH:mm:ss")]</span>
+						<span class="ml-2">@log.Message</span>
+					</div>
+				}
+			</div>
+		</div>
+	}
+</div>
+
+<!-- 部署成功模态框 -->
+<Modal IsOpen="ShowSuccessModal"
+	   Title="部署成功"
+	   Icon="fas fa-check-circle"
+	   IconColorClass="text-emerald-600"
+	   MaxWidth="lg"
+	   HideClose="true">
+
+	<div class="py-6 text-center">
+		<div class="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100">
+			<i class="fas fa-rocket text-3xl text-emerald-600"></i>
+		</div>
+		<h3 class="mb-2 text-lg font-semibold text-slate-900">
+			应用已成功部署！
+		</h3>
+		<p class="mb-6 text-sm text-slate-600">
+			您的应用已部署到 @DeploymentConfig.Target，可以开始使用了
+		</p>
+
+		<div class="mb-6 rounded-lg bg-slate-50 p-4">
+			<div class="grid grid-cols-2 gap-4 text-sm">
+				<div class="text-left">
+					<span class="text-slate-600">部署环境：</span>
+					<span class="font-medium text-slate-900">@EnvironmentConfig.Name</span>
+				</div>
+				<div class="text-left">
+					<span class="text-slate-600">部署时间：</span>
+					<span class="font-medium text-slate-900">@DeploymentResult?.DeployedAt.ToString("HH:mm:ss")</span>
+				</div>
+				<div class="text-left">
+					<span class="text-slate-600">应用 URL：</span>
+					<a href="@DeploymentResult?.ApplicationUrl" target="_blank"
+					   class="font-medium text-blue-600 hover:text-blue-700">
+						访问应用 <i class="fas fa-external-link-alt ml-1 text-xs"></i>
+					</a>
+				</div>
+				<div class="text-left">
+					<span class="text-slate-600">健康检查：</span>
+					<span class="font-medium text-emerald-600">
+						<i class="fas fa-check-circle text-xs"></i> 正常
+					</span>
+				</div>
+			</div>
+		</div>
+
+		<div class="flex items-center gap-2">
+			<Button Variant="secondary"
+					FullWidth="true"
+					Icon="fas fa-chart-line"
+					OnClick="ViewMetrics">
+				查看监控
+			</Button>
+			<Button Variant="secondary"
+					FullWidth="true"
+					Icon="fas fa-file-alt"
+					OnClick="ViewLogs">
+				查看日志
+			</Button>
+			<Button Variant="primary"
+					FullWidth="true"
+					Icon="fas fa-home"
+					OnClick="GoToProject">
+				返回项目
+			</Button>
+		</div>
+	</div>
+</Modal>
+
+@code {
+	[Parameter] public string ProjectId { get; set; } = "";
+
+	private int CurrentStep = 0;
+	private bool IsDeploying = false;
+	private bool ShowDeploymentLogs = false;
+	private bool ShowSuccessModal = false;
+
+	private DeploymentConfiguration DeploymentConfig = new();
+	private EnvironmentConfiguration EnvironmentConfig = new();
+	private ContainerConfiguration ContainerConfig = new();
+	private NetworkConfiguration NetworkConfig = new();
+	private DeploymentResult? DeploymentResult = null;
+
+	private List<DeploymentLog> DeploymentLogs = new();
+
+	private List<DeploymentStep> DeploymentSteps = new()
+	{
+		new("选择目标", "选择部署目标平台", "fas fa-bullseye"),
+		new("环境配置", "配置运行环境", "fas fa-cog"),
+		new("容器配置", "配置容器和镜像", "fas fa-box"),
+		new("网络配置", "配置域名和端口", "fas fa-network-wired"),
+		new("确认部署", "检查配置并部署", "fas fa-check-circle")
+	};
+
+	private int ProgressPercentage => (int)((CurrentStep + 1) * 100.0 / DeploymentSteps.Count);
+
+	private bool CanProceed
+	{
+		get
+		{
+			return CurrentStep switch
+			{
+				0 => !string.IsNullOrEmpty(DeploymentConfig.Target),
+				1 => !string.IsNullOrEmpty(EnvironmentConfig.Name),
+				_ => true
+			};
+		}
+	}
+
+	private void GoToStep(int step)
+	{
+		if (step <= CurrentStep)
+		{
+			CurrentStep = step;
+		}
+	}
+
+	private void PreviousStep()
+	{
+		if (CurrentStep > 0)
+		{
+			CurrentStep--;
+		}
+	}
+
+	private void NextStep()
+	{
+		if (CanProceed && CurrentStep < DeploymentSteps.Count - 1)
+		{
+			CurrentStep++;
+		}
+	}
+
+	private async Task StartDeployment()
+	{
+		IsDeploying = true;
+		ShowDeploymentLogs = true;
+		DeploymentLogs.Clear();
+
+		try
+		{
+			AddLog("开始部署流程...", LogLevel.Information);
+
+			var request = new DeploymentRequest
+			{
+				ProjectId = ProjectId,
+				Configuration = DeploymentConfig,
+				Environment = EnvironmentConfig,
+				Container = ContainerConfig,
+				Network = NetworkConfig
+			};
+
+			DeploymentResult = await DeploymentService.DeployAsync(
+				request,
+				new Progress<string>(msg => AddLog(msg, LogLevel.Information))
+			);
+
+			if (DeploymentResult.Success)
+			{
+				AddLog("✓ 部署成功！", LogLevel.Information);
+				ShowSuccessModal = true;
+				ToastService.Success("应用部署成功！");
+			}
+			else
+			{
+				AddLog($"✗ 部署失败: {DeploymentResult.Error}", LogLevel.Error);
+				ToastService.Error($"部署失败: {DeploymentResult.Error}");
+			}
+		}
+		catch (Exception ex)
+		{
+			AddLog($"部署异常: {ex.Message}", LogLevel.Error);
+			ToastService.Error($"部署异常: {ex.Message}");
+		}
+		finally
+		{
+			IsDeploying = false;
+		}
+	}
+
+	private void AddLog(string message, LogLevel level)
+	{
+		DeploymentLogs.Add(new DeploymentLog
+		{
+			Time = DateTime.Now,
+			Message = message,
+			Level = level
+		});
+		StateHasChanged();
+	}
+
+	private void ClearLogs()
+	{
+		DeploymentLogs.Clear();
+	}
+
+	private string GetLogClass(LogLevel level) => level switch
+	{
+		LogLevel.Error => "text-rose-400",
+		LogLevel.Warning => "text-amber-400",
+		_ => "text-slate-300"
+	};
+
+	private void ViewMetrics() => Navigation.NavigateTo($"/metrics/{ProjectId}");
+	private void ViewLogs() => Navigation.NavigateTo($"/logs/{ProjectId}");
+	private void GoToProject() => Navigation.NavigateTo($"/project/{ProjectId}");
+
+	record DeploymentStep(string Title, string Description, string Icon);
+
+	class DeploymentLog
+	{
+		public DateTime Time { get; set; }
+		public string Message { get; set; } = "";
+		public LogLevel Level { get; set; }
+	}
+}

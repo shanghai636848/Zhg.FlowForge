@@ -1,0 +1,203 @@
+﻿@using Zhg.FlowForge.App.Shared.Components.Display
+@using Zhg.FlowForge.App.Shared.Components.Feedback
+@using Zhg.FlowForge.App.Shared.Components.Layout
+@using Zhg.FlowForge.App.Shared.Services
+<div class="max-w-3xl">
+    <div class="mb-6">
+        <h3 class="mb-2 text-base font-semibold text-slate-900">确认部署配置</h3>
+        <p class="text-sm text-slate-600">
+            请仔细检查以下配置，确认无误后开始部署
+        </p>
+    </div>
+
+    <Stack Direction="vertical" Gap="4">
+        <!-- 部署目标 -->
+        <Card Title="部署目标" Icon="fas fa-bullseye">
+            <div class="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                    <span class="text-slate-600">目标平台：</span>
+                    <span class="font-medium text-slate-900">@GetTargetName(Config.Target)</span>
+                </div>
+            </div>
+        </Card>
+
+        <!-- 环境配置 -->
+        <Card Title="环境配置" Icon="fas fa-cog">
+            <div class="space-y-3">
+                <div class="grid grid-cols-3 gap-4 text-sm">
+                    <div>
+                        <span class="text-slate-600">环境名称：</span>
+                        <span class="font-medium text-slate-900">@Environment.Name</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-600">环境类型：</span>
+                        <span class="font-medium text-slate-900">@Environment.Type</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-600">日志级别：</span>
+                        <span class="font-medium text-slate-900">@Environment.LogLevel</span>
+                    </div>
+                </div>
+
+                @if (Environment.Variables.Any())
+                {
+                    <div>
+                        <div class="mb-2 text-xs font-semibold text-slate-700">环境变量：</div>
+                        <div class="space-y-1 rounded bg-slate-50 p-3">
+                            @foreach (var (key, value) in Environment.Variables)
+                            {
+                                <div class="flex items-center gap-2 font-mono text-xs">
+                                    <span class="text-slate-600">@key:</span>
+                                    <span class="text-slate-900">@(value.Length > 30 ? value.Substring(0, 30) + "..." : value)</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </Card>
+
+        <!-- 容器配置 -->
+        <Card Title="容器配置" Icon="fab fa-docker">
+            <div class="space-y-3">
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <span class="text-slate-600">镜像：</span>
+                        <span class="font-mono text-xs font-medium text-slate-900">
+                            @Container.ImageName:@Container.ImageTag
+                        </span>
+                    </div>
+                    <div>
+                        <span class="text-slate-600">副本数：</span>
+                        <span class="font-medium text-slate-900">@Container.Replicas</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-600">CPU 限制：</span>
+                        <span class="font-medium text-slate-900">@Container.CpuLimit 核</span>
+                    </div>
+                    <div>
+                        <span class="text-slate-600">内存限制：</span>
+                        <span class="font-medium text-slate-900">@Container.MemoryLimit MB</span>
+                    </div>
+                </div>
+
+                @if (Container.PortMappings.Any())
+                {
+                    <div>
+                        <div class="mb-2 text-xs font-semibold text-slate-700">端口映射：</div>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach (var port in Container.PortMappings)
+                            {
+                                <Badge Variant="primary" Size="sm">
+                                    @port.HostPort → @port.ContainerPort (@port.Protocol)
+                                </Badge>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </Card>
+
+        <!-- 网络配置 -->
+        <Card Title="网络配置" Icon="fas fa-network-wired">
+            <div class="space-y-3">
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <span class="text-slate-600">域名：</span>
+                        <span class="font-medium text-slate-900">
+                            @(!string.IsNullOrEmpty(Network.Domain) ? Network.Domain : "未配置")
+                        </span>
+                    </div>
+                    <div>
+                        <span class="text-slate-600">HTTPS：</span>
+                        <span class="font-medium @(Network.EnableHttps ? "text-emerald-600" : "text-slate-900")">
+                            @(Network.EnableHttps ? "已启用" : "未启用")
+                        </span>
+                    </div>
+                    <div>
+                        <span class="text-slate-600">负载均衡：</span>
+                        <span class="font-medium @(Network.EnableLoadBalancer ? "text-emerald-600" : "text-slate-900")">
+                            @(Network.EnableLoadBalancer ? "已启用" : "未启用")
+                        </span>
+                    </div>
+                    <div>
+                        <span class="text-slate-600">CORS：</span>
+                        <span class="font-medium @(Network.EnableCors ? "text-emerald-600" : "text-slate-900")">
+                            @(Network.EnableCors ? "已启用" : "未启用")
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </Card>
+
+        <!-- 预估信息 -->
+        <Card Variant="success">
+            <div class="flex items-start gap-4">
+                <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-100">
+                    <i class="fas fa-chart-bar text-xl text-emerald-600"></i>
+                </div>
+                <div class="flex-1">
+                    <h4 class="mb-3 text-sm font-semibold text-slate-900">部署预估</h4>
+                    <div class="grid grid-cols-3 gap-4 text-center">
+                        <div>
+                            <div class="text-xl font-bold text-slate-900">~2 分钟</div>
+                            <div class="text-xs text-slate-600">预计部署时间</div>
+                        </div>
+                        <div>
+                            <div class="text-xl font-bold text-slate-900">@Container.Replicas</div>
+                            <div class="text-xs text-slate-600">实例数量</div>
+                        </div>
+                        <div>
+                            <div class="text-xl font-bold text-slate-900">100%</div>
+                            <div class="text-xs text-slate-600">预期成功率</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </Card>
+
+        <!-- 部署检查清单 -->
+        <Card Title="部署前检查" Icon="fas fa-tasks" Variant="warning">
+            <div class="space-y-2">
+                <div class="flex items-center gap-2 text-sm">
+                    <i class="fas fa-check-circle text-emerald-500"></i>
+                    <span class="text-slate-700">代码已编译通过</span>
+                </div>
+                <div class="flex items-center gap-2 text-sm">
+                    <i class="fas fa-check-circle text-emerald-500"></i>
+                    <span class="text-slate-700">容器镜像已构建</span>
+                </div>
+                <div class="flex items-center gap-2 text-sm">
+                    <i class="fas fa-check-circle text-emerald-500"></i>
+                    <span class="text-slate-700">环境变量已配置</span>
+                </div>
+                <div class="flex items-center gap-2 text-sm">
+                    <i class="fas fa-check-circle text-emerald-500"></i>
+                    <span class="text-slate-700">网络端口可用</span>
+                </div>
+            </div>
+        </Card>
+
+        <Alert Type="info" ShowIcon="true">
+            部署开始后，您可以在日志面板中查看实时进度。部署过程中请勿关闭此页面。
+        </Alert>
+    </Stack>
+</div>
+
+@code {
+    [Parameter] public DeploymentConfiguration Config { get; set; } = new();
+    [Parameter] public EnvironmentConfiguration Environment { get; set; } = new();
+    [Parameter] public ContainerConfiguration Container { get; set; } = new();
+    [Parameter] public NetworkConfiguration Network { get; set; } = new();
+
+    private string GetTargetName(string target) => target switch
+    {
+        "docker" => "Docker 容器",
+        "kubernetes" => "Kubernetes",
+        "aws" => "Amazon Web Services",
+        "azure" => "Microsoft Azure",
+        "gcp" => "Google Cloud Platform",
+        "local" => "本地服务器",
+        _ => target
+    };
+}

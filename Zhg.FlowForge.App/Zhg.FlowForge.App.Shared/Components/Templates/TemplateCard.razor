@@ -1,0 +1,126 @@
+﻿@using Zhg.FlowForge.App.Shared.Components.Buttons
+@using Zhg.FlowForge.App.Shared.Components.Display
+@using Zhg.FlowForge.App.Shared.Services
+<Card Hoverable="true" Clickable="true" @onclick="OnPreview">
+    <div class="relative">
+        <!-- 收藏按钮 -->
+        <button class="absolute top-2 right-2 z-10 flex h-8 w-8 items-center
+                      justify-center rounded-full bg-white/90 shadow-sm backdrop-blur-sm transition-all hover:shadow-md
+                      @(Template.IsFavorite ? "text-rose-500" : "text-slate-400 hover:text-rose-500")"
+                @onclick:stopPropagation="true"
+                @onclick="OnFavorite">
+            <i class="@(Template.IsFavorite ? "fas" : "far") fa-heart text-sm"></i>
+        </button>
+
+        <!-- 模板预览图 -->
+        <div class="mb-4 flex h-40 w-full @Template.GradientClass
+                    items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br">
+            @if (!string.IsNullOrEmpty(Template.ThumbnailUrl))
+            {
+                <img src="@Template.ThumbnailUrl" alt="@Template.Name" class="h-full w-full object-cover" />
+            }
+            else
+            {
+                <i class="@Template.Icon text-5xl text-white opacity-50"></i>
+            }
+        </div>
+
+        <!-- 模板信息 -->
+        <div class="mb-3">
+            <h3 class="mb-1 line-clamp-1 text-sm font-semibold text-slate-900">
+                @Template.Name
+            </h3>
+            <p class="mb-2 line-clamp-2 text-xs text-slate-600">
+                @Template.Description
+            </p>
+
+            <!-- 标签 -->
+            <div class="mb-3 flex flex-wrap items-center gap-1.5">
+                @foreach (var tag in Template.Tags.Take(3))
+                {
+                    <Badge Variant="default" Size="sm">@tag</Badge>
+                }
+                @if (Template.Tags.Count > 3)
+                {
+                    <Badge Variant="default" Size="sm">+@(Template.Tags.Count - 3)</Badge>
+                }
+            </div>
+
+            <!-- 统计信息 -->
+            <div class="mb-3 flex items-center gap-4 text-xs text-slate-600">
+                <div class="flex items-center gap-1">
+                    <i class="fas fa-download text-xs"></i>
+                    <span>@FormatNumber(Template.Downloads)</span>
+                </div>
+                <div class="flex items-center gap-1">
+                    <i class="fas fa-star text-xs text-amber-500"></i>
+                    <span>@Template.Rating.ToString("F1")</span>
+                </div>
+                <div class="flex items-center gap-1">
+                    <i class="fas fa-code-branch text-xs"></i>
+                    <span>@Template.ActivityCount 个节点</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 作者信息 -->
+        <div class="mb-3 flex items-center gap-2 border-b border-slate-200 pb-3">
+            <Avatar Name="@Template.Author" Size="xs" />
+            <div class="min-w-0 flex-1">
+                <div class="truncate text-xs font-medium text-slate-900">@Template.Author</div>
+                <div class="text-xs text-slate-500">@GetRelativeTime(Template.CreatedAt)</div>
+            </div>
+            @if (Template.IsOfficial)
+            {
+                <Badge Variant="primary" Size="sm">
+                    <i class="fas fa-check-circle mr-1 text-xs"></i>
+                    官方
+                </Badge>
+            }
+        </div>
+
+        <!-- 操作按钮 -->
+        <div class="flex items-center gap-2">
+            <Button Variant="secondary"
+                    Size="sm"
+                    FullWidth="true"
+                    Icon="fas fa-eye"
+                    OnClick="OnPreview">
+                预览
+            </Button>
+            <Button Variant="primary"
+                    Size="sm"
+                    FullWidth="true"
+                    Icon="fas fa-rocket"
+                    OnClick="() => OnUse.InvokeAsync()">
+                使用
+            </Button>
+        </div>
+    </div>
+</Card>
+
+@code {
+    [Parameter] public WorkflowTemplate Template { get; set; } = new();
+    [Parameter] public EventCallback OnUse { get; set; }
+    [Parameter] public EventCallback OnPreview { get; set; }
+    [Parameter] public EventCallback OnFavorite { get; set; }
+
+    private string FormatNumber(int number)
+    {
+        if (number >= 1000)
+        {
+            return $"{number / 1000.0:F1}k";
+        }
+        return number.ToString();
+    }
+
+    private string GetRelativeTime(DateTime time)
+    {
+        var span = DateTime.Now - time;
+        if (span.TotalDays < 1) return "今天";
+        if (span.TotalDays < 7) return $"{(int)span.TotalDays}天前";
+        if (span.TotalDays < 30) return $"{(int)(span.TotalDays / 7)}周前";
+        if (span.TotalDays < 365) return $"{(int)(span.TotalDays / 30)}个月前";
+        return $"{(int)(span.TotalDays / 365)}年前";
+    }
+}

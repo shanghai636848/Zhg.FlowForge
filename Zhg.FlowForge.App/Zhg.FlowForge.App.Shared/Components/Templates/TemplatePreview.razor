@@ -1,0 +1,201 @@
+﻿@using Zhg.FlowForge.App.Shared.Components.Display
+@using Zhg.FlowForge.App.Shared.Components.Layout
+@using Zhg.FlowForge.App.Shared.Services
+<div class="space-y-4">
+    <!-- 模板头部 -->
+    <div class="flex items-start gap-4">
+        <div class="flex h-32 w-32 items-center @Template.GradientClass
+                    justify-center overflow-hidden rounded-xl bg-gradient-to-br">
+            @if (!string.IsNullOrEmpty(Template.ThumbnailUrl))
+            {
+                <img src="@Template.ThumbnailUrl" alt="@Template.Name" class="h-full w-full object-cover" />
+            }
+            else
+            {
+                <i class="@Template.Icon text-5xl text-white opacity-50"></i>
+            }
+        </div>
+
+        <div class="flex-1">
+            <div class="mb-2 flex items-start justify-between">
+                <div>
+                    <h3 class="mb-1 text-lg font-bold text-slate-900">@Template.Name</h3>
+                    <p class="mb-3 text-sm text-slate-600">@Template.Description</p>
+                </div>
+                @if (Template.IsOfficial)
+                {
+                    <Badge Variant="primary">
+                        <i class="fas fa-check-circle mr-1 text-xs"></i>
+                        官方认证
+                    </Badge>
+                }
+            </div>
+
+            <!-- 统计信息 -->
+            <div class="mb-3 flex items-center gap-6 text-sm">
+                <div class="flex items-center gap-1.5">
+                    <i class="fas fa-download text-blue-600"></i>
+                    <span class="font-medium">@Template.Downloads</span>
+                    <span class="text-slate-600">下载</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <i class="fas fa-star text-amber-500"></i>
+                    <span class="font-medium">@Template.Rating.ToString("F1")</span>
+                    <span class="text-slate-600">评分</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <i class="fas fa-code-branch text-purple-600"></i>
+                    <span class="font-medium">@Template.ActivityCount</span>
+                    <span class="text-slate-600">节点</span>
+                </div>
+            </div>
+
+            <!-- 标签 -->
+            <div class="flex flex-wrap items-center gap-2">
+                @foreach (var tag in Template.Tags)
+                {
+                    <Badge Variant="default">@tag</Badge>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- 标签页 -->
+    <Tabs @bind-ActiveTab="ActiveTab"
+          Tabs="@TabItems"
+          Variant="underline">
+        
+        @if (ActiveTab == "overview")
+        {
+            <div class="space-y-4">
+                <!-- 特性列表 -->
+                <div>
+                    <h4 class="mb-3 text-sm font-semibold text-slate-900">主要特性</h4>
+                    <div class="grid grid-cols-2 gap-3">
+                        @foreach (var feature in Template.Features)
+                        {
+                            <div class="flex items-start gap-2 text-sm">
+                                <i class="fas fa-check-circle mt-0.5 text-emerald-500"></i>
+                                <span class="text-slate-700">@feature</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- 使用场景 -->
+                <div>
+                    <h4 class="mb-3 text-sm font-semibold text-slate-900">适用场景</h4>
+                    <div class="rounded-lg bg-slate-50 p-4">
+                        <p class="text-sm text-slate-700">
+                            @Template.UseCases
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 技术栈 -->
+                <div>
+                    <h4 class="mb-3 text-sm font-semibold text-slate-900">技术栈</h4>
+                    <div class="flex flex-wrap items-center gap-2">
+                        @foreach (var tech in Template.TechStack)
+                        {
+                            <Badge Variant="primary">@tech</Badge>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+        else if (ActiveTab == "diagram")
+        {
+            <div class="flex min-h-[300px] items-center justify-center rounded-lg bg-slate-50 p-6">
+                <!-- 流程图预览 -->
+                <div class="text-center">
+                    <i class="fas fa-project-diagram mb-4 text-6xl text-slate-300"></i>
+                    <p class="text-sm text-slate-600">流程图预览</p>
+                </div>
+            </div>
+        }
+        else if (ActiveTab == "reviews")
+        {
+            <div class="space-y-4">
+                <!-- 评分概览 -->
+                <div class="rounded-lg bg-slate-50 p-4">
+                    <div class="flex items-center gap-6">
+                        <div class="text-center">
+                            <div class="text-4xl font-bold text-slate-900">@Template.Rating.ToString("F1")</div>
+                            <div class="my-2 flex items-center justify-center gap-1 text-amber-500">
+                                @for (int i = 0; i < 5; i++)
+                                {
+                                    <i class="fas fa-star text-sm"></i>
+                                }
+                            </div>
+                            <div class="text-xs text-slate-600">@Template.ReviewCount 条评价</div>
+                        </div>
+                        <div class="flex-1">
+                            @for (int i = 5; i >= 1; i--)
+                            {
+                                var percentage = i * 20;
+                                <div class="mb-1 flex items-center gap-2">
+                                    <span class="w-8 text-xs text-slate-600">@i 星</span>
+                                    <div class="h-2 flex-1 overflow-hidden rounded-full bg-slate-200">
+                                        <div class="h-full bg-amber-500" style="width: @percentage%"></div>
+                                    </div>
+                                    <span class="w-8 text-xs text-slate-600">@percentage%</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 评论列表 -->
+                <div class="space-y-3">
+                    @foreach (var review in SampleReviews)
+                    {
+                        <div class="rounded-lg border border-slate-200 p-4">
+                            <div class="mb-2 flex items-start justify-between">
+                                <div class="flex items-center gap-2">
+                                    <Avatar Name="@review.Author" Size="sm" />
+                                    <div>
+                                        <div class="text-sm font-medium text-slate-900">@review.Author</div>
+                                        <div class="flex items-center gap-2 text-xs text-slate-600">
+                                            <div class="flex items-center gap-1 text-amber-500">
+                                                @for (int i = 0; i < review.Rating; i++)
+                                                {
+                                                    <i class="fas fa-star text-xs"></i>
+                                                }
+                                            </div>
+                                            <span>·</span>
+                                            <span>@review.Date</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-sm text-slate-700">@review.Content</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </Tabs>
+</div>
+
+@code {
+    [Parameter] public WorkflowTemplate Template { get; set; } = new();
+
+    private string ActiveTab = "overview";
+
+    private List<Tabs.TabItem> TabItems = new()
+    {
+        new("overview", "概览", "fas fa-info-circle"),
+        new("diagram", "流程图", "fas fa-project-diagram"),
+        new("reviews", "评价", "fas fa-comment")
+    };
+
+    private List<Review> SampleReviews = new()
+    {
+        new("张三", 5, "非常实用的模板，节省了大量开发时间！", "2天前"),
+        new("李四", 4, "功能完善，文档清晰，推荐使用。", "1周前"),
+        new("王五", 5, "完美！正是我需要的流程模板。", "2周前")
+    };
+
+    record Review(string Author, int Rating, string Content, string Date);
+}

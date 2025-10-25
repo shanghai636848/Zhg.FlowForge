@@ -1,6 +1,9 @@
-﻿@* @page "/codegen/{ProcessId}"
+﻿@page "/codegen/{ProcessId}"
 @using Zhg.FlowForge.App.Shared.Components.Buttons
+@using Zhg.FlowForge.App.Shared.Components.CodeGen
+@using Zhg.FlowForge.App.Shared.Components.Feedback
 @using Zhg.FlowForge.App.Shared.Models
+@using Zhg.FlowForge.App.Shared.Services
 @layout EditorLayout
 @inject ICodeGenerationService CodeGenService
 @inject IBpmnService BpmnService
@@ -17,7 +20,7 @@
         <div class="flex h-14 items-center justify-between border-b border-slate-200 px-4">
             <h2 class="text-sm font-semibold text-slate-900">代码生成向导</h2>
             <button class="flex h-7 w-7 items-center justify-center rounded-md hover:bg-slate-100"
-                    @onclick="() => Navigation.NavigateTo(\"/designer/\" + ProcessId)">
+                    @onclick="@(() => Navigation.NavigateTo("designer" + ProcessId))">
                 <i class="fas fa-times text-xs text-slate-600"></i>
             </button>
         </div>
@@ -172,7 +175,8 @@
 </div>
 
 <!-- 生成完成模态框 -->
-<Modal @bind-IsOpen="ShowSuccessModal"
+@* @bind-IsOpen="ShowSuccessModal"
+ *@<Modal 
        Title="代码生成成功"
        Icon="fas fa-check-circle"
        IconColorClass="text-emerald-600"
@@ -338,4 +342,4 @@
     }
 
     record WizardStep(string Title, string Description, string Icon);
-} *@
+}

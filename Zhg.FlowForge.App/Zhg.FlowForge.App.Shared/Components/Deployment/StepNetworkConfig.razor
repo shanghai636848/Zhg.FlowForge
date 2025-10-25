@@ -1,0 +1,152 @@
+﻿@using Zhg.FlowForge.App.Shared.Components.Form
+@using Zhg.FlowForge.App.Shared.Components.Layout
+@using Zhg.FlowForge.App.Shared.Services
+<div class="max-w-2xl">
+	<div class="mb-6">
+		<h3 class="mb-2 text-base font-semibold text-slate-900">网络配置</h3>
+		<p class="text-sm text-slate-600">
+			配置域名、SSL 证书和负载均衡
+		</p>
+	</div>
+
+	<Stack Direction="vertical" Gap="4">
+		<FormGroup Title="域名配置" Icon="fas fa-globe">
+			<Input Label="应用域名"
+				   Icon="fas fa-link"
+				   Placeholder="myapp.example.com"
+				   @bind-Value="Network.Domain"
+				   HelpText="应用访问域名" />
+
+			<Checkbox @bind-Checked="Network.EnableHttps">
+				启用 HTTPS
+			</Checkbox>
+
+			@if (Network.EnableHttps)
+			{
+				<div class="mt-3 ml-6 space-y-3">
+					<Select Label="SSL 证书来源"
+							Options="@SslSources"
+							@bind-Value="Network.SslSource" />
+
+					@if (Network.SslSource == "custom")
+					{
+						<Textarea Label="证书内容"
+								  Rows="4"
+								  Placeholder="-----BEGIN CERTIFICATE-----"
+								  @bind-Value="Network.SslCertificate" />
+
+						<Textarea Label="私钥内容"
+								  Rows="4"
+								  Placeholder="-----BEGIN PRIVATE KEY-----"
+								  @bind-Value="Network.SslPrivateKey" />
+					}
+
+					<Checkbox @bind-Checked="Network.ForceHttps">
+						强制 HTTPS（重定向 HTTP）
+					</Checkbox>
+				</div>
+			}
+		</FormGroup>
+
+		<FormGroup Title="负载均衡" Icon="fas fa-balance-scale" Variant="primary">
+			<Checkbox @bind-Checked="Network.EnableLoadBalancer">
+				启用负载均衡
+			</Checkbox>
+
+			@if (Network.EnableLoadBalancer)
+			{
+				<div class="mt-3 ml-6 space-y-3">
+					<Select Label="负载均衡算法"
+							Options="@LoadBalancingAlgorithms"
+							@bind-Value="Network.LoadBalancingAlgorithm" />
+
+					<Checkbox @bind-Checked="Network.EnableSessionAffinity">
+						启用会话保持（Sticky Session）
+					</Checkbox>
+
+					@*  <div class="grid grid-cols-2 gap-3">
+                        <Input Label="健康检查间隔（秒）"
+                               Type="number"
+                               Placeholder="30"
+                               @bind-Value="@(Network.HealthCheckInterval.ToString())" />
+
+                        <Input Label="不健康阈值"
+                               Type="number"
+                               Placeholder="3"
+                               @bind-Value="@(Network.UnhealthyThreshold.ToString())" />
+                    </div> *@
+				</div>
+			}
+		</FormGroup>
+
+		<FormGroup Title="CORS 配置" Icon="fas fa-shield-alt" Variant="success">
+			<Checkbox @bind-Checked="Network.EnableCors">
+				启用跨域资源共享（CORS）
+			</Checkbox>
+
+			@if (Network.EnableCors)
+			{
+				<div class="mt-3 ml-6 space-y-3">
+					<Textarea Label="允许的源"
+							  Rows="3"
+							  Placeholder="https://example.com&#10;https://app.example.com"
+							  @bind-Value="Network.CorsOrigins"
+							  HelpText="每行一个域名" />
+
+					<Input Label="允许的方法"
+						   Placeholder="GET, POST, PUT, DELETE"
+						   @bind-Value="Network.CorsMethods" />
+
+					<Checkbox @bind-Checked="Network.CorsAllowCredentials">
+						允许携带凭证
+					</Checkbox>
+				</div>
+			}
+		</FormGroup>
+
+		<FormGroup Title="安全设置" Icon="fas fa-lock" Variant="warning">
+			<Checkbox @bind-Checked="Network.EnableRateLimit">
+				启用请求限流
+			</Checkbox>
+
+			@if (Network.EnableRateLimit)
+			{
+				<div class="mt-3 ml-6">
+					<Input Label="每分钟请求限制"
+						   Type="number"
+						   Placeholder="100"
+						   Value="@(Network.RateLimit.ToString())" />
+				</div>
+			}
+
+			<Checkbox @bind-Checked="Network.EnableWaf">
+				启用 Web 应用防火墙（WAF）
+			</Checkbox>
+
+			<Checkbox @bind-Checked="Network.EnableDdosProtection">
+				启用 DDoS 防护
+			</Checkbox>
+		</FormGroup>
+	</Stack>
+</div>
+
+@code {
+	[Parameter] public NetworkConfiguration Network { get; set; } = new();
+	[Parameter] public EventCallback<NetworkConfiguration> NetworkChanged { get; set; }
+
+	private List<Select.SelectOption> SslSources = new()
+	{
+		new("letsencrypt", "Let's Encrypt（自动）"),
+		new("custom", "自定义证书"),
+		new("cloudflare", "Cloudflare"),
+		new("aws-acm", "AWS Certificate Manager")
+	};
+
+	private List<Select.SelectOption> LoadBalancingAlgorithms = new()
+	{
+		new("round-robin", "轮询（Round Robin）"),
+		new("least-connections", "最少连接"),
+		new("ip-hash", "IP 哈希"),
+		new("weighted", "加权轮询")
+	};
+}
