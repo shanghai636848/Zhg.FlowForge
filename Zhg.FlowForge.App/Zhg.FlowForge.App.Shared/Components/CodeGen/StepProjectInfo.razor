@@ -1,6 +1,9 @@
 ﻿@using Zhg.FlowForge.App.Shared.Components.Form
 @using Zhg.FlowForge.App.Shared.Components.Layout
 @using Zhg.FlowForge.App.Shared.Models
+@using Zhg.FlowForge.App.Shared.Services
+@using static Zhg.FlowForge.App.Shared.Components.Form.Select
+
 <!-- Components/CodeGen/StepProjectInfo.razor -->
 <div class="max-w-2xl">
     <div class="mb-6">
@@ -16,41 +19,48 @@
                    Icon="fas fa-tag"
                    Placeholder="MyWorkflowProject"
                    Required="true"
-                   Value="@(Config.ProjectName)"
+                   Value="@Config.ProjectName"
+                   ValueChanged="@(value => UpdateConfig(nameof(Config.ProjectName), value))"
                    HelpText="项目名称将用作程序集名称" />
 
             <Input Label="命名空间"
                    Icon="fas fa-code"
                    Placeholder="MyCompany.Workflows"
                    Required="true"
-                   Value="@(Config.Namespace)"
+                   Value="@Config.Namespace"
+                   ValueChanged="@(value => UpdateConfig(nameof(Config.Namespace), value))"
                    HelpText="代码文件的根命名空间" />
 
             <Input Label="版本号"
                    Icon="fas fa-code-branch"
                    Placeholder="1.0.0"
-                   Value="@(Config.Version)"
+                   Value="@Config.Version"
+                   ValueChanged="@(value => UpdateConfig(nameof(Config.Version), value))"
                    HelpText="项目版本号（语义化版本）" />
 
             <Textarea Label="项目描述"
-                     Rows="3"
-                     Placeholder="简要描述项目的功能和用途..."
-                     Value="@(Config.Description)"
-                     ShowCount="true"
-                     MaxLength="500" />
+                      Rows="3"
+                      Placeholder="简要描述项目的功能和用途..."
+                      Value="@Config.Description"
+                      ValueChanged="@(value => UpdateConfig(nameof(Config.Description), value))"
+                      ShowCount="true"
+                      MaxLength="500" />
         </FormGroup>
 
         <FormGroup Title="目标框架" Icon="fas fa-bullseye" Variant="primary">
             <Select Label="框架版本"
-                   Options=FrameworkOptions
-                   Value="@(Config.TargetFramework)"
-                   HelpText="选择目标 .NET 框架版本" />
+                    Options="@FrameworkOptions"
+                    Value="@Config.TargetFramework"
+                    ValueChanged="@(value => UpdateConfig(nameof(Config.TargetFramework), value))"
+                    HelpText="选择目标 .NET 框架版本" />
 
             <div class="flex items-center gap-4">
-                <Checkbox Checked="@(Config.EnableNullable)">
+                <Checkbox Checked="@Config.EnableNullable"
+                          CheckedChanged="@(value => UpdateConfig(nameof(Config.EnableNullable), value))">
                     启用可空引用类型
                 </Checkbox>
-                <Checkbox Checked="@(Config.ImplicitUsings)">
+                <Checkbox Checked="@Config.ImplicitUsings"
+                          CheckedChanged="@(value => UpdateConfig(nameof(Config.ImplicitUsings), value))">
                     启用隐式 using
                 </Checkbox>
             </div>
@@ -60,29 +70,60 @@
             <Input Label="作者"
                    Icon="fas fa-user"
                    Placeholder="Your Name"
-                   Value="Config.Author" />
+                   Value="@Config.Author"
+                   ValueChanged="@(value => UpdateConfig(nameof(Config.Author), value))" />
 
             <Input Label="公司/组织"
                    Icon="fas fa-building"
                    Placeholder="Your Company"
-                   Value="Config.Company" />
+                   Value="@Config.Company"
+                   ValueChanged="@(value => UpdateConfig(nameof(Config.Company), value))" />
 
             <Input Label="版权信息"
                    Icon="fas fa-copyright"
                    Placeholder="Copyright © 2025"
-                   Value="Config.Copyright" />
+                   Value="@Config.Copyright"
+                   ValueChanged="@(value => UpdateConfig(nameof(Config.Copyright), value))" />
         </FormGroup>
     </Stack>
 </div>
 
 @code {
-    [Parameter] public Services.ProjectConfig Config { get; set; } = new();
-    [Parameter] public EventCallback<Services.ProjectConfig> ConfigChanged { get; set; }
+    [Parameter] public ProjectConfig Config { get; set; } = new();
+    [Parameter] public EventCallback<ProjectConfig> ConfigChanged { get; set; }
 
-    private List<Select.SelectOption> FrameworkOptions = new()
+    private List<SelectOption> FrameworkOptions = new()
     {
         new("net10.0", ".NET 10.0 (推荐)"),
         new("net9.0", ".NET 9.0"),
         new("net8.0", ".NET 8.0 LTS")
     };
+
+    private async Task UpdateConfig(string propertyName, object value)
+    {
+        var property = typeof(ProjectConfig).GetProperty(propertyName);
+        if (property != null && property.CanWrite)
+        {
+            // 确保类型匹配
+            var targetType = property.PropertyType;
+            if (value != null && value.GetType() != targetType)
+            {
+                value = Convert.ChangeType(value, targetType);
+            }
+
+            property.SetValue(Config, value);
+            await ConfigChanged.InvokeAsync(Config);
+        }
+    }
+
+    // 处理复选框的特殊情况
+    private async Task UpdateConfig(string propertyName, bool value)
+    {
+        var property = typeof(ProjectConfig).GetProperty(propertyName);
+        if (property != null && property.CanWrite)
+        {
+            property.SetValue(Config, value);
+            await ConfigChanged.InvokeAsync(Config);
+        }
+    }
 }

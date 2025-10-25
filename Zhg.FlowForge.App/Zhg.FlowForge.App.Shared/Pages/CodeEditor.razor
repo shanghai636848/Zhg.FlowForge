@@ -132,7 +132,7 @@
 				<Button Variant="primary"
 						Size="sm"
 						Icon="fas fa-save"
-						Disabled="@(!HasUnsavedChanges)"
+						Disabled="!HasUnsavedChanges"
 						OnClick="SaveAll"
 						Title="保存全部 (Ctrl+S)">
 					保存 @(HasUnsavedChanges ? $"({OpenedFiles.Count(f => f.IsDirty)})" : "")

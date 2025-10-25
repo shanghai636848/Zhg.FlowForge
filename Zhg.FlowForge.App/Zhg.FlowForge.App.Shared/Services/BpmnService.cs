@@ -52,7 +52,8 @@ public class BpmnService : IBpmnService
             Id = "end",
             Name = "结束",
             Type = "EndEvent"
-        }); _processes[process.Id] = process; _logger.LogInformation("创建 BPMN 流程: {ProcessName} ({ProcessId})", process.Name, process.Id); return process;
+        }); _processes[process.Id] = process; 
+        _logger.LogInformation("创建 BPMN 流程: {ProcessName} ({ProcessId})", process.Name, process.Id); return process;
     }
     public async Task<BpmnProcess> UpdateProcessAsync(string processId, UpdateProcessRequest request)
     {
