@@ -4,6 +4,7 @@ using Zhg.FlowForge.Api;
 using Zhg.FlowForge.Application;
 using Zhg.FlowForge.Application.Contract;
 using Zhg.FlowForge.Domain;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
@@ -53,6 +54,8 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
+
+    app.MapScalarApiReference();
     app.MapOpenApi();
 }
 
