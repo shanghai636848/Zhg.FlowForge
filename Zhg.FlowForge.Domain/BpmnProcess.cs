@@ -16,9 +16,9 @@ public class BpmnProcess
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
 
-    private readonly List<BpmnActivity> _activities = new();
-    private readonly List<BpmnSequenceFlow> _sequenceFlows = new();
-    private readonly List<BpmnGateway> _gateways = new();
+    private readonly List<BpmnActivity> _activities = [];
+    private readonly List<BpmnSequenceFlow> _sequenceFlows = [];
+    private readonly List<BpmnGateway> _gateways = [];
 
     public IReadOnlyList<BpmnActivity> Activities => _activities.AsReadOnly();
     public IReadOnlyList<BpmnSequenceFlow> SequenceFlows => _sequenceFlows.AsReadOnly();
@@ -92,7 +92,7 @@ public class BpmnActivity
         Id = string.Empty;
         Name = string.Empty;
         Type = string.Empty;
-        Properties = new();
+        Properties = [];
     }
 
     public static BpmnActivity Create(string name, string type)

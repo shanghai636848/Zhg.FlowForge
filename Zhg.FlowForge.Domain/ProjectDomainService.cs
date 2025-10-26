@@ -8,18 +8,12 @@ namespace Zhg.FlowForge.Domain;
 /// <summary>
 /// 项目领域服务实现
 /// </summary>
-public class ProjectDomainService : IProjectDomainService
+public class ProjectDomainService(
+    IProjectRepository projectRepository,
+    ILogger<ProjectDomainService> logger) : IProjectDomainService
 {
-    private readonly IProjectRepository _projectRepository;
-    private readonly ILogger<ProjectDomainService> _logger;
-
-    public ProjectDomainService(
-        IProjectRepository projectRepository,
-        ILogger<ProjectDomainService> logger)
-    {
-        _projectRepository = projectRepository;
-        _logger = logger;
-    }
+    private readonly IProjectRepository _projectRepository = projectRepository;
+    private readonly ILogger<ProjectDomainService> _logger = logger;
 
     public async Task<bool> CanDeleteProjectAsync(string projectId, CancellationToken cancellationToken = default)
     {
