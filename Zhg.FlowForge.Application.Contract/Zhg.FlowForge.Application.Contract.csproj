@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Zhg.FlowForge.Domain.Shared\Zhg.FlowForge.Domain.Shared.csproj" />
+  </ItemGroup>
+
 </Project>

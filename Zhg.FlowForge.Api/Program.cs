@@ -1,5 +1,9 @@
 using Microsoft.AspNetCore.Http.HttpResults;
 using System.Text.Json.Serialization;
+using Zhg.FlowForge.Api;
+using Zhg.FlowForge.Application;
+using Zhg.FlowForge.Application.Contract;
+using Zhg.FlowForge.Domain;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
@@ -32,6 +36,19 @@ builder.Services.AddCors(options =>
 builder.Services.AddHealthChecks();
 
 
+// 注册服务
+builder.Services.AddScoped<IProjectService, ProjectService>();
+builder.Services.AddScoped<IBpmnProcessService, BpmnProcessService>();
+builder.Services.AddScoped<ICodeGenerationService, CodeGenerationService>();
+builder.Services.AddScoped<ICompilationService, CompilationService>();
+// 注册仓储（使用内存实现，生产环境可替换为 EF Core 等）
+builder.Services.AddSingleton<IProjectRepository, InMemoryProjectRepository>();
+builder.Services.AddSingleton<IBpmnProcessRepository, InMemoryBpmnProcessRepository>();
+// 注册领域服务
+builder.Services.AddScoped<IProjectDomainService, ProjectDomainService>();
+builder.Services.AddScoped<IFileSystemService, FileSystemService>();
+
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -56,18 +73,10 @@ app.Use(async (context, next) =>
 
 app.UseCors("AllowAll");
 app.MapHealthChecks("/health");
+// 注册端点
+app.MapProjectEndpoints();
+app.MapBpmnProcessEndpoints();
+app.MapCodeGenerationEndpoints();
+app.MapCompilationEndpoints();
 
-app.MapGet("/todos", async context =>
-{
-    context.Response.ContentType = "application/json";
-    context.Response.StatusCode = 200;
-    var todo = new Todo("2.0", "Zhg.Workflow.Server.Api is running!");
-    await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(todo, AppJsonSerializerContext.Default.Todo));
-});
 app.Run();
-
-
-public record Todo(string Version, string Message);
-
-[JsonSerializable(typeof(Todo[]))]
-internal partial class AppJsonSerializerContext : JsonSerializerContext;

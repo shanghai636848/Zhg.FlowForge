@@ -11,6 +11,11 @@
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.0-rc.2.25502.107" />
 		<PackageReference Include="Microsoft.Extensions.Options" Version="10.0.0-rc.2.25502.107" />
 	</ItemGroup>
+	
+	<ItemGroup>
+	  <ProjectReference Include="..\Zhg.FlowForge.Application.Contract\Zhg.FlowForge.Application.Contract.csproj" />
+	  <ProjectReference Include="..\Zhg.FlowForge.Domain\Zhg.FlowForge.Domain.csproj" />
+	</ItemGroup>
 
 
 </Project>
